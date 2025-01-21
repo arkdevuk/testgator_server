@@ -1,0 +1,164 @@
+<?php
+
+namespace App\Entity;
+
+use ApiPlatform\Metadata\ApiResource;
+use App\Repository\TestPlanRepository;
+use App\Traits\Entity\TimeStampable;
+use App\Traits\GuidAware;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: TestPlanRepository::class)]
+#[ApiResource]
+class TestPlan
+{
+
+    use GuidAware;
+    use TimeStampable;
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $name = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $key = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $state = null;
+
+    #[ORM\ManyToOne(inversedBy: 'plans')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Release $release = null;
+
+    #[ORM\Column]
+    private array $questionsOrder = [];
+
+    /**
+     * @var Collection<int, Question>
+     */
+    #[ORM\OneToMany(targetEntity: Question::class, mappedBy: 'plan')]
+    private Collection $questions;
+
+    public function __construct()
+    {
+        $this->questions = new ArrayCollection();
+        $this->key = $this->generateHumanHash(256);
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getKey(): ?string
+    {
+        return $this->key;
+    }
+
+    public function setKey(string $key): static
+    {
+        $this->key = $key;
+
+        return $this;
+    }
+
+    public function getState(): ?string
+    {
+        return $this->state;
+    }
+
+    public function setState(string $state): static
+    {
+        $this->state = $state;
+
+        return $this;
+    }
+
+    public function getRelease(): ?Release
+    {
+        return $this->release;
+    }
+
+    public function setRelease(?Release $release): static
+    {
+        $this->release = $release;
+
+        return $this;
+    }
+
+    public function getQuestionsOrder(): array
+    {
+        return $this->questionsOrder;
+    }
+
+    public function setQuestionsOrder(array $questionsOrder): static
+    {
+        $this->questionsOrder = $questionsOrder;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Question>
+     */
+    public function getQuestions(): Collection
+    {
+        return $this->questions;
+    }
+
+    public function addQuestion(Question $question): static
+    {
+        if (!$this->questions->contains($question)) {
+            $this->questions->add($question);
+            $question->setPlan($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuestion(Question $question): static
+    {
+        if ($this->questions->removeElement($question)) {
+            // set the owning side to null (unless already changed)
+            if ($question->getPlan() === $this) {
+                $question->setPlan(null);
+            }
+        }
+
+        return $this;
+    }
+}
