@@ -15,5 +15,8 @@ framework:
         #app: cache.adapter.apcu
 
         # Namespaced pools use the above "app" backend by default
-        #pools:
+      pools:
             #my.dedicated.cache: null
+        # $uploadRequestCache
+        upload_request_cache:
+          adapter: cache.app

@@ -7,17 +7,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class DefaultController extends AbstractController
+final class PublishController extends AbstractController
 {
-    #[Route('/', name: 'home')]
-    public function home(): Response
-    {
-        return $this->json([
-            'test' => true,
-        ]);
-    }
-
-    #[Route('/public/test', name: 'test_url')]
+    #[Route('/public/publish', name: 'test_url')]
     public function publicTest(
         MailingService $mailingService
     ): Response
@@ -28,10 +20,11 @@ final class DefaultController extends AbstractController
             ['name' => 'Alex']
         );
 
+
         $mailingService->sendMail(
             'ark@ark-dev.uk',
             'Test',
-            'This is a test email'
+            $content,
         );
 
 

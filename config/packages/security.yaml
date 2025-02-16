@@ -16,12 +16,22 @@ security:
     doc:
       pattern: ^/api$
       security: false
+    uploads:
+      pattern: ^/public/apx/upload$
+      stateless: true
+      custom_authenticator:
+        - App\Security\UploadAuthenticator
     publicapi:
-      pattern: ^/(public|docs)
+      pattern: ^/(public|docs)/
       security: false
     login_endpoint:
-      pattern: ^/apx/login$
+      pattern: ^/apx/(login|login_guest)$
       security: false
+    guestapi:
+      pattern: ^/guest/apx/
+      stateless: true
+      custom_authenticator:
+        - App\Security\GuestAuthenticator
     privateapi:
       pattern: ^/
       stateless: true

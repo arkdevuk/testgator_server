@@ -35,7 +35,7 @@ COPY --link docker/frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
 COPY --link --chmod=755 docker/frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY --link docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
 
-# TODO : add the app code : COPY . /app
+COPY --link ./ /app
 
 ENTRYPOINT ["docker-entrypoint"]
 
@@ -57,3 +57,8 @@ RUN set -eux; \
 COPY --link docker/frankenphp/conf.d/app.dev.ini $PHP_INI_DIR/conf.d/
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch"]
+
+
+# TODO DEV TARGET
+
+# TODO : add the app code : COPY . /app

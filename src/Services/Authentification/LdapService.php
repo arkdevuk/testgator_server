@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Authentification;
 
 use Symfony\Component\Ldap\Ldap;
 

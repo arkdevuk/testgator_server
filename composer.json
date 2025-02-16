@@ -9,6 +9,7 @@
         "ext-iconv": "*",
       "api-platform/doctrine-orm": "^4.0",
       "api-platform/symfony": "^4.0",
+      "aws/aws-sdk-php": "^3.338",
       "doctrine/dbal": "^3",
       "doctrine/doctrine-bundle": "^2.13",
       "doctrine/doctrine-migrations-bundle": "^3.4",
@@ -18,12 +19,15 @@
       "phpdocumentor/reflection-docblock": "^5.6",
       "phpstan/phpdoc-parser": "^2.0",
       "symfony/asset": "7.2.*",
+      "symfony/cache": "7.2.*",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
       "symfony/expression-language": "7.2.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.2.*",
       "symfony/ldap": "7.2.*",
+      "symfony/mailer": "7.2.*",
+      "symfony/mime": "7.2.*",
       "symfony/property-access": "7.2.*",
       "symfony/property-info": "7.2.*",
         "symfony/runtime": "7.2.*",
@@ -85,6 +89,7 @@
         }
     },
   "require-dev": {
+    "doctrine/doctrine-fixtures-bundle": "^4.0",
     "symfony/maker-bundle": "^1.62"
     }
 }

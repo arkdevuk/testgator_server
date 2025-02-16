@@ -3,12 +3,14 @@
 namespace App\Security;
 
 use App\Entity\User;
+use App\Services\Authentification\JWTService;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
@@ -19,13 +21,15 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 class AppCustomAuthenticator extends AbstractAuthenticator
 {
     protected EntityManagerInterface $em;
+    protected JWTService $jwtService;
 
     public function __construct(
         EntityManagerInterface $em,
+        JWTService $jwtService,
     )
     {
         $this->em = $em;
-
+        $this->jwtService = $jwtService;
     }
 
     public function supports(Request $request): ?bool
@@ -44,14 +48,13 @@ class AppCustomAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('Invalid JWT');
         }
 
-        // get private key in /data/JWT/key.private.key
-        //$privateKey = file_get_contents('/data/JWT/key.private.key');
-        // get public key in /data/JWT/key.pub
-        $appRootDir = dirname(__DIR__, 2);
-        $publicKey = file_get_contents($appRootDir . '/data/JWT/key.pub');
-        // decode JWT
-        $jwt = JWT::decode($jwtString, new Key($publicKey, 'RS256'));
+        try {
+            $jwt = $this->jwtService->decodeJWT($jwtString);
+        } catch (\Exception $e) {
+            throw new AuthenticationException('Invalid JWT');
+        }
         $authData = $this->objectToArray($jwt);
+
         // get user from DB with $authData['guid']
         $u = $this->em->getRepository(User::class)->findOneBy(['id' => $authData['guid']]);
         // if user not found, error

@@ -2,32 +2,46 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ReleaseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ReleaseRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['release:read']],
+    denormalizationContext: ['groups' => ['release:write']],
+)]
+#[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'project'], arguments: ['orderParameterName' => 'order'])]
 class Release
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['release:read', 'team:write', 'testPlan:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['release:read', 'team:write', 'testPlan:read'])]
+    #[ApiFilter(SearchFilter::class, strategy: 'partial')]
     private ?string $name = null;
 
     #[ORM\ManyToOne(inversedBy: 'releases')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['release:read', 'team:write', 'testPlan:read'])]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?Project $project = null;
 
     /**
      * @var Collection<int, TestPlan>
      */
     #[ORM\OneToMany(targetEntity: TestPlan::class, mappedBy: 'release')]
+    #[Groups(['release:read', 'team:write'])]
     private Collection $plans;
 
     public function __construct()

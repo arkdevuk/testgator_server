@@ -2,7 +2,13 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Common\Filter\DateFilterInterface;
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use App\Classes\TestPlanState;
 use App\Repository\TestPlanRepository;
 use App\Traits\Entity\TimeStampable;
 use App\Traits\GuidAware;
@@ -10,9 +16,17 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TestPlanRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['testPlan:read']],
+    denormalizationContext: ['groups' => ['testPlan:write']],
+)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'release.project' => 'exact',
+])]
+#[ApiFilter(OrderFilter::class, properties: ['id', 'release', 'state', 'dueDate'], arguments: ['orderParameterName' => 'order'])]
 class TestPlan
 {
 
@@ -22,37 +36,62 @@ class TestPlan
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['testPlan:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['testPlan:read', 'team:write'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['testPlan:read', 'team:write'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['none:read'])]
     private ?string $key = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['testPlan:read', 'team:write'])]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?string $state = null;
 
     #[ORM\ManyToOne(inversedBy: 'plans')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['testPlan:read', 'team:write'])]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?Release $release = null;
 
     #[ORM\Column]
+    #[Groups(['testPlan:read', 'team:write'])]
     private array $questionsOrder = [];
 
     /**
      * @var Collection<int, Question>
      */
     #[ORM\OneToMany(targetEntity: Question::class, mappedBy: 'plan')]
+    #[Groups(['testPlan:read', 'testPlan:write'])]
     private Collection $questions;
+
+    /**
+     * @var Collection<int, Tester>
+     */
+    #[ORM\ManyToMany(targetEntity: Tester::class)]
+    #[Groups(['testPlan:read', 'testPlan:write'])]
+    private Collection $testersEnrolled;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    #[Groups(['testPlan:read', 'testPlan:write'])]
+    #[ApiFilter(DateFilter::class, strategy: DateFilterInterface::EXCLUDE_NULL)]
+    private ?\DateTimeInterface $dueDate = null;
 
     public function __construct()
     {
         $this->questions = new ArrayCollection();
-        $this->key = $this->generateHumanHash(256);
+        $this->key = $this->generateHumanHash(128);
+        $this->state = TestPlanState::DRAFT;
+        $this->setNow();
+        $this->testersEnrolled = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -158,6 +197,55 @@ class TestPlan
                 $question->setPlan(null);
             }
         }
+
+        return $this;
+    }
+
+    #[Groups(['testPlan:read'])]
+    public function getTotalQuestions(): int
+    {
+        return $this->questions->count();
+    }
+
+    /**
+     * @return Collection<int, Tester>
+     */
+    public function getTestersEnrolled(): Collection
+    {
+        return $this->testersEnrolled;
+    }
+
+    public function addTestersEnrolled(Tester $testersEnrolled): static
+    {
+        if (!$this->testersEnrolled->contains($testersEnrolled)) {
+            $this->testersEnrolled->add($testersEnrolled);
+            $this->getRelease()?->getProject()?->addAllTester($testersEnrolled);
+        }
+
+        return $this;
+    }
+
+    public function removeTestersEnrolled(Tester $testersEnrolled): static
+    {
+        $this->testersEnrolled->removeElement($testersEnrolled);
+
+        return $this;
+    }
+
+    #[Groups(['testPlan:read'])]
+    public function getTotalTestersEnrolled(): int
+    {
+        return $this->testersEnrolled->count();
+    }
+
+    public function getDueDate(): ?\DateTimeInterface
+    {
+        return $this->dueDate;
+    }
+
+    public function setDueDate(\DateTimeInterface $dueDate): static
+    {
+        $this->dueDate = $dueDate;
 
         return $this;
     }
