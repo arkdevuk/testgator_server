@@ -1,0 +1,38 @@
+TestGator License (Based on AGPL-3.0)**
+Version 1.0
+Copyright © arkdevuk, 2025
+
+This license is based on the GNU Affero General Public License (AGPL-3.0), with additional terms to ensure that:
+- The software remains free for use, but cannot be resold or offered as a paid service except by the original author.
+- Plugins must be open-source, but they can be sold.
+- No one can fork this software for commercial use or create a proprietary version.
+
+---
+
+1. License Grant
+This software is licensed under AGPL-3.0, with the following additional restrictions:
+
+2. Permitted Use
+- You may use, modify, and distribute this software for free, including within a company’s internal processes.
+- Any modifications must be released under the same AGPL-3.0 + this license if distributed or used as a service.
+
+3. Prohibited Commercial Use
+- You may not sell this software or offer it as a paid service (SaaS, hosting, or similar models).
+- The original author retains exclusive rights to sell this software or offer a paid version.
+- This restriction applies to individuals and organizations.
+
+4. Plugin Rules
+- Any plugins, extensions, or add-ons must be open-source and licensed under a recognized open-source license.
+- However, third parties may sell plugins, provided they remain open-source.
+
+5. No Commercial Forking
+- You may not create a modified version of this software for commercial use.
+- A company may not fork this software and use it as the base for a commercial, closed-source, or SaaS product.
+- Modifications must be released under AGPL-3.0 + this license, and must not be monetized.
+
+6. Enforcement
+- Any violation of these terms automatically revokes your right to use, distribute, or modify this software.
+- The original author may take legal action to enforce these conditions.
+
+7. License Compatibility
+- This license is based on AGPL-3.0. In the case of conflicts, these additional terms override AGPL where applicable.
