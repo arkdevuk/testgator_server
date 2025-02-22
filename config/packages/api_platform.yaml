@@ -1,5 +1,5 @@
 api_platform:
-  title: Hello API Platform
+  title: TestGator API
   version: 1.0.0
   defaults:
     pagination_client_items_per_page: true

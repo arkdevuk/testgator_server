@@ -25,7 +25,7 @@ security:
       pattern: ^/(public|docs)/
       security: false
     login_endpoint:
-      pattern: ^/apx/(login|login_guest)$
+      pattern: ^/api/auth/(login|login_guest)$
       security: false
     guestapi:
       pattern: ^/guest/apx/

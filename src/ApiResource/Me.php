@@ -1,0 +1,79 @@
+<?php
+
+namespace App\ApiResource;
+
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use App\Entity\User;
+use App\State\MeStateProvider;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Uid\UuidV7 as Uuid;
+
+#[ApiResource(
+    normalizationContext: ['groups' => ['userSelf:read']],
+    denormalizationContext: ['groups' => ['userSelf:write']],
+    provider: MeStateProvider::class
+)]
+#[Get(uriTemplate: '/auth/me', security: "is_granted('ROLE_USER')")]
+class Me
+{
+    #[Groups(['none:none'])]
+    private User $user;
+
+    #[ApiProperty(identifier: false)]
+    #[Groups(['userSelf:read'])]
+    private ?Uuid $id = null;
+
+    #[Groups(['userSelf:read'])]
+    private ?string $email = null;
+
+    #[Groups(['userSelf:read'])]
+    private array $roles = [];
+
+    public function __construct(?Uuid $userId = null)
+    {
+        $this->id = $userId;
+    }
+
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): Me
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getId(): ?Uuid
+    {
+        return $this->id;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): Me
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles): Me
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+
+}

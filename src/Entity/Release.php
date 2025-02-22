@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ReleaseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -44,9 +45,14 @@ class Release
     #[Groups(['release:read', 'team:write'])]
     private Collection $plans;
 
+    #[ORM\Column(type: Types::TEXT, options: ['default' => ''])]
+    #[Groups(['release:read', 'team:write', 'testPlan:read'])]
+    private ?string $description;
+
     public function __construct()
     {
         $this->plans = new ArrayCollection();
+        $this->description = '';
     }
 
     public function getId(): ?int
@@ -104,6 +110,18 @@ class Release
                 $plan->setRelease(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }

@@ -13,7 +13,9 @@ final class DefaultController extends AbstractController
     public function home(): Response
     {
         return $this->json([
-            'test' => true,
+            'healthcheck' => 'ok',
+            'version' => '1.0.0',
+            'error' => false,
         ]);
     }
 

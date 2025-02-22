@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class LoginController extends AbstractController
 {
-    #[Route('/apx/login', name: 'app_login')]
+    #[Route('/api/auth/login', name: 'app_login')]
     public function index(
         Request              $request,
         UserBuiltInDbService $userBuiltInDbService,
@@ -88,7 +88,7 @@ final class LoginController extends AbstractController
         ]);
     }
 
-    #[Route('/apx/login_tester', name: 'app_login_tester')]
+    #[Route('/api/auth/login_tester', name: 'app_login_tester')]
     public function loginTester(
         Request          $request,
         GuestAuthService $guestAuthService,
