@@ -12,10 +12,11 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: ReleaseRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['release:read']],
+    normalizationContext: ['groups' => ['release:read'], 'enable_max_depth' => true],
     denormalizationContext: ['groups' => ['release:write']],
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'project'], arguments: ['orderParameterName' => 'order'])]
@@ -36,6 +37,7 @@ class Release
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['release:read', 'team:write', 'testPlan:read'])]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
+    #[MaxDepth(1)]
     private ?Project $project = null;
 
     /**
@@ -43,6 +45,7 @@ class Release
      */
     #[ORM\OneToMany(targetEntity: TestPlan::class, mappedBy: 'release')]
     #[Groups(['release:read', 'team:write'])]
+    #[MaxDepth(1)]
     private Collection $plans;
 
     #[ORM\Column(type: Types::TEXT, options: ['default' => ''])]
