@@ -1,6 +1,6 @@
 # TestGator
 
-![GatorAvatar](https://github.com/arkdevuk/testgator_client/blob/main/public/assets/gator_avatar.png?raw=true)
+![GatorAvatar](https://github.com/arkdevuk/testgator_client/blob/main/public/assets/display.jpg?raw=true)
 
 TestGator is a streamlined testing platform that helps development teams efficiently distribute and collect feedback on
 testing plans from end-users. Designed to simplify the workflow, TestGator enables teams to send interactive test plans
