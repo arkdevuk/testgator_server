@@ -9,6 +9,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\ApiResource\Me;
 use App\ApiResource\ReleaseStats;
 use App\Entity\Release;
+use App\Entity\Tester;
 use App\Entity\User;
 use App\Services\Entities\ReleaseManager;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -32,7 +33,7 @@ class MeStateProvider implements ProviderInterface
     {
         if ($operation instanceof Get) {
             $u = $this->security->getUser();
-            if (!$u instanceof User) {
+            if (!$u instanceof User && !$u instanceof Tester) {
                 return null;
             }
             $me = new Me($u->getId());

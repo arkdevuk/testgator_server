@@ -2,15 +2,13 @@
 
 namespace App\Security;
 
+use App\Entity\Tester;
 use App\Entity\User;
 use App\Services\Authentification\JWTService;
 use Doctrine\ORM\EntityManagerInterface;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
@@ -49,31 +47,40 @@ class AppCustomAuthenticator extends AbstractAuthenticator
         }
 
         try {
-            $jwt = $this->jwtService->decodeJWT($jwtString);
+            $authData = $this->jwtService->decodeJWT($jwtString);
         } catch (\Exception $e) {
             throw new AuthenticationException('Invalid JWT');
         }
-        $authData = $this->objectToArray($jwt);
 
-        // get user from DB with $authData['guid']
-        $u = $this->em->getRepository(User::class)->findOneBy(['id' => $authData['guid']]);
+        // Reject expired tokens before touching the database
+        if (($authData['exp'] ?? 0) < time()) {
+            throw new AuthenticationException('Invalid JWT');
+        }
+
+        // if $authData['roles'] contains 'ROLE_TESTER' and not 'ROLE_USER', set $userClass to Tester::class
+        if (in_array('ROLE_TESTER', $authData['roles'], true) && !in_array('ROLE_USER', $authData['roles'], true)) {
+            $userClass = Tester::class;
+            $u = $this->em->getRepository(Tester::class)->findOneBy(['email' => $authData['email']]);
+        } else {
+            // get user from DB with $authData['guid']
+            $userClass = User::class;
+            $u = $this->em->getRepository(User::class)->findOneBy(['id' => $authData['guid']]);
+        }
+
         // if user not found, error
         if (!$u) {
             throw new AuthenticationException('Invalid JWT');
         }
-        // check 'exp' field
-        if ($authData['exp'] < time()) {
-            throw new AuthenticationException('Invalid JWT');
-        }
+
 
         // if user found, return Passport
         $self = &$this;
         $passport = new SelfValidatingPassport(
             new UserBadge($u->getId(),
-                static function ($userIdentifier) use ($self) {
-                    $u = $self->em->getRepository(User::class)
+                static function ($userIdentifier) use ($self, $userClass) {
+                    $u = $self->em->getRepository($userClass)
                         ->findOneBy(['id' => $userIdentifier]);
-                    if (!$u instanceof User) {
+                    if (!$u instanceof User && !$u instanceof Tester) {
                         return null;
                     }
 
@@ -83,19 +90,6 @@ class AppCustomAuthenticator extends AbstractAuthenticator
         );
 
         return $passport;
-    }
-
-    public function objectToArray($obj): array
-    {
-        $arr = [];
-        foreach ($obj as $key => $value) {
-            $arr[$key] = $value;
-            // recursive call if the value is an object
-            if (is_object($value)) {
-                $arr[$key] = $this->objectToArray($value);
-            }
-        }
-        return $arr;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response

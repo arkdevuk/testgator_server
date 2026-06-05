@@ -5,10 +5,11 @@ namespace App\Services\Authentification;
 use App\Entity\User;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 class JWTService
 {
-    public function getJWT(User $user, bool $rememberMe = false, array $more = []): string
+    public function getJWT(UserInterface $user, bool $rememberMe = false, array $more = []): string
     {
         $expire = $this->getExpireTime($rememberMe);
         return $this->generateJWT($user, $expire, $more);
@@ -27,7 +28,7 @@ class JWTService
         return $expire;
     }
 
-    private function generateJWT(User $u, int $expire, array $more = [])
+    private function generateJWT(UserInterface $u, int $expire, array $more = [])
     {
         $payload = [
             'guid' => $u->getId()?->toString(),
@@ -75,7 +76,7 @@ class JWTService
         $privateKey = file_get_contents("../data/JWT.{$env}/testgator.pub");
         // decode JWT
         $content = JWT::decode($jwt, new Key($privateKey, 'RS256'));
-        $authData = $this->objectToArray($content);
+        $authData = self::jwtPayloadToArray($content);
 
         if (isset($authData['exp']) && $authData['exp'] < time()) {
             throw new \Exception('Invalid JWT');
@@ -85,20 +86,13 @@ class JWTService
     }
 
     /**
-     * Recursive function to convert an object to an array
-     *
-     * @param $obj
-     * @return array
+     * Recursively converts a stdClass (as returned by firebase/php-jwt) to a plain array.
      */
-    private function objectToArray($obj): array
+    public static function jwtPayloadToArray(mixed $obj): array
     {
         $arr = [];
-        foreach ($obj as $key => $value) {
-            $arr[$key] = $value;
-            // recursive call if the value is an object
-            if (is_object($value)) {
-                $arr[$key] = $this->objectToArray($value);
-            }
+        foreach ((array)$obj as $key => $value) {
+            $arr[$key] = is_object($value) ? self::jwtPayloadToArray($value) : $value;
         }
         return $arr;
     }

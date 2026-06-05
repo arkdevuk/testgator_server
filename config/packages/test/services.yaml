@@ -1,0 +1,12 @@
+services:
+  _defaults:
+    public: true
+
+  # Make test fixtures available via container in tests
+  App\Tests\DataFixtures\TestFixtures:
+    autowire: true
+    autoconfigure: true
+
+  # Expose internal services needed by AbstractApiTestCase
+  App\Services\Authentification\JWTService: ~
+  App\Services\Authentification\GuestAuthService: ~

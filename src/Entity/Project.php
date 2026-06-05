@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\ProjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -168,11 +167,14 @@ class Project
     }
 
     #[Groups(['project:read'])]
-    public function getLatestRelease(): ?string
+    public function getLatestRelease(): ?array
     {
         $latest = $this->releases->last();
         if ($latest instanceof Release) {
-            return $latest->getName();
+            return [
+                'id' => $latest->getId(),
+                'name' => $latest->getName(),
+            ];
         }
         return null;
     }

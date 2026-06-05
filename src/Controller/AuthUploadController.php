@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Tester;
+use App\Entity\User;
 use App\Services\Authentification\GuestAuthService;
 use App\Services\Entities\TestPlanManager;
 use App\Services\FileService;
+use App\Traits\GuidAware;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,70 +15,61 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class AuthUploadController extends AbstractController
 {
-    #[Route('/apx/upload_request_auth', name: 'upload_request_auth')]
-    public function upload_request_auth(
+    use GuidAware;
+
+    #[Route('/api/uploads/request', name: 'upload_request')]
+    public function upload_request(
         FileService $fileService,
+        Request     $request,
     ): Response
     {
-        // auth already handled, generate a JWT token
-        return $this->json([
-            'jwt' => $fileService->getUploadRequest(),
-        ]);
-    }
+        $u = $this->getUser();
+        if (!$u instanceof User && !$u instanceof Tester) {
+            return $this->json([
+                'error' => 'Unauthorized',
+            ], 401);
+        }
 
-    #[Route('/public/apx/upload_request_guest', name: 'upload_request_guest', methods: ['POST'])]
-    public function upload_request_guest(
-        FileService      $fileService,
-        GuestAuthService $guestAuthService,
-        Request          $request,
-        TestPlanManager  $testPlanManager,
-    ): Response
-    {
-        // parameters required in json body
-        // challenge : a random string
-        // hash : a hash of the challenge using the private key
-        // tp : uuid of the TestPlan
-
-        // check if the request is valid and contains the required parameters
-        // if not, return 400
-        $validParams = ['challenge', 'hash', 'tp'];
         try {
-            $json = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
+            $payload = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (\Throwable $e) {
             return $this->json([
                 'error' => 'Invalid JSON',
             ], 400);
         }
-        foreach ($validParams as $param) {
-            if (!array_key_exists($param, $json)) {
-                return $this->json([
-                    'error' => 'Missing parameter: ' . $param,
-                ], 400);
-            }
-        }
 
-        // Fetch the TestPlan to get the key
-        $tp = $testPlanManager->getTestPlanById((int)$json['tp']);
-        if ($tp === null) {
+        // check if filename and filesize are provided in json body
+        $filename = $payload['filename'] ?? null;
+        $filesize = $payload['size'] ?? null;
+        if ($filename === null || $filesize === null) {
             return $this->json([
-                'error' => 'Invalid TestPlan',
-            ], 404);
+                'error' => 'Missing filename or filesize',
+            ], 400);
         }
-
-        // validate the hash
-        if (!$guestAuthService->validateHash(
-            $json['challenge'],
-            $json['hash'],
-            $tp->getKey(),
-        )) {
+        // get upload max size from current php.ini configuration
+        $maxSize = $fileService->getMaxUploadFileSize();
+        // check if the file size is within the limits
+        if ($filesize > $maxSize) {
             return $this->json([
-                'error' => 'Invalid hash',
-            ], 401);
+                'error' => 'File size exceeds the limit',
+            ], 400);
         }
-
-        // if everything is valid, generate a JWT token
+        $jwtPayload = [
+            'user' => [
+                'type' => $u instanceof User ? 'user' : 'tester',
+                'id' => $u->getId()?->toString(),
+                'roles' => $u->getRoles(),
+            ],
+            'file' => [
+                'name' => $filename,
+                'size' => $filesize,
+            ],
+            'requestID' => time() . $this->generateHumanHash(54),
+        ];
+        // auth already handled, generate a JWT token
         return $this->json([
-            'jwt' => $fileService->getUploadRequest(),
+            'jwt' => $fileService->getUploadRequest($jwtPayload),
+            'max_size' => $maxSize,
         ]);
     }
 }

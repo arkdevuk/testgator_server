@@ -36,6 +36,9 @@ class File
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $bucketUrl = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $uploadedBy = null;
+
     public function __construct(string $name)
     {
         $this->setNow();
@@ -110,6 +113,18 @@ class File
     public function setBucketUrl(?string $bucketUrl): static
     {
         $this->bucketUrl = $bucketUrl;
+
+        return $this;
+    }
+
+    public function getUploadedBy(): ?string
+    {
+        return $this->uploadedBy;
+    }
+
+    public function setUploadedBy(?string $uploadedBy): static
+    {
+        $this->uploadedBy = $uploadedBy;
 
         return $this;
     }

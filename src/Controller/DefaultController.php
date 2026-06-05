@@ -12,6 +12,9 @@ final class DefaultController extends AbstractController
     #[Route('/', name: 'home')]
     public function home(): Response
     {
+        // Uncomment the line below to test the exception handling
+        //throw new \RuntimeException('Example exception.');
+
         return $this->json([
             'healthcheck' => 'ok',
             'version' => '1.0.0',

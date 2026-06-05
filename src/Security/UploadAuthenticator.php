@@ -2,7 +2,10 @@
 
 namespace App\Security;
 
+use App\Entity\Tester;
+use App\Entity\User;
 use App\Services\Authentification\JWTService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,15 +22,20 @@ class UploadAuthenticator extends AbstractAuthenticator
 {
 
     protected JWTService $JWTService;
+    protected EntityManagerInterface $em;
 
     public function __construct(
-        JWTService $JWTService
+        JWTService             $JWTService,
+        EntityManagerInterface $em
     )
     {
         $this->JWTService = $JWTService;
+        $this->em = $em;
     }
 
-    public function supports(Request $request): ?bool
+    public function supports(
+        Request $request
+    ): ?bool
     {
         return true;
     }
@@ -54,21 +62,26 @@ class UploadAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('Invalid JWT');
         }
 
-        return new SelfValidatingPassport(new UserBadge($jwtString, fn() => new class implements UserInterface {
-            public function getRoles(): array
-            {
-                return ['ROLE_USER', 'ROLE_UPLOAD'];
-            }
+        if (!isset($authData['user']['id'], $authData['user']['type'])) {
+            throw new AuthenticationException('Invalid JWT');
+        }
 
-            public function eraseCredentials(): void
-            {
-            }
+        $userClass = $authData['user']['type'] === 'user' ? User::class : Tester::class;
 
-            public function getUserIdentifier(): string
-            {
-                return (string)Uuid::v7();
-            }
-        }));
+        $self = &$this;
+        return new SelfValidatingPassport(
+            new UserBadge($authData['user']['id'],
+                static function ($userIdentifier) use ($self, $userClass) {
+                    $u = $self->em->getRepository($userClass)
+                        ->findOneBy(['id' => $userIdentifier]);
+                    if (!$u instanceof User && !$u instanceof Tester) {
+                        return null;
+                    }
+
+                    return $u;
+                }
+            ), []
+        );
 
 
     }

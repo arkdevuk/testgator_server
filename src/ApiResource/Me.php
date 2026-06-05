@@ -5,8 +5,8 @@ namespace App\ApiResource;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
-use App\Entity\User;
 use App\State\MeStateProvider;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\UuidV7 as Uuid;
 
@@ -15,11 +15,11 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
     denormalizationContext: ['groups' => ['userSelf:write']],
     provider: MeStateProvider::class
 )]
-#[Get(uriTemplate: '/auth/me', security: "is_granted('ROLE_USER')")]
+#[Get(uriTemplate: '/auth/me', security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')")]
 class Me
 {
     #[Groups(['none:none'])]
-    private User $user;
+    private UserInterface $user;
 
     #[ApiProperty(identifier: false)]
     #[Groups(['userSelf:read'])]
@@ -37,12 +37,12 @@ class Me
     }
 
 
-    public function getUser(): User
+    public function getUser(): UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(User $user): Me
+    public function setUser(UserInterface $user): Me
     {
         $this->user = $user;
         return $this;

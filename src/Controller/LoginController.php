@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Services\Authentification\GuestAuthService;
 use App\Services\Authentification\JWTService;
 use App\Services\Authentification\LdapService;
+use App\Services\Authentification\RefreshTokenService;
+use App\Services\Entities\TesterManager;
 use App\Services\Entities\TestPlanManager;
 use App\Services\Entities\UserBuiltInDbService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,150 +16,221 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class LoginController extends AbstractController
 {
-    #[Route('/api/auth/login', name: 'app_login')]
+    // ── POST /api/auth/login ──────────────────────────────────────────────
+
+    #[Route('/api/auth/login', name: 'app_login', methods: ['POST'])]
     public function index(
         Request              $request,
         UserBuiltInDbService $userBuiltInDbService,
+        TesterManager       $testerManager,
         LdapService          $ldapService,
         JWTService           $jwtService,
+        RefreshTokenService $refreshTokenService,
     ): Response
     {
-        // get json body
         $username = $request->getPayload()?->get('username');
         $password = $request->getPayload()?->get('password');
         $authMode = $request->getPayload()?->get('authMode', 'app');
+        $mode = $request->getPayload()?->get('mode', 'team');
 
-        if ($username === null || $password === null || $request->getMethod() !== 'POST') {
-            return $this->json([
-                'logged' => false,
-                'error' => 'Invalid request'
-            ], 400);
+        if ($username === null || $password === null) {
+            return $this->json(['logged' => false, 'error' => 'Invalid request'], 400);
         }
 
-        // authMode : app|ldap
-        $user = null;
-        $userData = null;
+        if (!in_array($mode, ['team', 'tester'], true)) {
+            return $this->json(['logged' => false, 'error' => 'Invalid mode'], 400);
+        }
 
-        if ($authMode === 'ldap') {
-            try {
-                $userData = $ldapService->checkUserLogin($username, $password);
-                if ($userData['email'] === null) {
-                    return $this->json([
-                        'logged' => false,
-                        'error' => 'Invalid credentials'
-                    ], 403);
+        if (!in_array($authMode, ['app', 'ldap', 'code'], true)) {
+            return $this->json(['logged' => false, 'error' => 'Invalid authMode'], 400);
+        }
+
+        // ── Team user ─────────────────────────────────────────────────────
+        if ($mode === 'team') {
+            $user = null;
+
+            if ($authMode === 'ldap') {
+                try {
+                    $userData = $ldapService->checkUserLogin($username, $password);
+                    if ($userData['email'] === null) {
+                        return $this->json(['logged' => false, 'error' => 'Invalid credentials'], 403);
+                    }
+                } catch (\Exception $e) {
+                    return $this->json(['logged' => false, 'error' => $e->getMessage()], 403);
                 }
-            } catch (\Exception $e) {
-                return $this->json([
-                    'logged' => false,
-                    'error' => $e->getMessage()
-                ], 403);
+                $user = $userBuiltInDbService->getUserByEmail($userData['email'])
+                    ?? $userBuiltInDbService->createUser($userData, 'ldap');
+
+            } elseif ($authMode === 'app') {
+                try {
+                    $user = $userBuiltInDbService->checkUserLogin($username, $password);
+                } catch (\Throwable $e) {
+                    return $this->json(['logged' => false, 'error' => $e->getMessage()], 403);
+                }
             }
-            $user = $userBuiltInDbService->getUserByEmail($userData['email']);
+
             if ($user === null) {
-                $user = $userBuiltInDbService->createUser($userData, 'ldap');
+                return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
             }
 
-        } else if ($authMode === 'app') {
-            try {
-                $user = $userBuiltInDbService->checkUserLogin($username, $password);
-            } catch (\Throwable $e) {
-                return $this->json([
-                    'logged' => false,
-                    'error' => $e->getMessage()
-                ], 403);
-            }
-        }
-
-        if ($user === null) {
             return $this->json([
-                'logged' => false,
-                'error' => 'Not logged in'
-            ], 401);
+                'logged' => true,
+                'jwt' => $jwtService->getJWT($user, false, ['mode' => 'team', 'authMode' => $authMode]),
+                'refreshToken' => $refreshTokenService->issue($user, 'user'),
+                'authMode' => $authMode,
+            ]);
         }
 
-        // generate JWT
-        $jwt = $jwtService->getJWT($user, false, [
-            'authMode' => $authMode
-        ]);
+        // ── Tester ────────────────────────────────────────────────────────
+        $tester = $testerManager->getTesterByEmail($username);
+        if ($tester === null || $tester->isActive() === false) {
+            return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
+        }
 
-        return $this->json([
-            'logged' => true,
-            'jwt' => $jwt,
-            'authMode' => $authMode,
-        ]);
+        if ($authMode === 'code') {
+            $testerManager->updateTesterCode($tester);
+            return $this->json(['logged' => false, 'otp' => true], 200);
+        }
+
+        if ($authMode === 'app') {
+            try {
+                $tester = $testerManager->checkTesterLogin($username, $password);
+            } catch (\Throwable $e) {
+                return $this->json(['logged' => false, 'error' => $e->getMessage()], 403);
+            }
+
+            if ($tester === null) {
+                return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
+            }
+
+            return $this->json([
+                'logged' => true,
+                'jwt' => $jwtService->getJWT($tester, false, ['mode' => 'tester', 'authMode' => $authMode]),
+                'refreshToken' => $refreshTokenService->issue($tester, 'tester'),
+                'authMode' => $authMode,
+            ]);
+        }
+
+        return $this->json(['logged' => false, 'error' => 'Invalid request'], 400);
     }
 
-    #[Route('/api/auth/login_tester', name: 'app_login_tester')]
+    // ── POST /api/auth/login_tester ───────────────────────────────────────
+
+    #[Route('/api/auth/login_tester', name: 'app_login_tester', methods: ['POST'])]
     public function loginTester(
-        Request          $request,
-        GuestAuthService $guestAuthService,
-        JWTService       $jwtService,
-        TestPlanManager  $testPlanManager,
+        Request             $request,
+        GuestAuthService    $guestAuthService,
+        JWTService          $jwtService,
+        TestPlanManager     $testPlanManager,
+        RefreshTokenService $refreshTokenService,
     ): Response
     {
-        // get json body
         $challenge = $request->getPayload()?->get('challenge');
         $hash = $request->getPayload()?->get('hash');
         $testPlanId = $request->getPayload()?->get('tp');
 
-
-        $authMode = 'Tester';
-
-        if ($challenge === null
-            || $hash === null
-            || $testPlanId === null
-            || $request->getMethod() !== 'POST') {
-            return $this->json([
-                'logged' => false,
-                'error' => 'Invalid request'
-            ], 400);
+        if ($challenge === null || $hash === null || $testPlanId === null) {
+            return $this->json(['logged' => false, 'error' => 'Invalid request'], 400);
         }
 
         $tp = $testPlanManager->getTestPlanById((int)$testPlanId);
         if ($tp === null) {
-            return $this->json([
-                'error' => 'Invalid TestPlan',
-            ], 404);
+            return $this->json(['error' => 'Invalid TestPlan'], 404);
         }
 
-        // validate the hash
-        if (!$guestAuthService->validateHash(
-            $challenge,
-            $hash,
-            $tp->getKey(),
-        )) {
-            return $this->json([
-                'error' => 'Invalid hash',
-            ], 401);
+        if (!$guestAuthService->validateHash($challenge, $hash, $tp->getKey())) {
+            return $this->json(['error' => 'Invalid hash'], 401);
         }
-        // expire in 3 hours
-        $expire = time() + 3 * 60 * 60;
-
-        // todo get Tester in DB, $challenge is the uuid of the tester
-
-        $payload = [
-            'authMode' => $authMode,
-            'tp' => [
-                'id' => $tp->getId(),
-                '@id' => '/api/test_plans/' . $tp->getId(),
-            ],
-            'exp' => $expire,
-            'scope' => [
-                'web/app/guest',
-                'web/api/guest',
-                'web/app/tp/' . $tp->getId(),
-                'web/api/tp/' . $tp->getId(),
-            ]
-        ];
-
-        $jwt = $jwtService->generateToken($payload);
-
 
         return $this->json([
             'logged' => true,
-            'jwt' => $jwt,
-            'authMode' => $authMode,
+            'jwt' => $jwtService->generateToken($this->buildGuestPayload($tp->getId())),
+            'refreshToken' => $refreshTokenService->issueGuest($challenge, ['tp_id' => $tp->getId()]),
+            'authMode' => 'Tester',
         ]);
+    }
+
+    // ── POST /api/auth/refresh ────────────────────────────────────────────
+
+    #[Route('/api/auth/refresh', name: 'app_refresh', methods: ['POST'])]
+    public function refresh(
+        Request              $request,
+        JWTService           $jwtService,
+        RefreshTokenService  $refreshTokenService,
+        UserBuiltInDbService $userBuiltInDbService,
+        TesterManager        $testerManager,
+        TestPlanManager      $testPlanManager,
+    ): Response
+    {
+        $rawToken = $request->getPayload()?->get('refreshToken');
+
+        if ($rawToken === null || $rawToken === '') {
+            return $this->json(['error' => 'Missing refreshToken'], 400);
+        }
+
+        try {
+            $result = $refreshTokenService->consume($rawToken);
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], 401);
+        }
+
+        // ── Guest (login_tester) ──────────────────────────────────────────
+        if ($result['userType'] === 'guest') {
+            $tpId = $result['extra']['tp_id'] ?? null;
+            if ($tpId === null) {
+                return $this->json(['error' => 'Invalid guest token context'], 401);
+            }
+
+            $tp = $testPlanManager->getTestPlanById((int)$tpId);
+            if ($tp === null) {
+                return $this->json(['error' => 'TestPlan no longer exists'], 401);
+            }
+
+            return $this->json([
+                'jwt' => $jwtService->generateToken($this->buildGuestPayload($tp->getId())),
+                'refreshToken' => $result['refreshToken'],
+            ]);
+        }
+
+        // ── Tester (OTP login) ────────────────────────────────────────────
+        if ($result['userType'] === 'tester') {
+            $tester = $testerManager->getTesterByGuid($result['userGuid']);
+            if ($tester === null || !$tester->isActive()) {
+                return $this->json(['error' => 'Tester not found or inactive'], 401);
+            }
+
+            return $this->json([
+                'jwt' => $jwtService->getJWT($tester, false, ['mode' => 'tester', 'authMode' => 'refresh']),
+                'refreshToken' => $result['refreshToken'],
+            ]);
+        }
+
+        // ── Team user ─────────────────────────────────────────────────────
+        $user = $userBuiltInDbService->getUserByGuid($result['userGuid']);
+        if ($user === null) {
+            return $this->json(['error' => 'User not found'], 401);
+        }
+
+        return $this->json([
+            'jwt' => $jwtService->getJWT($user, false, ['mode' => 'team', 'authMode' => 'refresh']),
+            'refreshToken' => $result['refreshToken'],
+        ]);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    private function buildGuestPayload(int $tpId): array
+    {
+        return [
+            'authMode' => 'Tester',
+            'tp' => ['id' => $tpId, '@id' => '/api/test_plans/' . $tpId],
+            'exp' => time() + 3 * 60 * 60,
+            'scope' => [
+                'web/app/guest',
+                'web/api/guest',
+                'web/app/tp/' . $tpId,
+                'web/api/tp/' . $tpId,
+            ],
+        ];
     }
 }

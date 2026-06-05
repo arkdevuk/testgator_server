@@ -1,0 +1,16 @@
+email:
+  auth_code:
+    subject: "Votre code d'authentification"
+    title: "Votre code d'authentification"
+    greeting: "Bonjour, cher utilisateur de TestGator !"
+    message: "Utilisez le code d'authentification ci-dessous pour vous connecter en toute sécurité à votre compte."
+    expiry: "Ce code est valable pendant 5 minutes."
+    button: "Se connecter maintenant"
+    footer: "Si vous n'avez pas demandé ce code, veuillez ignorer cet e-mail ou contacter le support."
+  welcome_tester:
+    subject: "Vous êtes invité·e à tester avec TestGator !"
+    title: "Bienvenue sur TestGator !"
+    greeting: "👋 Bienvenue, Testeur·se !"
+    intro: "Vous avez été invité·e à participer à une session de test sur TestGator. Vos retours aident à améliorer le produit !"
+    button: "Commencer les tests"
+    info: "Aucune installation nécessaire. Suivez simplement le plan de test et envoyez vos retours — c’est rapide et facile !"

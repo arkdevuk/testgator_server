@@ -1,0 +1,139 @@
+<?php
+
+namespace App\Tests\DataFixtures;
+
+use App\Classes\TestPlanState;
+use App\Entity\Answer;
+use App\Entity\Project;
+use App\Entity\Question;
+use App\Entity\Release;
+use App\Entity\Tester;
+use App\Entity\TestPlan;
+use App\Entity\User;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
+/**
+ * Deterministic fixtures for the test suite.
+ *
+ * All IDs / emails / passwords used in tests are sourced from constants here
+ * so tests and fixtures stay in sync without magic strings.
+ */
+class TestFixtures extends Fixture
+{
+    // ── Users ─────────────────────────────────────────────────────────────
+    public const USER_EMAIL = 'admin@testgator.test';
+    public const USER_PASSWORD = 'Password1!';
+
+    // ── Testers ───────────────────────────────────────────────────────────
+    public const TESTER_EMAIL = 'tester1@testgator.test';
+    public const TESTER_EMAIL_2 = 'tester2@testgator.test';
+
+    // ── Reference keys (used with getReference()) ─────────────────────────
+    public const REF_PROJECT = 'test-project';
+    public const REF_PROJECT_2 = 'test-project-2';
+    public const REF_RELEASE = 'test-release';
+    public const REF_RELEASE_2 = 'test-release-2';
+    public const REF_TEST_PLAN = 'test-plan-published';
+    public const REF_TEST_PLAN_2 = 'test-plan-draft';
+    public const REF_QUESTION = 'test-question';
+    public const REF_TESTER = 'test-tester';
+    public const REF_ANSWER = 'test-answer';
+
+    public function __construct(
+        private readonly UserPasswordHasherInterface $hasher,
+    )
+    {
+    }
+
+    public function load(ObjectManager $manager): void
+    {
+        // ── User (team member) ────────────────────────────────────────────
+        $user = new User();
+        $user->setEmail(self::USER_EMAIL);
+        $user->setRoles(['ROLE_USER']);
+        $user->setPassword($this->hasher->hashPassword($user, self::USER_PASSWORD));
+        $manager->persist($user);
+
+        // ── Testers ───────────────────────────────────────────────────────
+        $tester = new Tester(self::TESTER_EMAIL);
+        $manager->persist($tester);
+        $this->addReference(self::REF_TESTER, $tester);
+
+        $tester2 = new Tester(self::TESTER_EMAIL_2);
+        $manager->persist($tester2);
+
+        // ── Projects ──────────────────────────────────────────────────────
+        $project = new Project();
+        $project->setName('Alpha Project')->setDescription('First test project');
+        $project->addAllTester($tester);
+        $manager->persist($project);
+        $this->addReference(self::REF_PROJECT, $project);
+
+        $project2 = new Project();
+        $project2->setName('Beta Project')->setDescription('Second test project');
+        $manager->persist($project2);
+        $this->addReference(self::REF_PROJECT_2, $project2);
+
+        // ── Releases ──────────────────────────────────────────────────────
+        $release = new Release();
+        $release->setName('1.0.0')->setProject($project)->setDescription('Initial release');
+        $manager->persist($release);
+        $this->addReference(self::REF_RELEASE, $release);
+
+        $release2 = new Release();
+        $release2->setName('2.0.0')->setProject($project)->setDescription('Major release');
+        $manager->persist($release2);
+        $this->addReference(self::REF_RELEASE_2, $release2);
+
+        // ── TestPlans ─────────────────────────────────────────────────────
+        $dueDate = new \DateTime('+30 days');
+
+        $plan = new TestPlan();
+        $plan->setName('Published Plan')
+            ->setDescription('A published test plan')
+            ->setRelease($release)
+            ->setDueDate($dueDate)
+            ->setState(TestPlanState::PUBLISHED);
+        $plan->addTestersEnrolled($tester);
+        $manager->persist($plan);
+        $this->addReference(self::REF_TEST_PLAN, $plan);
+
+        $plan2 = new TestPlan();
+        $plan2->setName('Draft Plan')
+            ->setDescription('A draft test plan')
+            ->setRelease($release)
+            ->setDueDate($dueDate)
+            ->setState(TestPlanState::DRAFT);
+        $manager->persist($plan2);
+        $this->addReference(self::REF_TEST_PLAN_2, $plan2);
+
+        // ── Questions ─────────────────────────────────────────────────────
+        $question = new Question();
+        $question->setName('Does the login work?')
+            ->setContent('Navigate to /login and verify credentials are accepted.')
+            ->setPlan($plan)
+            ->setDisplayOrder(1);
+        $manager->persist($question);
+        $this->addReference(self::REF_QUESTION, $question);
+
+        $question2 = new Question();
+        $question2->setName('Is the dashboard visible?')
+            ->setContent('After login, verify the dashboard renders without errors.')
+            ->setPlan($plan)
+            ->setDisplayOrder(2);
+        $manager->persist($question2);
+
+        // ── Answers ───────────────────────────────────────────────────────
+        $answer = new Answer();
+        $answer->setAuthor(self::TESTER_EMAIL)
+            ->setStatus('ok')
+            ->setComment('All good, login works fine.')
+            ->setQuestion($question);
+        $manager->persist($answer);
+        $this->addReference(self::REF_ANSWER, $answer);
+
+        $manager->flush();
+    }
+}

@@ -28,6 +28,7 @@ RUN set -eux; \
         pdo_pgsql \
         gd \
         intl \
+        yaml \
         xdebug \
     ;
 

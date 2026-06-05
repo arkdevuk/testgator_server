@@ -46,6 +46,18 @@ final class ApiContextBuilder implements SerializerContextBuilderInterface
                 /** @noinspection UnsupportedStringOffsetOperationsInspection */
                 $context['groups'][] = 'team:read';
             }
+
+            if ($this->authorizationChecker->isGranted('ROLE_TESTER') && in_array($currentMethod, $writeMethods, true)) {
+                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                $context['groups'][] = 'tester:write';
+            }
+
+            if ($this->authorizationChecker->isGranted('ROLE_TESTER') && !in_array($currentMethod, $writeMethods, true)) {
+                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                $context['groups'][] = 'tester:read';
+            }
+
+
         }
 
         return $context;

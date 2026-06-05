@@ -7,6 +7,7 @@ use App\Entity\Media;
 use App\Services\Authentification\JWTService;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Cache\CacheInterface;
 
 class FileService
@@ -31,16 +32,19 @@ class FileService
      */
     protected EntityManagerInterface $em;
 
+    protected RequestStack $requestStack;
 
     public function __construct(
         CacheInterface         $uploadRequestCache,
         JWTService             $jwtService,
         EntityManagerInterface $em,
+        RequestStack $requestStack,
     )
     {
         $this->cache = $uploadRequestCache;
         $this->jwtService = $jwtService;
         $this->em = $em;
+        $this->requestStack = $requestStack;
         // constructor body
         $mode = $_ENV['FILE_STORAGE_MODE'] ?? 'local';
         if ($mode === 'local') {
@@ -65,7 +69,7 @@ class FileService
      *
      * @return string : JWT token
      */
-    public function getUploadRequest(): string
+    public function getUploadRequest(array $moreData = []): string
     {
         // get timestamp now + 10 minutes
         $expire = time() + 60 * 10;
@@ -73,7 +77,8 @@ class FileService
         $payload = [
             'scope' => ['web/app/upload', 'web/api/upload'],
             'exp' => $expire,
-            'ip' => $_SERVER['REMOTE_ADDR'],
+            'ip' => $this->requestStack->getCurrentRequest()?->getClientIp(),
+            ...$moreData,
         ];
 
         return $this->jwtService->generateToken($payload);
@@ -104,6 +109,24 @@ class FileService
             'filename' => $file->getId() . '.' . $file->getExtension(),
             '@id' => '/api/files/' . $file->getId()?->toString(),
         ];
+    }
+
+    /**
+     * Return the maximum upload file size in bytes allowed by the server
+     * @return int
+     */
+    public function getMaxUploadFileSize(): int
+    {
+        $size = ini_get('upload_max_filesize');
+        $size = trim($size);
+        $unit = strtolower($size[strlen($size) - 1]);
+        $value = (int)$size;
+        return match ($unit) {
+            'g' => $value * 1024 * 1024 * 1024,
+            'm' => $value * 1024 * 1024,
+            'k' => $value * 1024,
+            default => $value,
+        };
     }
 
     public function test()

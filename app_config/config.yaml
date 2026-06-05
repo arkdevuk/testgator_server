@@ -1,0 +1,29 @@
+app:
+  settings:
+    start_of_week: 1 # 0=Sunday, 1=Monday
+  working_days:
+    monday:
+      - from: 08:00
+        to: 12:30
+      - from: 13:30
+        to: 17:00
+    tuesday:
+      - from: 08:00
+        to: 12:30
+      - from: 13:30
+        to: 17:00
+    wednesday:
+      - from: 08:00
+        to: 12:30
+      - from: 13:30
+        to: 17:00
+    thursday:
+      - from: 08:00
+        to: 12:30
+      - from: 13:30
+        to: 17:00
+    friday:
+      - from: 08:00
+        to: 12:30
+      - from: 13:30
+        to: 17:00

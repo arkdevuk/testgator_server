@@ -18,10 +18,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+// if you remove "forceEager: false," you get the following error:
+// The total number of joined relations has exceeded the specified maximum.
 #[ORM\Entity(repositoryClass: TestPlanRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['testPlan:read']],
-    denormalizationContext: ['groups' => ['testPlan:write']],
+    normalizationContext: ['groups' => ['testPlan:read', 'timestampable:read'], 'enable_max_depth' => true],
+    denormalizationContext: ['groups' => ['testPlan:write'], 'enable_max_depth' => true],
+    forceEager: false,
 )]
 #[ApiFilter(SearchFilter::class, properties: [
     'release.project' => 'exact',
@@ -41,6 +44,7 @@ class TestPlan
 
     #[ORM\Column(length: 255)]
     #[Groups(['testPlan:read', 'team:write'])]
+    #[ApiFilter(SearchFilter::class, strategy: 'ipartial')]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -84,6 +88,10 @@ class TestPlan
     #[Groups(['testPlan:read', 'testPlan:write'])]
     #[ApiFilter(DateFilter::class, strategy: DateFilterInterface::EXCLUDE_NULL)]
     private ?\DateTimeInterface $dueDate = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['testPlan:read', 'testPlan:write'])]
+    private ?string $content = null;
 
     public function __construct()
     {
@@ -246,6 +254,18 @@ class TestPlan
     public function setDueDate(\DateTimeInterface $dueDate): static
     {
         $this->dueDate = $dueDate;
+
+        return $this;
+    }
+
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    public function setContent(?string $content): static
+    {
+        $this->content = $content;
 
         return $this;
     }

@@ -9,6 +9,13 @@ security:
       entity:
         class: App\Entity\User
         property: email
+    app_tester_provider:
+      entity:
+        class: App\Entity\Tester
+        property: email
+    app_users:
+      chain:
+        providers: [ app_user_provider, app_tester_provider ]
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -19,23 +26,19 @@ security:
     uploads:
       pattern: ^/public/apx/upload$
       stateless: true
+      provider: app_users
       custom_authenticator:
         - App\Security\UploadAuthenticator
     publicapi:
       pattern: ^/(public|docs)/
       security: false
     login_endpoint:
-      pattern: ^/api/auth/(login|login_guest)$
+      pattern: ^/api/auth/(login|login_guest|login_tester|refresh)$
       security: false
-    guestapi:
-      pattern: ^/guest/apx/
-      stateless: true
-      custom_authenticator:
-        - App\Security\GuestAuthenticator
-    privateapi:
+    api:
       pattern: ^/
       stateless: true
-      provider: app_user_provider
+      provider: app_users
       custom_authenticator:
         - App\Security\AppCustomAuthenticator
 

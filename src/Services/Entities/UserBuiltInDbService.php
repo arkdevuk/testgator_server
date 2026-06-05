@@ -68,7 +68,11 @@ class UserBuiltInDbService
 
     public function getUserByEmail(string $email): ?User
     {
-        $repo = $this->em->getRepository(User::class);
-        return $repo->findOneBy(['email' => $email]);
+        return $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+    }
+
+    public function getUserByGuid(string $guid): ?User
+    {
+        return $this->em->getRepository(User::class)->findOneBy(['id' => $guid]);
     }
 }

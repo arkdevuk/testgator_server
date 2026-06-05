@@ -1,5 +1,6 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
+  trusted_headers: [ 'REMOTE_ADDR', 'X-Forwarded-For', 'X-Forwarded-Proto', 'X-Forwarded-Host' ]
     secret: '%env(APP_SECRET)%'
 
     # Note that the session will be started ONLY if you read or write from it.
