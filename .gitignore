@@ -1,6 +1,7 @@
 /.idea
 /.vscode
 ###> symfony/framework-bundle ###
+/data/JWT.*
 /.env.*
 /.env.dev
 /.env.local
@@ -25,3 +26,4 @@
 phpstan.neon
 ###< phpstan/phpstan ###
 
+/docker-var/*
