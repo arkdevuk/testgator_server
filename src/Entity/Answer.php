@@ -2,16 +2,27 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use App\Enum\AnswerState;
+use App\Filter\AnswerQueryFilter;
 use App\Repository\AnswerRepository;
 use App\Traits\Entity\TimeStampable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\Tester;
 
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: AnswerRepository::class)]
 #[ApiResource]
+#[ApiFilter(DateFilter::class, properties: ['created'])]
+#[ApiFilter(AnswerQueryFilter::class)]
+#[ApiFilter(OrderFilter::class, properties: ['created', 'state'], arguments: ['orderParameterName' => 'order'])]
 class Answer
 {
     use TimeStampable;
@@ -21,14 +32,17 @@ class Answer
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $author = null;
+    #[ORM\ManyToOne(targetEntity: Tester::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
+    private ?Tester $tester = null;
 
     #[ORM\Column(nullable: true)]
     private ?array $systemInfos = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    #[ORM\Column(type: 'string', enumType: AnswerState::class, length: 20)]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
+    private AnswerState $state = AnswerState::PENDING;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $comment = null;
@@ -41,6 +55,7 @@ class Answer
 
     #[ORM\ManyToOne(inversedBy: 'answers')]
     #[ORM\JoinColumn(nullable: false)]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?Question $question = null;
 
     public function __construct()
@@ -53,14 +68,14 @@ class Answer
         return $this->id;
     }
 
-    public function getAuthor(): ?string
+    public function getTester(): ?Tester
     {
-        return $this->author;
+        return $this->tester;
     }
 
-    public function setAuthor(string $author): static
+    public function setTester(?Tester $tester): static
     {
-        $this->author = $author;
+        $this->tester = $tester;
 
         return $this;
     }
@@ -77,14 +92,14 @@ class Answer
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getState(): AnswerState
     {
-        return $this->status;
+        return $this->state;
     }
 
-    public function setStatus(string $status): static
+    public function setState(AnswerState $state): static
     {
-        $this->status = $status;
+        $this->state = $state;
 
         return $this;
     }

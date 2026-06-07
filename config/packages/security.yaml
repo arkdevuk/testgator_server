@@ -32,6 +32,9 @@ security:
     publicapi:
       pattern: ^/(public|docs)/
       security: false
+    jsonapi:
+      pattern: ^/api/docs.jsonld$
+      security: false
     login_endpoint:
       pattern: ^/api/auth/(login|login_guest|login_tester|refresh)$
       security: false

@@ -20,6 +20,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 // if you remove "forceEager: false," you get the following error:
 // The total number of joined relations has exceeded the specified maximum.
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: TestPlanRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['testPlan:read', 'timestampable:read'], 'enable_max_depth' => true],

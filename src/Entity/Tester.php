@@ -18,6 +18,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\UuidV7 as Uuid;
 
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: TesterRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['testers:read'], 'enable_max_depth' => true],

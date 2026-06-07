@@ -4,6 +4,7 @@ namespace App\Tests\DataFixtures;
 
 use App\Classes\TestPlanState;
 use App\Entity\Answer;
+use App\Enum\AnswerState;
 use App\Entity\Project;
 use App\Entity\Question;
 use App\Entity\Release;
@@ -39,6 +40,7 @@ class TestFixtures extends Fixture
     public const REF_TEST_PLAN_2 = 'test-plan-draft';
     public const REF_QUESTION = 'test-question';
     public const REF_TESTER = 'test-tester';
+    public const REF_TESTER_2 = 'test-tester-2';
     public const REF_ANSWER = 'test-answer';
 
     public function __construct(
@@ -63,6 +65,7 @@ class TestFixtures extends Fixture
 
         $tester2 = new Tester(self::TESTER_EMAIL_2);
         $manager->persist($tester2);
+        $this->addReference(self::REF_TESTER_2, $tester2);
 
         // ── Projects ──────────────────────────────────────────────────────
         $project = new Project();
@@ -126,13 +129,41 @@ class TestFixtures extends Fixture
         $manager->persist($question2);
 
         // ── Answers ───────────────────────────────────────────────────────
+
+        // Question 1 — "Does the login work?"
+        // tester1: login works cleanly
         $answer = new Answer();
-        $answer->setAuthor(self::TESTER_EMAIL)
-            ->setStatus('ok')
-            ->setComment('All good, login works fine.')
+        $answer->setTester($tester)
+            ->setState(AnswerState::PASS)
+            ->setComment('Login works as expected. Credentials accepted on first try.')
             ->setQuestion($question);
         $manager->persist($answer);
         $this->addReference(self::REF_ANSWER, $answer);
+
+        // tester2: login works but shows a deprecation warning in the console
+        $answer2 = new Answer();
+        $answer2->setTester($tester2)
+            ->setState(AnswerState::PASS_WITH_BUGS)
+            ->setComment('Login succeeds but the browser console shows a JS deprecation warning on submit. Not blocking but should be investigated.')
+            ->setQuestion($question);
+        $manager->persist($answer2);
+
+        // Question 2 — "Is the dashboard visible?"
+        // tester1: dashboard fails to render — blank page after login
+        $answer3 = new Answer();
+        $answer3->setTester($tester)
+            ->setState(AnswerState::FAILED)
+            ->setComment('After login the dashboard shows a blank white page. No errors in the UI but the network tab shows a 500 on /api/dashboard/summary.')
+            ->setQuestion($question2);
+        $manager->persist($answer3);
+
+        // tester2: could not even reach the dashboard — environment issue
+        $answer4 = new Answer();
+        $answer4->setTester($tester2)
+            ->setState(AnswerState::BLOCKED)
+            ->setComment('Unable to test: the staging environment is down (nginx 502). Will retry once the deployment is fixed.')
+            ->setQuestion($question2);
+        $manager->persist($answer4);
 
         $manager->flush();
     }

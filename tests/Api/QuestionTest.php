@@ -159,4 +159,70 @@ class QuestionTest extends AbstractApiTestCase
 
         $this->assertStatusCode(204);
     }
+
+    // ── GET /api/questions/{id}/stats ─────────────────────────────────────
+
+    public function testQuestionStatsRequiresAuth(): void
+    {
+        $question = static::$em->getRepository(Question::class)
+            ->findOneBy(['name' => 'Does the login work?']);
+
+        $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats');
+        $this->assertStatusCode(401);
+    }
+
+    public function testQuestionStatsShape(): void
+    {
+        $token = $this->getTeamUserToken();
+        $question = static::$em->getRepository(Question::class)
+            ->findOneBy(['name' => 'Does the login work?']);
+
+        $data = $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats', null, $token);
+
+        $this->assertStatusCode(200);
+
+        // Required keys
+        foreach (['test_pass', 'test_pass_with_bugs', 'test_failed', 'test_blocked', 'test_pending', 'test_all_count', 'answer_rate', 'answers'] as $key) {
+            $this->assertJsonKey($key, $data);
+        }
+
+        // Fixtures: tester1=pass, tester2=pass_with_bugs
+        self::assertSame(1, $data['test_pass']);
+        self::assertSame(1, $data['test_pass_with_bugs']);
+        self::assertSame(0, $data['test_failed']);
+        self::assertSame(0, $data['test_blocked']);
+        self::assertSame(0, $data['test_pending']);
+        self::assertSame(2, $data['test_all_count']);
+        self::assertSame(100.0, $data['answer_rate']);
+        self::assertCount(2, $data['answers']);
+
+        $states = array_column($data['answers'], 'state');
+        self::assertContains('pass', $states);
+        self::assertContains('pass_with_bugs', $states);
+        foreach ($data['answers'] as $a) {
+            $this->assertJsonKey('answerId', $a);
+            $this->assertJsonKey('state', $a);
+        }
+    }
+
+    public function testQuestionStatsNotFound(): void
+    {
+        $token = $this->getTeamUserToken();
+        $this->jsonRequest('GET', '/api/questions/999999/stats', null, $token);
+        $this->assertStatusCode(404);
+    }
+
+    public function testQuestionStatsEmptyQuestion(): void
+    {
+        $token = $this->getTeamUserToken();
+        $question = static::$em->getRepository(Question::class)
+            ->findOneBy(['name' => 'Is the dashboard visible?']);
+
+        $data = $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats', null, $token);
+
+        $this->assertStatusCode(200);
+        self::assertSame(0, $data['test_all_count']);
+        self::assertSame(0.0, $data['answer_rate']);
+        self::assertCount(0, $data['answers']);
+    }
 }

@@ -70,7 +70,6 @@ trait TimeStampable
         return $this;
     }
 
-
     public function setNow(): self
     {
         $now = new \DateTime();
@@ -78,5 +77,21 @@ trait TimeStampable
         $this->setUpdated($now);
 
         return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $now = new \DateTime();
+        if ($this->created === null) {
+            $this->created = $now;
+        }
+        $this->updated = $now;
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updated = new \DateTime();
     }
 }

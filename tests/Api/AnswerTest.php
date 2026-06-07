@@ -4,6 +4,7 @@ namespace App\Tests\Api;
 
 use App\Entity\Answer;
 use App\Entity\Question;
+use App\Entity\Tester;
 use App\Tests\DataFixtures\TestFixtures;
 
 /**
@@ -34,14 +35,13 @@ class AnswerTest extends AbstractApiTestCase
     public function testGetAnswer(): void
     {
         $token = $this->getTeamUserToken();
-        $answer = static::$em->getRepository(Answer::class)
-            ->findOneBy(['author' => TestFixtures::TESTER_EMAIL]);
+        $answer = $this->getTestAnswer();
 
         $data = $this->jsonRequest('GET', '/api/answers/' . $answer->getId(), null, $token);
 
         $this->assertStatusCode(200);
-        self::assertSame(TestFixtures::TESTER_EMAIL, $data['author']);
-        $this->assertJsonKey('status', $data);
+        $this->assertJsonKey('tester', $data);
+        $this->assertJsonKey('state', $data);
         $this->assertJsonKey('comment', $data);
     }
 
@@ -52,17 +52,37 @@ class AnswerTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Is the dashboard visible?']);
+        $tester = static::$em->getRepository(Tester::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
 
         $data = $this->jsonRequest('POST', '/api/answers', [
-            'author' => TestFixtures::USER_EMAIL,
-            'status' => 'ko',
+            'tester' => '/api/testers/' . $tester->id,
+            'state' => 'failed',
             'comment' => 'Dashboard shows a blank screen.',
             'question' => '/api/questions/' . $question->getId(),
         ], $token);
 
         $this->assertStatusCode(201);
-        self::assertSame('ko', $data['status']);
-        self::assertSame(TestFixtures::USER_EMAIL, $data['author']);
+        self::assertSame('failed', $data['state']);
+        self::assertStringContainsString((string)$tester->id, $data['tester']);
+    }
+
+    public function testDefaultStateIsPending(): void
+    {
+        $token = $this->getTeamUserToken();
+        $question = static::$em->getRepository(Question::class)
+            ->findOneBy(['name' => 'Does the login work?']);
+        $tester = static::$em->getRepository(Tester::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+
+        $data = $this->jsonRequest('POST', '/api/answers', [
+            'tester' => '/api/testers/' . $tester->id,
+            'comment' => 'No state provided.',
+            'question' => '/api/questions/' . $question->getId(),
+        ], $token);
+
+        $this->assertStatusCode(201);
+        self::assertSame('pending', $data['state']);
     }
 
     public function testCreateAnswerRequiresAuth(): void
@@ -71,8 +91,6 @@ class AnswerTest extends AbstractApiTestCase
             ->findOneBy(['name' => 'Does the login work?']);
 
         $this->jsonRequest('POST', '/api/answers', [
-            'author' => 'anon@test.com',
-            'status' => 'ok',
             'comment' => 'Should fail',
             'question' => '/api/questions/' . $question->getId(),
         ]);
@@ -84,8 +102,7 @@ class AnswerTest extends AbstractApiTestCase
     public function testUpdateAnswer(): void
     {
         $token = $this->getTeamUserToken();
-        $answer = static::$em->getRepository(Answer::class)
-            ->findOneBy(['author' => TestFixtures::TESTER_EMAIL]);
+        $answer = $this->getTestAnswer();
 
         static::$client->request('PATCH', '/api/answers/' . $answer->getId(),
             [], [],
@@ -94,37 +111,47 @@ class AnswerTest extends AbstractApiTestCase
                 'CONTENT_TYPE' => 'application/merge-patch+json',
                 'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
             ],
-            json_encode(['comment' => 'Updated: login works after cache clear.'])
+            json_encode(['state' => 'blocked', 'comment' => 'Blocked by upstream issue.'])
         );
 
         $this->assertStatusCode(200);
         $data = json_decode(static::$client->getResponse()->getContent(), true);
-        self::assertSame('Updated: login works after cache clear.', $data['comment']);
+        self::assertSame('blocked', $data['state']);
+        self::assertSame('Blocked by upstream issue.', $data['comment']);
     }
 
     // ── DELETE /api/answers/{id} ──────────────────────────────────────────
 
     public function testDeleteAnswer(): void
     {
-        // Create a fresh answer to delete so we don't disturb other tests
         $token = $this->getTeamUserToken();
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Does the login work?']);
+        $tester = static::$em->getRepository(Tester::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
 
         $created = $this->jsonRequest('POST', '/api/answers', [
-            'author' => 'delete-me@testgator.test',
-            'status' => 'ok',
+            'tester' => '/api/testers/' . $tester->id,
+            'state' => 'pending',
             'comment' => 'To be deleted',
             'question' => '/api/questions/' . $question->getId(),
         ], $token);
         $this->assertStatusCode(201);
 
-        $answerId = $created['id'];
-
-        static::$client->request('DELETE', '/api/answers/' . $answerId,
+        static::$client->request('DELETE', '/api/answers/' . $created['id'],
             [], [],
             ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]
         );
         $this->assertStatusCode(204);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    private function getTestAnswer(): Answer
+    {
+        $tester = static::$em->getRepository(Tester::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+        return static::$em->getRepository(Answer::class)
+            ->findOneBy(['tester' => $tester]);
     }
 }

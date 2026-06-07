@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\UuidV7 as Uuid;
 
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: FileRepository::class)]
 #[ApiResource]
 class File

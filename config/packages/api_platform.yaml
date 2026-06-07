@@ -1,6 +1,10 @@
 api_platform:
   title: TestGator API
   version: 1.0.0
+  formats:
+    jsonld: [ 'application/ld+json' ]
+    json: [ 'application/json' ]
+    html: [ 'text/html' ]
   defaults:
     pagination_client_items_per_page: true
     stateless: true
