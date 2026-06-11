@@ -31,6 +31,12 @@ class Me
     #[Groups(['userSelf:read'])]
     private array $roles = [];
 
+    /**
+     * Account type: USER (team member) or TESTER
+     */
+    #[Groups(['userSelf:read'])]
+    private ?string $type = null;
+
     public function __construct(?Uuid $userId = null)
     {
         $this->id = $userId;
@@ -72,6 +78,17 @@ class Me
     public function setRoles(array $roles): Me
     {
         $this->roles = $roles;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): Me
+    {
+        $this->type = $type;
         return $this;
     }
 

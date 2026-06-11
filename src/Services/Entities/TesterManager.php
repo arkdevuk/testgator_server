@@ -2,13 +2,16 @@
 
 namespace App\Services\Entities;
 
-use App\Entity\Tester;
 use App\Entity\User;
+use App\Enum\UserType;
 use App\Services\Communication\MailingService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+/**
+ * Handles tester-specific workflows (OTP login, welcome email) for
+ * User entities of type TESTER.
+ */
 class TesterManager
 {
     protected EntityManagerInterface $em;
@@ -26,7 +29,7 @@ class TesterManager
         $this->translator = $translator;
     }
 
-    public function updateTesterCode(Tester $tester): string
+    public function updateTesterCode(User $tester): string
     {
         // generate random code of 6 digits
         $code = random_int(100000, 999999);
@@ -61,25 +64,29 @@ class TesterManager
     }
 
 
-    public function handlePostCreation(Tester $tester): void
+    public function handlePostCreation(User $tester): void
     {
-        $content = $this->mailingService->render('tester-welcome.email.twig', [
-            'signed_url' => $_ENV['APP_URL'] . '/login?mode=tester&email=' . $tester->getEmail(),
-        ]);
+        try {
+            $content = $this->mailingService->render('tester-welcome.email.twig', [
+                'signed_url' => $_ENV['APP_URL'] . '/login?mode=tester&email=' . $tester->getEmail(),
+            ]);
 
-        $subject = $this->translator->trans('email.welcome_tester.subject');
+            $subject = $this->translator->trans('email.welcome_tester.subject');
 
-        $this->mailingService->sendMail(
-            $tester->getEmail(),
-            $subject,
-            $content
-        );
+            $this->mailingService->sendMail(
+                $tester->getEmail(),
+                $subject,
+                $content
+            );
+        } catch (\Throwable $e) {
+            // a failing mail must never abort tester creation (or fixture loading)
+        }
     }
 
     /**
      * @throws \Exception
      */
-    public function checkTesterLogin(string $email, string $code): ?Tester
+    public function checkTesterLogin(string $email, string $code): ?User
     {
         $tester = $this->getTesterByEmail($email);
         if ($tester === null) {
@@ -114,13 +121,15 @@ class TesterManager
         return $tester;
     }
 
-    public function getTesterByEmail(string $email): ?Tester
+    public function getTesterByEmail(string $email): ?User
     {
-        return $this->em->getRepository(Tester::class)->findOneBy(['email' => $email]);
+        return $this->em->getRepository(User::class)
+            ->findOneBy(['email' => $email, 'type' => UserType::TESTER]);
     }
 
-    public function getTesterByGuid(string $guid): ?Tester
+    public function getTesterByGuid(string $guid): ?User
     {
-        return $this->em->getRepository(Tester::class)->findOneBy(['id' => $guid]);
+        return $this->em->getRepository(User::class)
+            ->findOneBy(['id' => $guid, 'type' => UserType::TESTER]);
     }
 }

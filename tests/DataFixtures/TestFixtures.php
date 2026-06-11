@@ -8,7 +8,6 @@ use App\Enum\AnswerState;
 use App\Entity\Project;
 use App\Entity\Question;
 use App\Entity\Release;
-use App\Entity\Tester;
 use App\Entity\TestPlan;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -58,12 +57,12 @@ class TestFixtures extends Fixture
         $user->setPassword($this->hasher->hashPassword($user, self::USER_PASSWORD));
         $manager->persist($user);
 
-        // ── Testers ───────────────────────────────────────────────────────
-        $tester = new Tester(self::TESTER_EMAIL);
+        // ── Testers (User entities with type TESTER) ─────────────────────
+        $tester = User::createTester(self::TESTER_EMAIL);
         $manager->persist($tester);
         $this->addReference(self::REF_TESTER, $tester);
 
-        $tester2 = new Tester(self::TESTER_EMAIL_2);
+        $tester2 = User::createTester(self::TESTER_EMAIL_2);
         $manager->persist($tester2);
         $this->addReference(self::REF_TESTER_2, $tester2);
 

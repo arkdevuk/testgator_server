@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Tester;
 use App\Entity\User;
 use App\Services\Authentification\GuestAuthService;
 use App\Services\Entities\TestPlanManager;
@@ -24,7 +23,7 @@ final class AuthUploadController extends AbstractController
     ): Response
     {
         $u = $this->getUser();
-        if (!$u instanceof User && !$u instanceof Tester) {
+        if (!$u instanceof User) {
             return $this->json([
                 'error' => 'Unauthorized',
             ], 401);
@@ -56,7 +55,7 @@ final class AuthUploadController extends AbstractController
         }
         $jwtPayload = [
             'user' => [
-                'type' => $u instanceof User ? 'user' : 'tester',
+                'type' => $u->isTester() ? 'tester' : 'user',
                 'id' => $u->getId()?->toString(),
                 'roles' => $u->getRoles(),
             ],

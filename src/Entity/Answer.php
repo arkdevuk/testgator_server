@@ -7,19 +7,48 @@ use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Enum\AnswerState;
 use App\Filter\AnswerQueryFilter;
 use App\Repository\AnswerRepository;
+use App\State\AnswerStateProcessor;
 use App\Traits\Entity\TimeStampable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Tester;
+use App\Entity\User;
 
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: AnswerRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        // testers only ever see their own answers (see TesterScopeExtension);
+        // a tester PATCHing someone else's answer 404s through the same scoping
+        new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        // answer.tester is forced to the current user for testers
+        new Post(
+            security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
+            processor: AnswerStateProcessor::class,
+        ),
+        // testers cannot reassign the answer or move it to another question
+        new Put(
+            security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
+            securityPostDenormalize: "is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())",
+        ),
+        new Patch(
+            security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
+            securityPostDenormalize: "is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())",
+        ),
+        new Delete(security: "is_granted('ROLE_USER')"),
+    ],
+)]
 #[ApiFilter(DateFilter::class, properties: ['created'])]
 #[ApiFilter(AnswerQueryFilter::class)]
 #[ApiFilter(OrderFilter::class, properties: ['created', 'state'], arguments: ['orderParameterName' => 'order'])]
@@ -32,10 +61,10 @@ class Answer
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Tester::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'tester_id', nullable: true)]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
-    private ?Tester $tester = null;
+    private ?User $tester = null;
 
     #[ORM\Column(nullable: true)]
     private ?array $systemInfos = null;
@@ -68,12 +97,12 @@ class Answer
         return $this->id;
     }
 
-    public function getTester(): ?Tester
+    public function getTester(): ?User
     {
         return $this->tester;
     }
 
-    public function setTester(?Tester $tester): static
+    public function setTester(?User $tester): static
     {
         $this->tester = $tester;
 

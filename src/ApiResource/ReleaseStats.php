@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     denormalizationContext: ['groups' => ['releaseStats:write']],
     provider: ReleaseStatsStateProvider::class
 )]
-#[Get]
+#[Get(security: "is_granted('ROLE_USER')")]
 class ReleaseStats
 {
     #[ApiProperty(identifier: true)]

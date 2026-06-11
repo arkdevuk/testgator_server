@@ -11,7 +11,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+// demo endpoints are reserved for team members — testers are denied
+#[IsGranted('ROLE_USER')]
 final class DemoController extends AbstractController
 {
     // ── Canned comments per state ─────────────────────────────────────────────

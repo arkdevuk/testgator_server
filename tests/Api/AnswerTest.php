@@ -4,7 +4,8 @@ namespace App\Tests\Api;
 
 use App\Entity\Answer;
 use App\Entity\Question;
-use App\Entity\Tester;
+use App\Entity\User;
+use App\Enum\UserType;
 use App\Tests\DataFixtures\TestFixtures;
 
 /**
@@ -52,8 +53,8 @@ class AnswerTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Is the dashboard visible?']);
-        $tester = static::$em->getRepository(Tester::class)
-            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+        $tester = static::$em->getRepository(User::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
         $data = $this->jsonRequest('POST', '/api/answers', [
             'tester' => '/api/testers/' . $tester->id,
@@ -72,8 +73,8 @@ class AnswerTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Does the login work?']);
-        $tester = static::$em->getRepository(Tester::class)
-            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+        $tester = static::$em->getRepository(User::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
         $data = $this->jsonRequest('POST', '/api/answers', [
             'tester' => '/api/testers/' . $tester->id,
@@ -127,8 +128,8 @@ class AnswerTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Does the login work?']);
-        $tester = static::$em->getRepository(Tester::class)
-            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+        $tester = static::$em->getRepository(User::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
         $created = $this->jsonRequest('POST', '/api/answers', [
             'tester' => '/api/testers/' . $tester->id,
@@ -149,8 +150,8 @@ class AnswerTest extends AbstractApiTestCase
 
     private function getTestAnswer(): Answer
     {
-        $tester = static::$em->getRepository(Tester::class)
-            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+        $tester = static::$em->getRepository(User::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
         return static::$em->getRepository(Answer::class)
             ->findOneBy(['tester' => $tester]);
     }

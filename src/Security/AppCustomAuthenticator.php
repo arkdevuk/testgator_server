@@ -2,7 +2,6 @@
 
 namespace App\Security;
 
-use App\Entity\Tester;
 use App\Entity\User;
 use App\Services\Authentification\JWTService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -57,14 +56,14 @@ class AppCustomAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('Invalid JWT');
         }
 
-        // if $authData['roles'] contains 'ROLE_TESTER' and not 'ROLE_USER', set $userClass to Tester::class
-        if (in_array('ROLE_TESTER', $authData['roles'], true) && !in_array('ROLE_USER', $authData['roles'], true)) {
-            $userClass = Tester::class;
-            $u = $this->em->getRepository(Tester::class)->findOneBy(['email' => $authData['email']]);
-        } else {
-            // get user from DB with $authData['guid']
-            $userClass = User::class;
-            $u = $this->em->getRepository(User::class)->findOneBy(['id' => $authData['guid']]);
+        // Users and testers are now the same entity (User with a type field),
+        // so a single lookup by guid covers both token kinds.
+        $u = $this->em->getRepository(User::class)->findOneBy(['id' => $authData['guid']]);
+
+        // fallback for tokens issued before the User/Tester merge (tester
+        // accounts may have been re-created under a new id on email collision)
+        if (!$u && isset($authData['email'])) {
+            $u = $this->em->getRepository(User::class)->findOneBy(['email' => $authData['email']]);
         }
 
         // if user not found, error
@@ -77,10 +76,10 @@ class AppCustomAuthenticator extends AbstractAuthenticator
         $self = &$this;
         $passport = new SelfValidatingPassport(
             new UserBadge($u->getId(),
-                static function ($userIdentifier) use ($self, $userClass) {
-                    $u = $self->em->getRepository($userClass)
+                static function ($userIdentifier) use ($self) {
+                    $u = $self->em->getRepository(User::class)
                         ->findOneBy(['id' => $userIdentifier]);
-                    if (!$u instanceof User && !$u instanceof Tester) {
+                    if (!$u instanceof User) {
                         return null;
                     }
 

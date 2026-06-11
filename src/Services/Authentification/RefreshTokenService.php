@@ -3,7 +3,6 @@
 namespace App\Services\Authentification;
 
 use App\Entity\RefreshToken;
-use App\Entity\Tester;
 use App\Entity\User;
 use App\Repository\RefreshTokenRepository;
 use Doctrine\ORM\EntityManagerInterface;

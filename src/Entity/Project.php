@@ -5,6 +5,12 @@ namespace App\Entity;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\ProjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,6 +20,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ApiResource(
+    operations: [
+        // testers can read, but only projects where they have at least one
+        // assigned test plan (see TesterScopeExtension)
+        new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        new Post(security: "is_granted('ROLE_USER')"),
+        new Put(security: "is_granted('ROLE_USER')"),
+        new Patch(security: "is_granted('ROLE_USER')"),
+        new Delete(security: "is_granted('ROLE_USER')"),
+    ],
     normalizationContext: ['groups' => ['project:read']],
     denormalizationContext: ['groups' => ['project:write']],
 )]
@@ -46,9 +62,12 @@ class Project
     private ?File $picture = null;
 
     /**
-     * @var Collection<int, Tester>
+     * @var Collection<int, User>
      */
-    #[ORM\ManyToMany(targetEntity: Tester::class, inversedBy: 'projects')]
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'projects')]
+    #[ORM\JoinTable(name: 'project_tester')]
+    #[ORM\JoinColumn(name: 'project_id', referencedColumnName: 'id')]
+    #[ORM\InverseJoinColumn(name: 'tester_id', referencedColumnName: 'id')]
     #[Groups(['project:read', 'team:write'])]
     private Collection $allTesters;
 
@@ -137,14 +156,14 @@ class Project
     }
 
     /**
-     * @return Collection<int, Tester>
+     * @return Collection<int, User>
      */
     public function getAllTesters(): Collection
     {
         return $this->allTesters;
     }
 
-    public function addAllTester(Tester $allTester): static
+    public function addAllTester(User $allTester): static
     {
         if (!$this->allTesters->contains($allTester)) {
             $this->allTesters->add($allTester);
@@ -153,7 +172,7 @@ class Project
         return $this;
     }
 
-    public function removeAllTester(Tester $allTester): static
+    public function removeAllTester(User $allTester): static
     {
         $this->allTesters->removeElement($allTester);
 

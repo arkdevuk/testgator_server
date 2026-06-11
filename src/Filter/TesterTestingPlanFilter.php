@@ -5,7 +5,7 @@ namespace App\Filter;
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
-use App\Entity\Tester;
+use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\PropertyInfo\Type;
 
@@ -17,8 +17,8 @@ class TesterTestingPlanFilter extends AbstractFilter
 
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        // filter only if Tester entity is being queried
-        if ($resourceClass !== Tester::class) {
+        // filter only if the User entity (exposed as the Tester resource) is being queried
+        if ($resourceClass !== User::class) {
             return;
         }
 

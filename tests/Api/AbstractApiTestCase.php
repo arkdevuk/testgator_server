@@ -2,8 +2,8 @@
 
 namespace App\Tests\Api;
 
-use App\Entity\Tester;
 use App\Entity\User;
+use App\Enum\UserType;
 use App\Services\Authentification\JWTService;
 use App\Tests\DataFixtures\TestFixtures;
 use Doctrine\ORM\EntityManagerInterface;
@@ -68,12 +68,14 @@ abstract class AbstractApiTestCase extends WebTestCase
     }
 
     /**
-     * Returns a JWT for the default tester (ROLE_TESTER).
+     * Returns a JWT for a tester (ROLE_TESTER).
+     * Defaults to the enrolled tester; pass TestFixtures::TESTER_EMAIL_2
+     * for the tester with no test plan assignment.
      */
-    protected function getTesterToken(): string
+    protected function getTesterToken(string $email = TestFixtures::TESTER_EMAIL): string
     {
-        $tester = static::$em->getRepository(Tester::class)
-            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+        $tester = static::$em->getRepository(User::class)
+            ->findOneBy(['email' => $email, 'type' => UserType::TESTER]);
 
         self::assertNotNull($tester, 'Test tester not found — fixtures may not have loaded.');
 

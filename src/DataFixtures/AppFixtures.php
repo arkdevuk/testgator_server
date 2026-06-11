@@ -5,8 +5,8 @@ namespace App\DataFixtures;
 use App\Classes\TestPlanState;
 use App\Entity\Project;
 use App\Entity\Release;
-use App\Entity\Tester;
 use App\Entity\TestPlan;
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -65,7 +65,7 @@ class AppFixtures extends Fixture
         $testerEntities = [];
 
         foreach ($testers as $tester) {
-            $t = new Tester($tester);
+            $t = User::createTester($tester);
             $manager->persist($t);
             $testerEntities[] = $t;
         }

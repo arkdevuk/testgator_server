@@ -8,6 +8,12 @@ use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Classes\TestPlanState;
 use App\Repository\TestPlanRepository;
 use App\Traits\Entity\TimeStampable;
@@ -23,6 +29,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: TestPlanRepository::class)]
 #[ApiResource(
+    operations: [
+        // testers can read, but only plans they are enrolled in
+        // (see TesterScopeExtension)
+        new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        new Post(security: "is_granted('ROLE_USER')"),
+        new Put(security: "is_granted('ROLE_USER')"),
+        new Patch(security: "is_granted('ROLE_USER')"),
+        new Delete(security: "is_granted('ROLE_USER')"),
+    ],
     normalizationContext: ['groups' => ['testPlan:read', 'timestampable:read'], 'enable_max_depth' => true],
     denormalizationContext: ['groups' => ['testPlan:write'], 'enable_max_depth' => true],
     forceEager: false,
@@ -79,9 +95,12 @@ class TestPlan
     private Collection $questions;
 
     /**
-     * @var Collection<int, Tester>
+     * @var Collection<int, User>
      */
-    #[ORM\ManyToMany(targetEntity: Tester::class)]
+    #[ORM\ManyToMany(targetEntity: User::class)]
+    #[ORM\JoinTable(name: 'test_plan_tester')]
+    #[ORM\JoinColumn(name: 'test_plan_id', referencedColumnName: 'id')]
+    #[ORM\InverseJoinColumn(name: 'tester_id', referencedColumnName: 'id')]
     #[Groups(['testPlan:read', 'testPlan:write'])]
     private Collection $testersEnrolled;
 
@@ -217,14 +236,14 @@ class TestPlan
     }
 
     /**
-     * @return Collection<int, Tester>
+     * @return Collection<int, User>
      */
     public function getTestersEnrolled(): Collection
     {
         return $this->testersEnrolled;
     }
 
-    public function addTestersEnrolled(Tester $testersEnrolled): static
+    public function addTestersEnrolled(User $testersEnrolled): static
     {
         if (!$this->testersEnrolled->contains($testersEnrolled)) {
             $this->testersEnrolled->add($testersEnrolled);
@@ -234,7 +253,7 @@ class TestPlan
         return $this;
     }
 
-    public function removeTestersEnrolled(Tester $testersEnrolled): static
+    public function removeTestersEnrolled(User $testersEnrolled): static
     {
         $this->testersEnrolled->removeElement($testersEnrolled);
 

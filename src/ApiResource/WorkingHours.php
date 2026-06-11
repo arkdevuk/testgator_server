@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     denormalizationContext: ['groups' => ['workingHours:write']],
     provider: WorkingHoursStateProvider::class
 )]
-#[GetCollection]
+#[GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')")]
 class WorkingHours
 {
     #[ApiProperty(identifier: true)]

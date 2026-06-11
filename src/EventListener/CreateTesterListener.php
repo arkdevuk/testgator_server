@@ -2,14 +2,14 @@
 
 namespace App\EventListener;
 
-use App\Entity\Tester;
+use App\Entity\User;
 use App\Services\Entities\TesterManager;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Events;
 
-#[AsEntityListener(event: Events::postPersist, method: 'postPersist', entity: Tester::class)]
+#[AsEntityListener(event: Events::postPersist, method: 'postPersist', entity: User::class)]
 class CreateTesterListener
 {
     protected EntityManagerInterface $entityManager;
@@ -24,8 +24,13 @@ class CreateTesterListener
         $this->testerManager = $testerManager;
     }
 
-    public function postPersist(Tester $entity, PostPersistEventArgs $args): void
+    public function postPersist(User $entity, PostPersistEventArgs $args): void
     {
+        // only send the welcome email to testers, not to team accounts
+        if (!$entity->isTester()) {
+            return;
+        }
+
         $this->testerManager->handlePostCreation($entity);
     }
 

@@ -5,17 +5,11 @@ security:
   # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
   providers:
     # used to reload user from session & other features (e.g. switch_user)
-    app_user_provider:
+    # users and testers are now a single entity differentiated by User::$type
+    app_users:
       entity:
         class: App\Entity\User
         property: email
-    app_tester_provider:
-      entity:
-        class: App\Entity\Tester
-        property: email
-    app_users:
-      chain:
-        providers: [ app_user_provider, app_tester_provider ]
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/

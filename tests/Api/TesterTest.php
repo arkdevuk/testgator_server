@@ -2,7 +2,8 @@
 
 namespace App\Tests\Api;
 
-use App\Entity\Tester;
+use App\Entity\User;
+use App\Enum\UserType;
 use App\Tests\DataFixtures\TestFixtures;
 
 /**
@@ -66,8 +67,8 @@ class TesterTest extends AbstractApiTestCase
     public function testGetTester(): void
     {
         $token = $this->getTeamUserToken();
-        $tester = static::$em->getRepository(Tester::class)
-            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL]);
+        $tester = static::$em->getRepository(User::class)
+            ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
         $data = $this->jsonRequest('GET', '/api/testers/' . $tester->getId(), null, $token);
 
@@ -106,7 +107,7 @@ class TesterTest extends AbstractApiTestCase
     public function testDeactivateTester(): void
     {
         $token = $this->getTeamUserToken();
-        $tester = static::$em->getRepository(Tester::class)
+        $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL_2]);
 
         static::$client->request('PATCH', '/api/testers/' . $tester->getId(),
@@ -129,7 +130,7 @@ class TesterTest extends AbstractApiTestCase
     public function testDeleteTester(): void
     {
         $token = $this->getTeamUserToken();
-        $tester = static::$em->getRepository(Tester::class)
+        $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL_2]);
 
         static::$client->request('DELETE', '/api/testers/' . $tester->getId(),
@@ -145,7 +146,7 @@ class TesterTest extends AbstractApiTestCase
     public function testInactiveTesterCannotLogin(): void
     {
         $token = $this->getTeamUserToken();
-        $tester = static::$em->getRepository(Tester::class)
+        $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL_2]);
 
         // Deactivate

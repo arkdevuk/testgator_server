@@ -3,6 +3,7 @@
 namespace App\Services\Entities;
 
 use App\Entity\User;
+use App\Enum\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -40,6 +41,7 @@ class UserBuiltInDbService
 
         $user
             ->setEmail($userData['email'])
+            ->setType(UserType::USER)
             ->setRoles($roles)
             ->setPassword('')
             ->setSrc($src);
@@ -68,11 +70,13 @@ class UserBuiltInDbService
 
     public function getUserByEmail(string $email): ?User
     {
-        return $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+        return $this->em->getRepository(User::class)
+            ->findOneBy(['email' => $email, 'type' => UserType::USER]);
     }
 
     public function getUserByGuid(string $guid): ?User
     {
-        return $this->em->getRepository(User::class)->findOneBy(['id' => $guid]);
+        return $this->em->getRepository(User::class)
+            ->findOneBy(['id' => $guid, 'type' => UserType::USER]);
     }
 }

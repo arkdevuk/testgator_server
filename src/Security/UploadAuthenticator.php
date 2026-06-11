@@ -2,7 +2,6 @@
 
 namespace App\Security;
 
-use App\Entity\Tester;
 use App\Entity\User;
 use App\Services\Authentification\JWTService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -66,15 +65,14 @@ class UploadAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('Invalid JWT');
         }
 
-        $userClass = $authData['user']['type'] === 'user' ? User::class : Tester::class;
-
+        // 'user' and 'tester' are now both User entities (differentiated by type)
         $self = &$this;
         return new SelfValidatingPassport(
             new UserBadge($authData['user']['id'],
-                static function ($userIdentifier) use ($self, $userClass) {
-                    $u = $self->em->getRepository($userClass)
+                static function ($userIdentifier) use ($self) {
+                    $u = $self->em->getRepository(User::class)
                         ->findOneBy(['id' => $userIdentifier]);
-                    if (!$u instanceof User && !$u instanceof Tester) {
+                    if (!$u instanceof User) {
                         return null;
                     }
 
