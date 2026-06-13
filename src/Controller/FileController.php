@@ -32,10 +32,11 @@ final class FileController extends AbstractController
         // max size in Mb : 9Mb
         $maxSize = (int)($_ENV['FILE_MAX_SIZE_MB'] ?? '10') * 1024 * 1024;
         // valid formats : jpg, jpeg, png, gif, pdf
-        $allowedExt = ['jpeg', 'jpg', 'png', 'gif', 'pdf', 'txt'];
+        $allowedExt = ['jpeg', 'jpg', 'png', 'gif', 'pdf', 'txt', 'mov', 'mp4', 'avi', 'doc', 'docx', 'xls', 'xlsx', 'csv'];
         $allowedMime = [
             'media' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'],
-            'document' => ['application/pdf', 'text/plain'],
+            'document' => ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'],
+            'video' => ['video/quicktime', 'video/mp4', 'video/x-msvideo'],
         ];
 
         $size = (int)$_SERVER['CONTENT_LENGTH'];

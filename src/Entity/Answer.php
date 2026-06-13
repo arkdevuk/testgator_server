@@ -35,16 +35,17 @@ use App\Entity\User;
         // answer.tester is forced to the current user for testers
         new Post(
             security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
+            securityPostDenormalize: "object.getQuestion() != null and object.getQuestion().getPlan() != null and object.getQuestion().getPlan().getState() not in ['draft', 'archived']",
             processor: AnswerStateProcessor::class,
         ),
         // testers cannot reassign the answer or move it to another question
         new Put(
             security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
-            securityPostDenormalize: "is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())",
+            securityPostDenormalize: "(is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())) and object.getQuestion() != null and object.getQuestion().getPlan() != null and object.getQuestion().getPlan().getState() not in ['draft', 'archived']",
         ),
         new Patch(
             security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
-            securityPostDenormalize: "is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())",
+            securityPostDenormalize: "(is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())) and object.getQuestion() != null and object.getQuestion().getPlan() != null and object.getQuestion().getPlan().getState() not in ['draft', 'archived']",
         ),
         new Delete(security: "is_granted('ROLE_USER')"),
     ],

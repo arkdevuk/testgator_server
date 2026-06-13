@@ -3,6 +3,10 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use App\State\FileStateProcessor;
+use App\State\FileStateProvider;
 use App\Repository\FileRepository;
 use App\Traits\Entity\TimeStampable;
 use Doctrine\DBAL\Types\Types;
@@ -12,7 +16,12 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
 
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: FileRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(provider: FileStateProvider::class),
+        new Delete(provider: FileStateProvider::class, processor: FileStateProcessor::class, status: 200),
+    ]
+)]
 class File
 {
     use TimeStampable;
@@ -40,6 +49,8 @@ class File
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $uploadedBy = null;
 
+    private ?string $signedUrl = null;
+
     public function __construct(string $name)
     {
         $this->setNow();
@@ -50,7 +61,13 @@ class File
 
     public function getUrl(): string
     {
-        return $_ENV['PUBLIC_URL_BUCKET'] . '/' . $this->getKey() . '.' . $this->getExtension();
+        return $this->signedUrl ?? $_ENV['PUBLIC_URL_BUCKET'] . '/' . $this->getKey() . '.' . $this->getExtension();
+    }
+
+    public function setSignedUrl(string $url): static
+    {
+        $this->signedUrl = $url;
+        return $this;
     }
 
     public function getId(): ?Uuid

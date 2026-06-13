@@ -58,7 +58,11 @@ class FileService
                 'credentials' => [
                     'key' => $_ENV['AWS_ACCESS_KEY_ID'] ?? 'none',
                     'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'] ?? 'none',
-                ]
+                ],
+                'http' => [
+                    'connect_timeout' => 5,
+                    'timeout' => 15,
+                ],
             ]);
         }
     }
@@ -105,10 +109,28 @@ class FileService
         $this->em->flush();
         return [
             'id' => $file->getId()?->toString(),
-            'url' => $file->getUrl(),
+            'url' => $this->generateSignedUrl($file),
             'filename' => $file->getId() . '.' . $file->getExtension(),
             '@id' => '/api/files/' . $file->getId()?->toString(),
         ];
+    }
+
+    public function deleteFile(File $file): void
+    {
+        $this->s3Client->deleteObject([
+            'Bucket' => $file->getBucket(),
+            'Key' => $file->getKey() . '.' . $file->getExtension(),
+        ]);
+    }
+
+    public function generateSignedUrl(File $file): string
+    {
+        $cmd = $this->s3Client->getCommand('GetObject', [
+            'Bucket' => $file->getBucket(),
+            'Key' => $file->getKey() . '.' . $file->getExtension(),
+        ]);
+
+        return (string)$this->s3Client->createPresignedRequest($cmd, '+24 hours')->getUri();
     }
 
     /**
