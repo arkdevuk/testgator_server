@@ -17,6 +17,7 @@ use ApiPlatform\Metadata\Put;
 use App\Classes\TestPlanState;
 use App\Repository\TestPlanRepository;
 use App\ApiResource\TestingProgression;
+use App\State\TestPlanStateProcessor;
 use App\State\TestingProgressionStateProvider;
 use App\Traits\Entity\TimeStampable;
 use App\Traits\GuidAware;
@@ -44,9 +45,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
             provider: TestingProgressionStateProvider::class,
             name: 'test_plan_testing_progression',
         ),
-        new Post(security: "is_granted('ROLE_USER')"),
-        new Put(security: "is_granted('ROLE_USER')"),
-        new Patch(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('ROLE_USER')", processor: TestPlanStateProcessor::class),
+        new Put(security: "is_granted('ROLE_USER')", processor: TestPlanStateProcessor::class),
+        new Patch(security: "is_granted('ROLE_USER')", processor: TestPlanStateProcessor::class),
         new Delete(security: "is_granted('ROLE_USER')"),
     ],
     normalizationContext: ['groups' => ['testPlan:read', 'timestampable:read'], 'enable_max_depth' => true],

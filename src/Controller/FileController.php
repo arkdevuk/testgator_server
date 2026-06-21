@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\File;
 use App\Services\FileService;
+use App\Services\SettingsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,8 +15,9 @@ final class FileController extends AbstractController
 {
     #[Route('/public/apx/upload', name: 'upload_file')]
     public function upload_file(
-        FileService $fileService,
-        Request     $request,
+        FileService     $fileService,
+        SettingsService $settingsService,
+        Request         $request,
     ): Response
     {
         // CORS
@@ -28,6 +30,11 @@ final class FileController extends AbstractController
         /** @noinspection ObGetCleanCanBeUsedInspection */
         ob_get_contents();
         ob_end_clean();
+
+        // Check whether uploads are enabled (setting: general.allow_upload, default: true)
+        if ($settingsService->getSettingValue('allow_upload', 'general', 'true') === 'false') {
+            return $this->json(['error' => 'Uploads are disabled', 'message' => 'uploads_disabled'], 403);
+        }
 
         // max size in Mb : 9Mb
         $maxSize = (int)($_ENV['FILE_MAX_SIZE_MB'] ?? '10') * 1024 * 1024;

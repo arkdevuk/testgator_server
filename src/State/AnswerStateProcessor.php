@@ -3,11 +3,15 @@
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Answer;
 use App\Entity\User;
+use App\Event\AnswerUpdatedAppEvent;
+use App\Event\NewAnswerAppEvent;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * When a TESTER posts/puts/patches an answer:
@@ -19,8 +23,9 @@ final class AnswerStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface $persistProcessor,
-        private readonly Security           $security,
+        private readonly ProcessorInterface       $persistProcessor,
+        private readonly Security                 $security,
+        private readonly EventDispatcherInterface $dispatcher,
     )
     {
     }
@@ -43,6 +48,16 @@ final class AnswerStateProcessor implements ProcessorInterface
             }
         }
 
-        return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        $result = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+
+        if ($result instanceof Answer) {
+            $event = $operation instanceof Post
+                ? new NewAnswerAppEvent($result)
+                : new AnswerUpdatedAppEvent($result);
+
+            $this->dispatcher->dispatch($event);
+        }
+
+        return $result;
     }
 }

@@ -17,6 +17,13 @@ use ApiPlatform\OpenApi\OpenApi;
  *   - POST /api/auth/login_tester
  *   - POST /api/auth/refresh
  *   - GET  /api/questions/{id}/stats
+ *   - GET  /api/search/query
+ *   - POST /public/apx/upload
+ *
+ * Settings (/api/settings) is a standard ApiResource — documented automatically. Rules:
+ *   GET / GetCollection : ROLE_USER + ROLE_TESTER (testers restricted to public=true via TesterScopeExtension)
+ *   POST / PATCH / DELETE : ROLE_USER (dev team) only — PUT is disabled
+ *   Filters : ?name= (ipartial)  ?section= (ipartial)
  */
 final class OpenApiDecorator implements OpenApiFactoryInterface
 {
@@ -261,6 +268,152 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
                     ),
                     '404' => new Response(description: 'Question not found'),
                     '401' => new Response(description: 'Unauthorized'),
+                ],
+            ),
+        ));
+
+        // ── POST /public/apx/upload ───────────────────────────────────────
+        $paths->addPath('/public/apx/upload', new PathItem(
+            post: new Operation(
+                operationId: 'uploadFile',
+                tags: ['File'],
+                summary: 'Upload a file to S3-compatible storage',
+                description: <<<'MD'
+Uploads a single file via `multipart/form-data` and stores it in the configured S3 bucket.
+
+**Returns** a signed URL (valid 24 h) alongside the new file IRI which can be attached to questions or answers.
+
+**Authentication** — this endpoint uses a dedicated firewall with a scoped JWT. The `Authorization: Bearer <token>` JWT must contain `"web/api/upload"` in its `scope` array. A standard API JWT without this scope will be rejected with `401`. Both testers and dev team members are supported provided their token carries the upload scope.
+
+**Blocked** with `403` when the setting `general.allow_upload` exists and its value is `"false"`.
+
+**Allowed extensions:** jpeg, jpg, png, gif, pdf, txt, mov, mp4, avi, doc, docx, xls, xlsx, csv
+
+**Max size:** controlled by the `FILE_MAX_SIZE_MB` environment variable (default 10 MB).
+MD,
+                requestBody: new RequestBody(
+                    description: 'File to upload',
+                    required: true,
+                    content: new \ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['file'],
+                            'properties' => [
+                                'file' => [
+                                    'type' => 'string',
+                                    'format' => 'binary',
+                                    'description' => 'The file to upload',
+                                ],
+                            ],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(
+                        description: 'File uploaded successfully',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => [
+                                    'id' => ['type' => 'string', 'format' => 'uuid', 'description' => 'File UUID'],
+                                    'url' => ['type' => 'string', 'format' => 'uri', 'description' => 'Signed S3 URL (valid 24 h)'],
+                                    'filename' => ['type' => 'string', 'example' => 'abc123.png'],
+                                    '@id' => ['type' => 'string', 'example' => '/api/files/019e...', 'description' => 'API Platform IRI — use for GET /api/files/{id}'],
+                                ],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'No file provided, file too large, or extension/MIME type not allowed.'),
+                    '403' => new Response(description: 'Uploads are disabled via the `general.allow_upload` setting.'),
+                ],
+                security: [['bearerAuth' => []]],
+            ),
+        ));
+
+        // ── GET /api/search/query ─────────────────────────────────────────
+        $openApi->getComponents()->getSchemas()['SearchResult'] = new \ArrayObject([
+            'type' => 'object',
+            'properties' => [
+                'type' => [
+                    'type' => 'string',
+                    'enum' => ['projects', 'testers', 'test_plan', 'questions', 'answers'],
+                    'description' => 'Entity type of the result',
+                ],
+                'iri' => [
+                    'type' => 'string',
+                    'example' => '/api/questions/3',
+                    'description' => 'API path — use to fetch the full object',
+                ],
+                'score' => [
+                    'type' => 'number',
+                    'format' => 'float',
+                    'example' => 2.1972,
+                    'description' => 'BM25 relevance score — higher means more relevant',
+                ],
+                'name' => [
+                    'type' => 'string',
+                    'example' => 'Does the login work?',
+                    'description' => 'Display label (title, email, or truncated comment for answers)',
+                ],
+                'extracts' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                    'description' => 'Short snippets showing where the match occurred, padded with …',
+                    'example' => ['…Navigate to /login and verify credentials are accepted…'],
+                ],
+            ],
+        ]);
+
+        $paths->addPath('/api/search/query', new PathItem(
+            get: new Operation(
+                operationId: 'searchQuery',
+                tags: ['Search'],
+                summary: 'Full-text BM25 search across entity types',
+                description: <<<'MD'
+Search across projects, testers, test plans, questions and answers using BM25 relevance scoring.
+
+**Scoring** — matches in the name/title are weighted ×3 over matches in description/content/comment. Term frequency is saturated (100 occurrences is not 100× more relevant than 1) and scores are normalised by field length.
+
+**Testers** are automatically restricted: regardless of the requested scope they can only search `test_plan`, `questions` and `answers`, scoped to plans they are enrolled in and answers they authored.
+
+**`scope`** accepts:
+- A single value: `?scope=questions`
+- Comma-separated values: `?scope=questions,answers`
+- Array style: `?scope[]=questions&scope[]=answers`
+- Omitted — searches everything the caller has access to
+MD,
+                parameters: [
+                    new Parameter(
+                        name: 'query',
+                        in: 'query',
+                        required: true,
+                        description: 'Search string. Multiple words are split into individual terms and scored independently.',
+                        schema: ['type' => 'string', 'example' => 'login page'],
+                    ),
+                    new Parameter(
+                        name: 'scope',
+                        in: 'query',
+                        required: false,
+                        description: 'Limit to one or more entity types. Comma-separated or repeated as scope[]. Omit to search all accessible types.',
+                        schema: [
+                            'type' => 'string',
+                            'enum' => ['projects', 'testers', 'test_plan', 'questions', 'answers'],
+                            'example' => 'questions,answers',
+                        ],
+                    ),
+                ],
+                responses: [
+                    '200' => new Response(
+                        description: 'Results sorted by BM25 score descending. Empty array when nothing matches.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'array',
+                                'items' => ['$ref' => '#/components/schemas/SearchResult'],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing or empty `query` parameter, or unknown `scope` value.'),
+                    '401' => new Response(description: 'Unauthorized — valid Bearer token required.'),
                 ],
             ),
         ));

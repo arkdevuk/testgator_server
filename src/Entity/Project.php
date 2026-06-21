@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\ApiResource\ProjectStats;
 use App\Repository\ProjectRepository;
+use App\State\ProjectStateProcessor;
 use App\State\ProjectStatsStateProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -35,9 +36,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
             provider: ProjectStatsStateProvider::class,
             name: 'project_stats',
         ),
-        new Post(security: "is_granted('ROLE_USER')"),
-        new Put(security: "is_granted('ROLE_USER')"),
-        new Patch(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('ROLE_USER')", processor: ProjectStateProcessor::class),
+        new Put(security: "is_granted('ROLE_USER')", processor: ProjectStateProcessor::class),
+        new Patch(security: "is_granted('ROLE_USER')", processor: ProjectStateProcessor::class),
         new Delete(security: "is_granted('ROLE_USER')"),
     ],
     normalizationContext: ['groups' => ['project:read']],

@@ -8,6 +8,7 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Answer;
 use App\Entity\Project;
+use App\Entity\Settings;
 use App\Entity\TestPlan;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
@@ -17,9 +18,10 @@ use Symfony\Bundle\SecurityBundle\Security;
  * Restricts what TESTER accounts can see through the API.
  * Team users (type USER) are not affected.
  *
- * - TestPlan: only plans the tester is enrolled in
- * - Project:  only projects having at least one test plan the tester is enrolled in
- * - Answer:   only the tester's own answers
+ * - TestPlan:  only plans the tester is enrolled in
+ * - Project:   only projects having at least one test plan the tester is enrolled in
+ * - Answer:    only the tester's own answers
+ * - Settings:  only settings where public = true
  *
  * Applies to both collections and items (a non-matching item yields a 404).
  */
@@ -70,6 +72,10 @@ final class TesterScopeExtension implements QueryCollectionExtensionInterface, Q
                 $queryBuilder
                     ->andWhere(sprintf('%s.tester = :%s', $rootAlias, $parameter))
                     ->setParameter($parameter, $tester);
+                break;
+
+            case Settings::class:
+                $queryBuilder->andWhere(sprintf('%s.public = true', $rootAlias));
                 break;
         }
     }
