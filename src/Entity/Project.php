@@ -11,7 +11,9 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\ApiResource\ProjectStats;
 use App\Repository\ProjectRepository;
+use App\State\ProjectStatsStateProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -25,6 +27,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
         // assigned test plan (see TesterScopeExtension)
         new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
         new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        new Get(
+            uriTemplate: '/projects/{id}/stats',
+            output: ProjectStats::class,
+            normalizationContext: [],
+            security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
+            provider: ProjectStatsStateProvider::class,
+            name: 'project_stats',
+        ),
         new Post(security: "is_granted('ROLE_USER')"),
         new Put(security: "is_granted('ROLE_USER')"),
         new Patch(security: "is_granted('ROLE_USER')"),
@@ -32,6 +42,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     ],
     normalizationContext: ['groups' => ['project:read']],
     denormalizationContext: ['groups' => ['project:write']],
+    forceEager: false,
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'project', 'name'], arguments: ['orderParameterName' => 'order'])]
 class Project

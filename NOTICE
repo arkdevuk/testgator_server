@@ -1,0 +1,25 @@
+# TestGator License Notice
+
+Copyright © 2025 arkdevuk
+
+TestGator is free and open-source software licensed under the GNU Affero General Public License version 3.
+
+You may use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of this software under the terms of the GNU Affero General Public License version 3.
+
+If you modify this software and make it available to users over a network, you must make the corresponding source code available to those users under the same license, as required by the AGPL-3.0.
+
+
+## Official Project and Services
+
+TestGator is originally authored and maintained by arkdevuk.
+
+The official TestGator project, official releases, official hosted services, official support, and official documentation are provided only by arkdevuk or by parties explicitly authorized by arkdevuk.
+
+The AGPL-3.0 license grants rights to use, modify, and distribute the software, but it does not grant permission to use the TestGator name, logo, branding, domain names, or other project marks in a way that suggests an unofficial fork, service, product, or distribution is official, endorsed, sponsored, or provided by arkdevuk.
+
+Third parties may offer independent services, hosting, support, or distributions based on TestGator, provided they comply with the AGPL-3.0 and clearly identify themselves as independent and unofficial. They must not use TestGator branding in a misleading way or present their services as official TestGator services without written permission from arkdevuk.
+
+A copy of the full AGPL-3.0 license text is included in LICENCE file.
+
+SPDX-License-Identifier: AGPL-3.0-only
+

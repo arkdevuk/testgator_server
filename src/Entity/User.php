@@ -54,6 +54,7 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
     normalizationContext: ['groups' => ['testers:read'], 'enable_max_depth' => true],
     denormalizationContext: ['groups' => ['testers:write']],
     processor: TesterStateProcessor::class,
+    forceEager: false,
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'email', 'active'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(TesterTestingPlanFilter::class, properties: ['email'])]

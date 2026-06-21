@@ -77,7 +77,7 @@ Contributions are welcome! Follow these steps to contribute:
 
 ## License
 
-TestGator is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+TestGator is licensed under the gnu-agpl-v3.0 License. See [LICENSE](LICENSE) for details.
 
 ## Contact
 

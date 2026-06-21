@@ -16,6 +16,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Classes\TestPlanState;
 use App\Repository\TestPlanRepository;
+use App\ApiResource\TestingProgression;
+use App\State\TestingProgressionStateProvider;
 use App\Traits\Entity\TimeStampable;
 use App\Traits\GuidAware;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -34,6 +36,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
         // (see TesterScopeExtension)
         new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
         new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
+        new Get(
+            uriTemplate: '/test_plans/{id}/testing_progression',
+            normalizationContext: [],
+            output: TestingProgression::class,
+            security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
+            provider: TestingProgressionStateProvider::class,
+            name: 'test_plan_testing_progression',
+        ),
         new Post(security: "is_granted('ROLE_USER')"),
         new Put(security: "is_granted('ROLE_USER')"),
         new Patch(security: "is_granted('ROLE_USER')"),

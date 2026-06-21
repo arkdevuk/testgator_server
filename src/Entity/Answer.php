@@ -42,13 +42,16 @@ use App\Entity\User;
         new Put(
             security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
             securityPostDenormalize: "(is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())) and object.getQuestion() != null and object.getQuestion().getPlan() != null and object.getQuestion().getPlan().getState() not in ['draft', 'archived']",
+            processor: AnswerStateProcessor::class,
         ),
         new Patch(
             security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
             securityPostDenormalize: "(is_granted('ROLE_USER') or (object.getTester()?.getId() == previous_object.getTester()?.getId() and object.getQuestion()?.getId() == previous_object.getQuestion()?.getId())) and object.getQuestion() != null and object.getQuestion().getPlan() != null and object.getQuestion().getPlan().getState() not in ['draft', 'archived']",
+            processor: AnswerStateProcessor::class,
         ),
         new Delete(security: "is_granted('ROLE_USER')"),
     ],
+    forceEager: false,
 )]
 #[ApiFilter(DateFilter::class, properties: ['created'])]
 #[ApiFilter(AnswerQueryFilter::class)]
@@ -87,6 +90,10 @@ class Answer
     #[ORM\JoinColumn(nullable: false)]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?Question $question = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
+    private bool $important = false;
 
     public function __construct()
     {
@@ -178,6 +185,18 @@ class Answer
     public function setQuestion(?Question $question): static
     {
         $this->question = $question;
+
+        return $this;
+    }
+
+    public function isImportant(): bool
+    {
+        return $this->important;
+    }
+
+    public function setImportant(bool $important): static
+    {
+        $this->important = $important;
 
         return $this;
     }

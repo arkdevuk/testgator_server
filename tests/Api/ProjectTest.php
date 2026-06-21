@@ -140,4 +140,58 @@ class ProjectTest extends AbstractApiTestCase
         static::$client->request('DELETE', '/api/projects/' . $project->getId());
         $this->assertStatusCode(401);
     }
+
+    // ── GET /api/projects/{id}/stats ──────────────────────────────────────
+
+    public function testProjectStatsRequiresAuth(): void
+    {
+        $project = static::$em->getRepository(Project::class)
+            ->findOneBy(['name' => 'Alpha Project']);
+
+        $this->jsonRequest('GET', '/api/projects/' . $project->getId() . '/stats');
+        $this->assertStatusCode(401);
+    }
+
+    public function testProjectStatsNotFound(): void
+    {
+        $token = $this->getTeamUserToken();
+        $this->jsonRequest('GET', '/api/projects/99999/stats', null, $token);
+        $this->assertStatusCode(404);
+    }
+
+    public function testProjectStatsReturnsCorrectCounts(): void
+    {
+        $token = $this->getTeamUserToken();
+        $project = static::$em->getRepository(Project::class)
+            ->findOneBy(['name' => 'Alpha Project']);
+
+        $data = $this->jsonRequest('GET', '/api/projects/' . $project->getId() . '/stats', null, $token);
+
+        $this->assertStatusCode(200);
+
+        // Alpha Project fixture breakdown:
+        //   releases  : release "1.0.0" + release2 "2.0.0"  → 2
+        //   testPlans : plan (published) + plan2 (draft)     → 2
+        //   testers   : tester1 enrolled in plan only        → 1
+        //   answers   : 4 answers on 2 questions in plan     → 4
+        self::assertSame(2, $data['releases'], 'releases count mismatch');
+        self::assertSame(2, $data['testPlans'], 'testPlans count mismatch');
+        self::assertSame(1, $data['testers'], 'testers count mismatch');
+        self::assertSame(4, $data['answers'], 'answers count mismatch');
+    }
+
+    public function testProjectStatsEmptyProject(): void
+    {
+        $token = $this->getTeamUserToken();
+        $project = static::$em->getRepository(Project::class)
+            ->findOneBy(['name' => 'Beta Project']);
+
+        $data = $this->jsonRequest('GET', '/api/projects/' . $project->getId() . '/stats', null, $token);
+
+        $this->assertStatusCode(200);
+        self::assertSame(0, $data['releases']);
+        self::assertSame(0, $data['testPlans']);
+        self::assertSame(0, $data['testers']);
+        self::assertSame(0, $data['answers']);
+    }
 }

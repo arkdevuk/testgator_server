@@ -10,9 +10,10 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
- * When a TESTER posts an answer, answer.tester is always forced to the
- * currently logged-in user, ignoring whatever the payload contains.
- * Team users (type USER) can assign any tester.
+ * When a TESTER posts/puts/patches an answer:
+ *   - answer.tester is always forced to the currently logged-in user
+ *   - answer.important is always restored to its previous value (testers cannot change it)
+ * Team users (type USER) can assign any tester and set important freely.
  */
 final class AnswerStateProcessor implements ProcessorInterface
 {
@@ -29,7 +30,17 @@ final class AnswerStateProcessor implements ProcessorInterface
         $user = $this->security->getUser();
 
         if ($data instanceof Answer && $user instanceof User && $user->isTester()) {
+            // Force tester to current user
             $data->setTester($user);
+
+            // Restore important to its pre-request value; testers cannot change it
+            $previous = $context['previous_data'] ?? null;
+            if ($previous instanceof Answer) {
+                $data->setImportant($previous->isImportant());
+            } else {
+                // POST: no previous data, default to false
+                $data->setImportant(false);
+            }
         }
 
         return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
