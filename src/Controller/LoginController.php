@@ -9,6 +9,7 @@ use App\Services\Authentification\RefreshTokenService;
 use App\Services\Entities\TesterManager;
 use App\Services\Entities\TestPlanManager;
 use App\Services\Entities\UserBuiltInDbService;
+use App\Services\LoginRateLimiterService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,12 +21,13 @@ final class LoginController extends AbstractController
 
     #[Route('/api/auth/login', name: 'app_login', methods: ['POST'])]
     public function index(
-        Request              $request,
-        UserBuiltInDbService $userBuiltInDbService,
-        TesterManager       $testerManager,
-        LdapService          $ldapService,
-        JWTService           $jwtService,
-        RefreshTokenService $refreshTokenService,
+        Request                 $request,
+        UserBuiltInDbService    $userBuiltInDbService,
+        TesterManager           $testerManager,
+        LdapService             $ldapService,
+        JWTService              $jwtService,
+        RefreshTokenService     $refreshTokenService,
+        LoginRateLimiterService $rateLimiter,
     ): Response
     {
         $username = $request->getPayload()?->get('username');
@@ -43,6 +45,23 @@ final class LoginController extends AbstractController
 
         if (!in_array($authMode, ['app', 'ldap', 'code'], true)) {
             return $this->json(['logged' => false, 'error' => 'Invalid authMode'], 400);
+        }
+
+        // ── Rate limiting ─────────────────────────────────────────────────
+        // Applied before any credential check so the window counts every
+        // attempt, including structurally valid ones that fail authentication.
+        // The 'code' OTP flow does not check a password, so skip it there.
+        if ($authMode !== 'code') {
+            $ip = $request->getClientIp() ?? 'unknown';
+            $limit = $rateLimiter->attempt($ip, $username);
+
+            if (!$limit['allowed']) {
+                return $this->json(
+                    ['logged' => false, 'error' => 'Too many login attempts. Try again later.'],
+                    429,
+                    ['Retry-After' => (string)$limit['retryAfter']],
+                );
+            }
         }
 
         // ── Team user ─────────────────────────────────────────────────────
@@ -73,6 +92,10 @@ final class LoginController extends AbstractController
                 return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
             }
 
+            // Successful login — clear the attempt counter so a valid user
+            // does not get locked out after a previous typo run.
+            $rateLimiter->reset($request->getClientIp() ?? 'unknown', $username);
+
             return $this->json([
                 'logged' => true,
                 'jwt' => $jwtService->getJWT($user, false, ['mode' => 'team', 'authMode' => $authMode]),
@@ -102,6 +125,9 @@ final class LoginController extends AbstractController
             if ($tester === null) {
                 return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
             }
+
+            // Successful tester login — reset counter.
+            $rateLimiter->reset($request->getClientIp() ?? 'unknown', $username);
 
             return $this->json([
                 'logged' => true,

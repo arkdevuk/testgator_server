@@ -18,6 +18,7 @@ use App\Event\TesterAssignedAppEvent;
 use App\Event\TestingPlanUpdatedAppEvent;
 use App\Event\TestPlanClosedAppEvent;
 use App\Event\TestPlanPublishedAppEvent;
+use App\Event\UserPasswordChangedAppEvent;
 use App\Services\WebhookService;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
@@ -32,6 +33,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 #[AsEventListener(event: QuestionUpdatedAppEvent::class)]
 #[AsEventListener(event: NewAnswerAppEvent::class)]
 #[AsEventListener(event: AnswerUpdatedAppEvent::class)]
+#[AsEventListener(event: UserPasswordChangedAppEvent::class)]
 final class WebhookEventListener
 {
     public function __construct(
@@ -43,7 +45,7 @@ final class WebhookEventListener
     // ── Project ───────────────────────────────────────────────────────────────
 
     public function __invoke(
-        NewProjectAppEvent|ProjectUpdatedAppEvent|NewTestingPlanAppEvent|TestingPlanUpdatedAppEvent|TestPlanPublishedAppEvent|TestPlanClosedAppEvent|TesterAssignedAppEvent|NewQuestionAppEvent|QuestionUpdatedAppEvent|NewAnswerAppEvent|AnswerUpdatedAppEvent $event,
+        NewProjectAppEvent|ProjectUpdatedAppEvent|NewTestingPlanAppEvent|TestingPlanUpdatedAppEvent|TestPlanPublishedAppEvent|TestPlanClosedAppEvent|TesterAssignedAppEvent|NewQuestionAppEvent|QuestionUpdatedAppEvent|NewAnswerAppEvent|AnswerUpdatedAppEvent|UserPasswordChangedAppEvent $event,
     ): void
     {
         [$entityData, $projectData] = match (true) {
@@ -62,6 +64,8 @@ final class WebhookEventListener
 
             $event instanceof NewAnswerAppEvent,
                 $event instanceof AnswerUpdatedAppEvent => $this->fromAnswer($event->answer),
+
+            $event instanceof UserPasswordChangedAppEvent => $this->fromUserPasswordChanged($event->user),
         };
 
         $this->webhookService->dispatch($event::class, $entityData, $projectData);
@@ -178,5 +182,17 @@ final class WebhookEventListener
                 ? ['id' => $answer->getQuestion()->getId(), 'name' => $answer->getQuestion()->getName()]
                 : null,
         ];
+    }
+
+    private function fromUserPasswordChanged(User $user): array
+    {
+        $entityData = [
+            'id' => (string)$user->getId(),
+            'email' => $user->getEmail(),
+            'type' => $user->getType()->value,
+        ];
+
+        // Team users do not belong to a single project — project context is empty.
+        return [$entityData, []];
     }
 }

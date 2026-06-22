@@ -99,7 +99,7 @@ class FileService
             'ContentType' => $mime,
             'Key' => $file->getKey() . '.' . $file->getExtension(),
             'Body' => fopen($filepath, 'r+'),
-            'ACL' => 'public-read',
+            'ACL' => 'private',
         ]);
 
         $file->setBucket($_ENV['AWS_BUCKET']);

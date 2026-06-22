@@ -98,6 +98,19 @@ They are dispatched by the API Platform state processors **after** the entity ha
 
 ---
 
+## User
+
+### `UserPasswordChangedAppEvent`
+
+|             |                                                                                                                                                                                                                           |
+|-------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Payload** | `$user: User`                                                                                                                                                                                                             |
+| **Trigger** | `POST /api/users/me/change-password` (authenticated team member changes own password) or `POST /api/users/{id}/change-password` (admin changes any user's password). Dispatched after the new password hash is persisted. |
+
+> **Note:** `project` is empty (`{}`) for this event — team users do not belong to a single project.
+
+---
+
 ## Dispatch order (per request)
 
 When a `PUT`/`PATCH` on a test plan triggers multiple conditions simultaneously, events are dispatched in this order:

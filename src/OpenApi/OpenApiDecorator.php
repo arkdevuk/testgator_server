@@ -426,6 +426,83 @@ MD,
             ),
         ));
 
+        // ── POST /api/auth/me/change-password ────────────────────────────────
+        $paths->addPath('/api/auth/me/change-password', new PathItem(
+            post: new Operation(
+                operationId: 'changeOwnPassword',
+                tags: ['Auth'],
+                summary: 'Change own password',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER` (team members only — testers are excluded)
+
+Allows any authenticated team member to change their own password.
+
+**Password policy:** minimum 10 characters, at least one uppercase letter, one number, and one symbol.
+
+Dispatches `UserPasswordChangedAppEvent` on success.
+MD,
+                requestBody: new RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'application/json' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['newPassword'],
+                            'properties' => [
+                                'newPassword' => ['type' => 'string', 'example' => 'MyN3wP@ssword'],
+                            ],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(description: 'Password updated successfully.'),
+                    '400' => new Response(description: 'Missing `newPassword` field.'),
+                    '422' => new Response(description: 'Password does not meet policy requirements.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
+            ),
+        ));
+
+        // ── POST /api/users/{id}/change-password ──────────────────────────────
+        $paths->addPath('/api/users/{id}/change-password', new PathItem(
+            post: new Operation(
+                operationId: 'changeUserPasswordByAdmin',
+                tags: ['User'],
+                summary: 'Change password for another user (admin)',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_ADMIN`
+
+Allows an admin to set the password of any team user account.
+
+**Password policy:** minimum 10 characters, at least one uppercase letter, one number, and one symbol.
+
+Dispatches `UserPasswordChangedAppEvent` on success.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                requestBody: new RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'application/json' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['newPassword'],
+                            'properties' => [
+                                'newPassword' => ['type' => 'string', 'example' => 'MyN3wP@ssword'],
+                            ],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(description: 'Password updated successfully.'),
+                    '400' => new Response(description: 'Missing `newPassword` field.'),
+                    '404' => new Response(description: 'User not found.'),
+                    '422' => new Response(description: 'Password does not meet policy requirements.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
+            ),
+        ));
+
         // ── Annotate auto-generated /api/users paths ─────────────────────────
         $this->annotatePathsWithRole($paths, '/api/users', 'ROLE_ADMIN', [
             'GET' => 'List or retrieve team user accounts.',

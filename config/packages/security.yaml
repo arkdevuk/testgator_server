@@ -30,7 +30,10 @@ security:
       pattern: ^/api/docs.jsonld$
       security: false
     login_endpoint:
-      pattern: ^/api/auth/(login|login_guest|login_tester|refresh)$
+      # login_guest is intentionally excluded — no such route exists.
+      # Add it here only if/when the route is implemented, and review
+      # whether unauthenticated access is still appropriate at that point.
+      pattern: ^/api/auth/(login|login_tester|refresh)$
       security: false
     api:
       pattern: ^/
