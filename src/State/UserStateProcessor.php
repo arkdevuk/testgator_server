@@ -7,8 +7,10 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\User;
 use App\Enum\UserType;
+use App\Event\DevCreatedAppEvent;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Processor for the /api/users resource (team accounts).
@@ -21,6 +23,7 @@ final class UserStateProcessor implements ProcessorInterface
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         private readonly ProcessorInterface          $persistProcessor,
         private readonly UserPasswordHasherInterface $hasher,
+        private readonly EventDispatcherInterface $dispatcher,
     )
     {
     }
@@ -44,6 +47,12 @@ final class UserStateProcessor implements ProcessorInterface
             $data->eraseCredentials();
         }
 
-        return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        $result = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+
+        if ($operation instanceof Post && $result instanceof User) {
+            $this->dispatcher->dispatch(new DevCreatedAppEvent($result));
+        }
+
+        return $result;
     }
 }

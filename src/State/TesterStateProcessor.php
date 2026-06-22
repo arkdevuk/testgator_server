@@ -4,10 +4,13 @@ namespace App\State;
 
 use ApiPlatform\Metadata\DeleteOperationInterface;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\User;
 use App\Enum\UserType;
+use App\Event\TesterCreatedAppEvent;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Forces type = TESTER on every User created/updated through the
@@ -17,9 +20,10 @@ final class TesterStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface $persistProcessor,
+        private readonly ProcessorInterface       $persistProcessor,
         #[Autowire(service: 'api_platform.doctrine.orm.state.remove_processor')]
-        private readonly ProcessorInterface $removeProcessor,
+        private readonly ProcessorInterface       $removeProcessor,
+        private readonly EventDispatcherInterface $dispatcher,
     )
     {
     }
@@ -34,6 +38,12 @@ final class TesterStateProcessor implements ProcessorInterface
             $data->setType(UserType::TESTER);
         }
 
-        return $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+        $result = $this->persistProcessor->process($data, $operation, $uriVariables, $context);
+
+        if ($operation instanceof Post && $result instanceof User) {
+            $this->dispatcher->dispatch(new TesterCreatedAppEvent($result));
+        }
+
+        return $result;
     }
 }

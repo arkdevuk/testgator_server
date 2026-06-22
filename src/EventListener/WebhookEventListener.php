@@ -8,6 +8,7 @@ use App\Entity\Question;
 use App\Entity\TestPlan;
 use App\Entity\User;
 use App\Event\AnswerUpdatedAppEvent;
+use App\Event\DevCreatedAppEvent;
 use App\Event\NewAnswerAppEvent;
 use App\Event\NewProjectAppEvent;
 use App\Event\NewQuestionAppEvent;
@@ -15,6 +16,7 @@ use App\Event\NewTestingPlanAppEvent;
 use App\Event\ProjectUpdatedAppEvent;
 use App\Event\QuestionUpdatedAppEvent;
 use App\Event\TesterAssignedAppEvent;
+use App\Event\TesterCreatedAppEvent;
 use App\Event\TestingPlanUpdatedAppEvent;
 use App\Event\TestPlanClosedAppEvent;
 use App\Event\TestPlanPublishedAppEvent;
@@ -34,6 +36,8 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 #[AsEventListener(event: NewAnswerAppEvent::class)]
 #[AsEventListener(event: AnswerUpdatedAppEvent::class)]
 #[AsEventListener(event: UserPasswordChangedAppEvent::class)]
+#[AsEventListener(event: DevCreatedAppEvent::class)]
+#[AsEventListener(event: TesterCreatedAppEvent::class)]
 final class WebhookEventListener
 {
     public function __construct(
@@ -45,7 +49,7 @@ final class WebhookEventListener
     // ── Project ───────────────────────────────────────────────────────────────
 
     public function __invoke(
-        NewProjectAppEvent|ProjectUpdatedAppEvent|NewTestingPlanAppEvent|TestingPlanUpdatedAppEvent|TestPlanPublishedAppEvent|TestPlanClosedAppEvent|TesterAssignedAppEvent|NewQuestionAppEvent|QuestionUpdatedAppEvent|NewAnswerAppEvent|AnswerUpdatedAppEvent|UserPasswordChangedAppEvent $event,
+        NewProjectAppEvent|ProjectUpdatedAppEvent|NewTestingPlanAppEvent|TestingPlanUpdatedAppEvent|TestPlanPublishedAppEvent|TestPlanClosedAppEvent|TesterAssignedAppEvent|NewQuestionAppEvent|QuestionUpdatedAppEvent|NewAnswerAppEvent|AnswerUpdatedAppEvent|UserPasswordChangedAppEvent|DevCreatedAppEvent|TesterCreatedAppEvent $event,
     ): void
     {
         [$entityData, $projectData] = match (true) {
@@ -66,6 +70,9 @@ final class WebhookEventListener
                 $event instanceof AnswerUpdatedAppEvent => $this->fromAnswer($event->answer),
 
             $event instanceof UserPasswordChangedAppEvent => $this->fromUserPasswordChanged($event->user),
+
+            $event instanceof DevCreatedAppEvent => $this->fromUserPasswordChanged($event->user),
+            $event instanceof TesterCreatedAppEvent => $this->fromTesterCreated($event->tester),
         };
 
         $this->webhookService->dispatch($event::class, $entityData, $projectData);
@@ -192,7 +199,19 @@ final class WebhookEventListener
             'type' => $user->getType()->value,
         ];
 
-        // Team users do not belong to a single project — project context is empty.
+        // Team users / dev accounts do not belong to a single project.
+        return [$entityData, []];
+    }
+
+    private function fromTesterCreated(User $tester): array
+    {
+        $entityData = [
+            'id' => (string)$tester->getId(),
+            'email' => $tester->getEmail(),
+            'type' => $tester->getType()->value,
+        ];
+
+        // A freshly created tester is not yet enrolled in any project.
         return [$entityData, []];
     }
 }

@@ -100,6 +100,24 @@ They are dispatched by the API Platform state processors **after** the entity ha
 
 ## User
 
+### `DevCreatedAppEvent`
+
+|             |                                                                        |
+|-------------|------------------------------------------------------------------------|
+| **Payload** | `$user: User`                                                          |
+| **Trigger** | `POST /api/users` — a new team member (type = USER) account is created |
+
+> **Note:** `project` is empty (`{}`) — dev accounts are not scoped to a single project.
+
+### `TesterCreatedAppEvent`
+
+|             |                                                                       |
+|-------------|-----------------------------------------------------------------------|
+| **Payload** | `$tester: User`                                                       |
+| **Trigger** | `POST /api/testers` — a new tester (type = TESTER) account is created |
+
+> **Note:** `project` is empty (`{}`) — a freshly created tester is not yet enrolled in any project.
+
 ### `UserPasswordChangedAppEvent`
 
 |             |                                                                                                                                                                                                                           |
