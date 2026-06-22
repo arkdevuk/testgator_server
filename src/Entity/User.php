@@ -16,6 +16,7 @@ use App\Enum\UserType;
 use App\Filter\TesterTestingPlanFilter;
 use App\Repository\UserRepository;
 use App\State\TesterStateProcessor;
+use App\State\UserStateProcessor;
 use App\Traits\Entity\TimeStampable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -40,6 +41,7 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
 #[ORM\Table(name: '`users`')]
 #[ORM\Index(name: 'IDX_USERS_TYPE', columns: ['type'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+// ── /api/testers — team members managing tester accounts ─────────────────────
 #[ApiResource(
     shortName: 'Tester',
     operations: [
@@ -56,6 +58,20 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
     processor: TesterStateProcessor::class,
     forceEager: false,
 )]
+// ── /api/users — admin management of team (type=USER) accounts ───────────────
+#[ApiResource(
+    shortName: 'User',
+    operations: [
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Get(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('ROLE_ADMIN')"),
+        new Patch(security: "is_granted('ROLE_ADMIN')"),
+    ],
+    normalizationContext: ['groups' => ['users:read', 'timestampable:read']],
+    denormalizationContext: ['groups' => ['users:write']],
+    processor: UserStateProcessor::class,
+    forceEager: false,
+)]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'email', 'active'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(TesterTestingPlanFilter::class, properties: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -66,24 +82,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    #[Groups(['testers:read'])]
-    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
+    #[Groups(['testers:read', 'users:read'])]
+    #[ApiFilter(SearchFilter::class, strategy: 'partial')]
     public ?Uuid $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['testers:read', 'testers:write', 'team:write'])]
+    #[Groups(['testers:read', 'testers:write', 'team:write', 'users:read', 'users:write'])]
     #[ApiFilter(SearchFilter::class, strategy: 'partial')]
     private ?string $email = null;
 
     #[ORM\Column(type: 'string', enumType: UserType::class, length: 20, options: ['default' => 'USER'])]
-    #[Groups(['testers:read'])]
+    #[Groups(['testers:read', 'users:read'])]
     private UserType $type = UserType::USER;
 
     /**
      * @var list<string> The user roles (only used for type = USER)
      */
     #[ORM\Column]
+    #[Groups(['users:read', 'users:write'])]
     private array $roles = [];
+
+    /**
+     * Transient plain-text password — never persisted.
+     * Required on POST /api/users, optional on PATCH.
+     */
+    #[Groups(['users:write'])]
+    private ?string $plainPassword = null;
 
     /**
      * @var string|null The hashed password (null for testers)
@@ -95,10 +119,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string : app|ldap
      */
     #[ORM\Column(length: 255, options: ['default' => 'app'])]
+    #[Groups(['users:read', 'users:write'])]
     private string $src = 'app';
 
     #[ORM\Column(options: ['default' => true])]
-    #[Groups(['testers:read', 'team:write'])]
+    #[Groups(['testers:read', 'team:write', 'users:read', 'users:write'])]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?bool $active = true;
 
@@ -122,7 +147,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $otpDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['testers:read'])]
+    #[Groups(['testers:read', 'users:read'])]
     private ?\DateTimeInterface $lastActive = null;
 
     public function __construct()
@@ -237,8 +262,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): static
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
     }
 
     public function getSrc(): string

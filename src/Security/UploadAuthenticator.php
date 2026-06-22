@@ -65,10 +65,23 @@ class UploadAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('Invalid JWT');
         }
 
+        // Resolve and validate the user before building the Passport so we can
+        // enforce the active flag immediately — not deferred inside the badge loader.
+        $u = $this->em->getRepository(User::class)
+            ->findOneBy(['id' => $authData['user']['id']]);
+
+        if (!$u instanceof User) {
+            throw new AuthenticationException('Invalid JWT');
+        }
+
+        if (!$u->isActive()) {
+            throw new AuthenticationException('Account disabled');
+        }
+
         // 'user' and 'tester' are now both User entities (differentiated by type)
         $self = &$this;
         return new SelfValidatingPassport(
-            new UserBadge($authData['user']['id'],
+            new UserBadge($u->getId(),
                 static function ($userIdentifier) use ($self) {
                     $u = $self->em->getRepository(User::class)
                         ->findOneBy(['id' => $userIdentifier]);

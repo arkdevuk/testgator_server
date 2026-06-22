@@ -20,9 +20,17 @@ use ApiPlatform\OpenApi\OpenApi;
  *   - GET  /api/search/query
  *   - POST /public/apx/upload
  *
- * Settings (/api/settings) is a standard ApiResource — documented automatically. Rules:
- *   GET / GetCollection : ROLE_USER + ROLE_TESTER (testers restricted to public=true via TesterScopeExtension)
- *   POST / PATCH / DELETE : ROLE_USER (dev team) only — PUT is disabled
+ * Also post-processes auto-generated ApiResource paths to inject role documentation:
+ *
+ * /api/users (User resource — team accounts, type=USER):
+ *   GET / GetCollection : ROLE_ADMIN only
+ *   POST / PATCH        : ROLE_ADMIN only
+ *   Filters : ?email= (partial)  ?id= (partial)
+ *
+ * /api/settings (Settings resource):
+ *   GET / GetCollection : ROLE_USER + ROLE_TESTER + ROLE_ADMIN
+ *                         Non-admins restricted to public=true via TesterScopeExtension
+ *   POST / PATCH / DELETE : ROLE_ADMIN only — PUT is disabled
  *   Filters : ?name= (ipartial)  ?section= (ipartial)
  */
 final class OpenApiDecorator implements OpenApiFactoryInterface
@@ -418,6 +426,88 @@ MD,
             ),
         ));
 
+        // ── Annotate auto-generated /api/users paths ─────────────────────────
+        $this->annotatePathsWithRole($paths, '/api/users', 'ROLE_ADMIN', [
+            'GET' => 'List or retrieve team user accounts.',
+            'POST' => 'Create a new team user account. `plainPassword` is required.',
+            'PATCH' => 'Partially update a team user account. `plainPassword` is optional.',
+        ]);
+
+        // ── Annotate auto-generated /api/settings paths ───────────────────────
+        $this->annotatePathsWithRole(
+            $paths,
+            '/api/settings',
+            'ROLE_USER, ROLE_TESTER, or ROLE_ADMIN',
+            [
+                'GET' => 'Non-admin users (ROLE_USER, ROLE_TESTER) only see settings where `public = true`. ROLE_ADMIN sees all settings.',
+                'POST' => 'Create a new setting. `id` is auto-computed as `{section}.{name}`.',
+                'PATCH' => 'Partially update an existing setting.',
+                'DELETE' => 'Delete a setting.',
+            ],
+            [
+                'POST' => 'ROLE_ADMIN',
+                'PATCH' => 'ROLE_ADMIN',
+                'DELETE' => 'ROLE_ADMIN',
+            ],
+        );
+
         return $openApi;
+    }
+
+    /**
+     * Prepends a role badge and description note to every operation on paths
+     * whose URI starts with $prefix.
+     *
+     * @param array<string, string> $methodDescriptions HTTP method (uppercase) → extra description line
+     * @param array<string, string> $methodRoles HTTP method (uppercase) → role override (falls back to $defaultRole)
+     */
+    private function annotatePathsWithRole(
+        \ApiPlatform\OpenApi\Model\Paths $paths,
+        string                           $prefix,
+        string                           $defaultRole,
+        array                            $methodDescriptions = [],
+        array                            $methodRoles = [],
+    ): void
+    {
+        foreach ($paths->getPaths() as $path => $pathItem) {
+            if (!str_starts_with($path, $prefix)) {
+                continue;
+            }
+
+            // Process each HTTP method, updating $pathItem sequentially.
+            // Closures must NOT be used — arrow functions capture $pathItem by value
+            // at construction time, so each withXxx() call would silently revert
+            // the previous method's update.
+            foreach (['get', 'post', 'patch', 'put', 'delete'] as $method) {
+                $operation = match ($method) {
+                    'get' => $pathItem->getGet(),
+                    'post' => $pathItem->getPost(),
+                    'patch' => $pathItem->getPatch(),
+                    'put' => $pathItem->getPut(),
+                    'delete' => $pathItem->getDelete(),
+                };
+
+                if ($operation === null) {
+                    continue;
+                }
+
+                $role = $methodRoles[strtoupper($method)] ?? $defaultRole;
+                $roleBlock = $role !== '' ? sprintf('> 🔒 **Required role:** `%s`', $role) : '';
+                $extra = $methodDescriptions[strtoupper($method)] ?? '';
+                $current = $operation->getDescription() ?? '';
+                $parts = array_filter([$roleBlock, $extra, $current]);
+                $updated = $operation->withDescription(implode("\n\n", $parts));
+
+                $pathItem = match ($method) {
+                    'get' => $pathItem->withGet($updated),
+                    'post' => $pathItem->withPost($updated),
+                    'patch' => $pathItem->withPatch($updated),
+                    'put' => $pathItem->withPut($updated),
+                    'delete' => $pathItem->withDelete($updated),
+                };
+            }
+
+            $paths->addPath($path, $pathItem);
+        }
     }
 }

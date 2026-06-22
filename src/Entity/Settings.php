@@ -20,13 +20,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
-        // Testers see only public settings (enforced by TesterScopeExtension)
-        new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
-        new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')", requirements: ['id' => '.+']),
-        // Write access: dev team (ROLE_USER) and admins (ROLE_ADMIN) only — no testers
-        new Post(security: "is_granted('ROLE_USER')"),
-        new Patch(security: "is_granted('ROLE_USER')", requirements: ['id' => '.+']),
-        new Delete(security: "is_granted('ROLE_USER')", requirements: ['id' => '.+']),
+        // Any authenticated user can read; non-admins are limited to public=true
+        // rows automatically by TesterScopeExtension (applied at query level).
+        new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER') or is_granted('ROLE_ADMIN')"),
+        new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER') or is_granted('ROLE_ADMIN')", requirements: ['id' => '.+']),
+        // Write access: ROLE_ADMIN only
+        new Post(security: "is_granted('ROLE_ADMIN')"),
+        new Patch(security: "is_granted('ROLE_ADMIN')", requirements: ['id' => '.+']),
+        new Delete(security: "is_granted('ROLE_ADMIN')", requirements: ['id' => '.+']),
     ],
     normalizationContext: ['groups' => ['settings:read', 'timestampable:read']],
     denormalizationContext: ['groups' => ['settings:write']],

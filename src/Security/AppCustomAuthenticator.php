@@ -71,6 +71,11 @@ class AppCustomAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('Invalid JWT');
         }
 
+        // Reject deactivated accounts immediately — do not honour any previously
+        // issued JWT, regardless of expiry date.
+        if (!$u->isActive()) {
+            throw new AuthenticationException('Account disabled');
+        }
 
         // if user found, return Passport
         $self = &$this;

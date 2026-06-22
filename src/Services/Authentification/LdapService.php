@@ -27,10 +27,15 @@ class LdapService
         string $password
     )
     {
-        $uid = $this->secureString($uid);
+        // Validate inputs before touching LDAP
+        $this->validatePassword($password);
+
+        // Escape uid for safe embedding in an LDAP filter (RFC 4515)
+        $escapedUid = $this->escapeForFilter($uid);
+
         $ldap = $this->getClient();
         $ldap->bind("uid={$this->admin},ou=people,{$this->baseDn}", $this->password);
-        $query = $ldap->query($this->baseDn, "(&(objectClass=person)(uid={$uid}))");
+        $query = $ldap->query($this->baseDn, "(&(objectClass=person)(uid={$escapedUid}))");
         $results = $query->execute()->toArray();
         if (count($results) === 0) {
             throw new \Exception('User not found');
@@ -38,7 +43,7 @@ class LdapService
         $user = $results[0];
         $dn = $user->getDn();
         $ldap->bind($dn, $password);
-        $result = $ldap->query($this->baseDn, "(&(objectClass=person)(uid={$uid}))")->execute()->toArray();
+        $result = $ldap->query($this->baseDn, "(&(objectClass=person)(uid={$escapedUid}))")->execute()->toArray();
         $uid = $result[0]->getAttributes()['uid'][0];
         $userInfos = [
             'uid' => $uid,
@@ -46,10 +51,12 @@ class LdapService
             'groups' => [],
             'email' => $result[0]->getAttributes()['mail'][0],
         ];
+
+        // The DN is used as a filter value in member=<dn>, so it must be
+        // escaped for the filter context (RFC 4515 §4), not the DN context.
+        $escapedMemberDn = $this->escapeForFilter($result[0]->getDn());
         $query = $ldap->query($this->baseDn,
-            '(&(objectClass=groupOfNames)(member='
-            . $result[0]->getDn()
-            . '))'
+            '(&(objectClass=groupOfNames)(member=' . $escapedMemberDn . '))'
         );
         $groups = $query->execute()->toArray();
         foreach ($groups as $group) {
@@ -63,9 +70,36 @@ class LdapService
         return $userInfos;
     }
 
-    private function secureString(string $input): string
+    /**
+     * Escape a value for safe embedding inside an LDAP search filter (RFC 4515).
+     * Uses PHP's native ldap_escape() which handles all special characters
+     * including null bytes — unlike a character blocklist.
+     */
+    private function escapeForFilter(string $input): string
     {
-        return preg_replace('/[,\(\)\\\*<>\[\]\{\}&|!^~]/', '', $input);
+        return ldap_escape($input, '', LDAP_ESCAPE_FILTER);
+    }
+
+    /**
+     * Reject passwords that contain null bytes or exceed a reasonable length.
+     * Bind passwords are not interpolated into filter strings, but null bytes
+     * can truncate strings in some LDAP server implementations.
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function validatePassword(string $password): void
+    {
+        if (strlen($password) === 0) {
+            throw new \InvalidArgumentException('Password must not be empty');
+        }
+
+        if (strlen($password) > 1024) {
+            throw new \InvalidArgumentException('Password exceeds maximum length');
+        }
+
+        if (str_contains($password, "\x00")) {
+            throw new \InvalidArgumentException('Password contains invalid characters');
+        }
     }
 
     public function getClient(): Ldap

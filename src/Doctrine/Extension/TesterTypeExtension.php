@@ -11,20 +11,36 @@ use App\Enum\UserType;
 use Doctrine\ORM\QueryBuilder;
 
 /**
- * The User entity is exposed through the API only as the "Tester" resource
- * (/api/testers). This extension restricts every API query on User to
- * type = TESTER so team accounts are never listed or fetched through it.
+ * Scopes User queries to the correct type depending on which API resource
+ * triggered the query:
+ *  - shortName "Tester" (/api/testers) → type = TESTER
+ *  - shortName "User"   (/api/users)   → type = USER
+ *
+ * Without this, both resources would share the same unfiltered query and
+ * expose the wrong account type.
  */
 final class TesterTypeExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
 {
     public function applyToCollection(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        $this->addWhere($queryBuilder, $queryNameGenerator, $resourceClass);
+        $this->addWhere($queryBuilder, $queryNameGenerator, $resourceClass, $operation);
     }
 
-    private function addWhere(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass): void
+    private function addWhere(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation): void
     {
         if ($resourceClass !== User::class) {
+            return;
+        }
+
+        $shortName = $operation?->getShortName();
+
+        $type = match ($shortName) {
+            'Tester' => UserType::TESTER,
+            'User' => UserType::USER,
+            default => null,
+        };
+
+        if ($type === null) {
             return;
         }
 
@@ -33,11 +49,11 @@ final class TesterTypeExtension implements QueryCollectionExtensionInterface, Qu
 
         $queryBuilder
             ->andWhere(sprintf('%s.type = :%s', $rootAlias, $parameter))
-            ->setParameter($parameter, UserType::TESTER);
+            ->setParameter($parameter, $type);
     }
 
     public function applyToItem(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, array $identifiers, ?Operation $operation = null, array $context = []): void
     {
-        $this->addWhere($queryBuilder, $queryNameGenerator, $resourceClass);
+        $this->addWhere($queryBuilder, $queryNameGenerator, $resourceClass, $operation);
     }
 }

@@ -15,13 +15,16 @@ use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
- * Restricts what TESTER accounts can see through the API.
- * Team users (type USER) are not affected.
+ * Restricts what non-admin accounts can see through the API.
  *
+ * TESTER accounts:
  * - TestPlan:  only plans the tester is enrolled in
  * - Project:   only projects having at least one test plan the tester is enrolled in
  * - Answer:    only the tester's own answers
+ *
+ * All authenticated non-admin users (ROLE_USER and ROLE_TESTER):
  * - Settings:  only settings where public = true
+ *   ROLE_ADMIN bypasses this filter and sees all settings.
  *
  * Applies to both collections and items (a non-matching item yields a 404).
  */
@@ -40,12 +43,22 @@ final class TesterScopeExtension implements QueryCollectionExtensionInterface, Q
 
     private function addWhere(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass): void
     {
+        $rootAlias = $queryBuilder->getRootAliases()[0];
+
+        // Settings visibility: ROLE_ADMIN sees everything; everyone else only
+        // sees public=true rows (applies regardless of user type).
+        if ($resourceClass === Settings::class) {
+            if (!$this->security->isGranted('ROLE_ADMIN')) {
+                $queryBuilder->andWhere(sprintf('%s.public = true', $rootAlias));
+            }
+            return;
+        }
+
+        // All other restrictions apply to tester accounts only.
         $tester = $this->getCurrentTester();
         if ($tester === null) {
             return;
         }
-
-        $rootAlias = $queryBuilder->getRootAliases()[0];
 
         switch ($resourceClass) {
             case TestPlan::class:
@@ -72,10 +85,6 @@ final class TesterScopeExtension implements QueryCollectionExtensionInterface, Q
                 $queryBuilder
                     ->andWhere(sprintf('%s.tester = :%s', $rootAlias, $parameter))
                     ->setParameter($parameter, $tester);
-                break;
-
-            case Settings::class:
-                $queryBuilder->andWhere(sprintf('%s.public = true', $rootAlias));
                 break;
         }
     }
