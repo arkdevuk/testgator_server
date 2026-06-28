@@ -26,6 +26,11 @@ class TestFixtures extends Fixture
     public const USER_EMAIL = 'admin@testgator.test';
     public const USER_PASSWORD = 'Password1!';
 
+    // ── Admin ─────────────────────────────────────────────────────────────
+    public const ADMIN_EMAIL = 'superadmin@testgator.test';
+    public const ADMIN_PASSWORD = 'AdminPass1!';
+    public const REF_ADMIN = 'test-admin';
+
     // ── Testers ───────────────────────────────────────────────────────────
     public const TESTER_EMAIL = 'tester1@testgator.test';
     public const TESTER_EMAIL_2 = 'tester2@testgator.test';
@@ -56,6 +61,14 @@ class TestFixtures extends Fixture
         $user->setRoles(['ROLE_USER']);
         $user->setPassword($this->hasher->hashPassword($user, self::USER_PASSWORD));
         $manager->persist($user);
+
+        // ── Admin (team member with ROLE_ADMIN) ───────────────────────────
+        $admin = new User();
+        $admin->setEmail(self::ADMIN_EMAIL);
+        $admin->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
+        $admin->setPassword($this->hasher->hashPassword($admin, self::ADMIN_PASSWORD));
+        $manager->persist($admin);
+        $this->addReference(self::REF_ADMIN, $admin);
 
         // ── Testers (User entities with type TESTER) ─────────────────────
         $tester = User::createTester(self::TESTER_EMAIL);

@@ -37,6 +37,12 @@ class Me
     #[Groups(['userSelf:read'])]
     private ?string $type = null;
 
+    #[Groups(['userSelf:read'])]
+    private string $nickname = '';
+
+    #[Groups(['userSelf:read'])]
+    private string $profilePictureUrl = '/assets/gator_avatar.png';
+
     public function __construct(?Uuid $userId = null)
     {
         $this->id = $userId;
@@ -92,5 +98,25 @@ class Me
         return $this;
     }
 
+    public function getNickname(): string
+    {
+        return $this->nickname;
+    }
 
+    public function setNickname(string $nickname): Me
+    {
+        $this->nickname = $nickname;
+        return $this;
+    }
+
+    public function getProfilePictureUrl(): string
+    {
+        return $this->profilePictureUrl;
+    }
+
+    public function setProfilePictureUrl(string $profilePictureUrl): Me
+    {
+        $this->profilePictureUrl = $profilePictureUrl;
+        return $this;
+    }
 }

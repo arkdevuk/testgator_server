@@ -95,6 +95,15 @@ class Answer
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private bool $important = false;
 
+    /**
+     * When true, this answer is excluded from statistics and reporting.
+     * Can only be set on an existing answer (not on POST) and only by ROLE_USER (dev team).
+     * Testers always have this reset to its previous value via AnswerStateProcessor.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
+    private bool $ignored = false;
+
     public function __construct()
     {
         $this->files = new ArrayCollection();
@@ -197,6 +206,18 @@ class Answer
     public function setImportant(bool $important): static
     {
         $this->important = $important;
+
+        return $this;
+    }
+
+    public function isIgnored(): bool
+    {
+        return $this->ignored;
+    }
+
+    public function setIgnored(bool $ignored): static
+    {
+        $this->ignored = $ignored;
 
         return $this;
     }

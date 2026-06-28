@@ -56,6 +56,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 )]
 #[ApiFilter(SearchFilter::class, properties: [
     'release.project' => 'exact',
+    'testersEnrolled' => 'exact',
 ])]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'release', 'state', 'dueDate'], arguments: ['orderParameterName' => 'order'])]
 class TestPlan

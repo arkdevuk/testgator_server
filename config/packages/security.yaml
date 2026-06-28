@@ -33,7 +33,7 @@ security:
       # login_guest is intentionally excluded — no such route exists.
       # Add it here only if/when the route is implemented, and review
       # whether unauthenticated access is still appropriate at that point.
-      pattern: ^/api/auth/(login|login_tester|refresh)$
+      pattern: ^/api/auth/(login|login_tester|refresh|mode)$
       security: false
     api:
       pattern: ^/

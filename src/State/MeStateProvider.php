@@ -40,7 +40,9 @@ class MeStateProvider implements ProviderInterface
                 ->setUser($u)
                 ->setEmail($u->getEmail())
                 ->setRoles($u->getRoles())
-                ->setType($u->getType()->value);
+                ->setType($u->getType()->value)
+                ->setNickname($u->getNickname())
+                ->setProfilePictureUrl($u->getProfilePictureUrl());
             return $me;
         }
         return null;

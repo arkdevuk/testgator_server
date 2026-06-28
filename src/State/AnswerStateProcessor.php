@@ -34,17 +34,28 @@ final class AnswerStateProcessor implements ProcessorInterface
     {
         $user = $this->security->getUser();
 
-        if ($data instanceof Answer && $user instanceof User && $user->isTester()) {
-            // Force tester to current user
-            $data->setTester($user);
-
-            // Restore important to its pre-request value; testers cannot change it
+        if ($data instanceof Answer) {
             $previous = $context['previous_data'] ?? null;
-            if ($previous instanceof Answer) {
-                $data->setImportant($previous->isImportant());
-            } else {
-                // POST: no previous data, default to false
-                $data->setImportant(false);
+
+            if ($user instanceof User && $user->isTester()) {
+                // Force tester to current user
+                $data->setTester($user);
+
+                // Restore important to its pre-request value; testers cannot change it
+                if ($previous instanceof Answer) {
+                    $data->setImportant($previous->isImportant());
+                } else {
+                    $data->setImportant(false);
+                }
+            }
+
+            // `ignored` can only be set on an existing answer by ROLE_USER (dev team).
+            // On POST (no previous data) always reset to false.
+            // On PATCH/PUT by a tester, restore the previous value.
+            if (!($previous instanceof Answer)) {
+                $data->setIgnored(false);
+            } elseif ($user instanceof User && $user->isTester()) {
+                $data->setIgnored($previous->isIgnored());
             }
         }
 

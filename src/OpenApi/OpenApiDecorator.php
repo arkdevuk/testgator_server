@@ -32,6 +32,11 @@ use ApiPlatform\OpenApi\OpenApi;
  *                         Non-admins restricted to public=true via TesterScopeExtension
  *   POST / PATCH / DELETE : ROLE_ADMIN only — PUT is disabled
  *   Filters : ?name= (ipartial)  ?section= (ipartial)
+ *
+ * /api/tester_annotations (TesterAnnotation resource):
+ *   All operations : ROLE_USER (dev team only)
+ *   Filters : ?relateTo= (exact IRI)
+ *   Order   : ?order[created]=asc|desc  ?order[updated]=asc|desc
  */
 final class OpenApiDecorator implements OpenApiFactoryInterface
 {
@@ -426,6 +431,214 @@ MD,
             ),
         ));
 
+        // ── POST /api/testers/{id}/profile-picture ───────────────────────────────
+        $paths->addPath('/api/testers/{id}/profile-picture', new PathItem(
+            post: new Operation(
+                operationId: 'setTesterProfilePictureUrl',
+                tags: ['Tester'],
+                summary: 'Set profile picture URL for a tester',
+                description: <<<'MD'
+> 🔒 **Required role:** tester themselves (`IS_AUTHENTICATED_FULLY`) or `ROLE_ADMIN`
+
+Sets `profilePictureUrl` from a URL payload. The URL must be a valid HTTP/HTTPS URL. No image processing is performed — the value is stored as-is.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                requestBody: new RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'application/json' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['url'],
+                            'properties' => [
+                                'url' => ['type' => 'string', 'format' => 'uri', 'example' => 'https://cdn.example.com/avatars/user.png'],
+                            ],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(
+                        description: 'URL updated.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['profilePictureUrl' => ['type' => 'string', 'format' => 'uri']],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing `url`.'),
+                    '404' => new Response(description: 'Tester not found.'),
+                    '422' => new Response(description: 'Invalid URL format.'),
+                    '403' => new Response(description: 'Not the tester themselves and not ROLE_ADMIN.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
+            ),
+        ));
+
+        // ── POST /api/testers/{id}/nickname ───────────────────────────────────────
+        $paths->addPath('/api/testers/{id}/nickname', new PathItem(
+            post: new Operation(
+                operationId: 'setTesterNickname',
+                tags: ['Tester'],
+                summary: 'Update own nickname (tester only)',
+                description: <<<'MD'
+> 🔒 **Required role:** tester themselves only (`IS_AUTHENTICATED_FULLY` + same UUID)
+
+Allows a tester to update their own nickname. Max 128 characters. Admins cannot use this endpoint on behalf of a tester — use `PATCH /api/testers/{id}` for admin edits.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                requestBody: new RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'application/json' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['nickname'],
+                            'properties' => [
+                                'nickname' => ['type' => 'string', 'maxLength' => 128, 'example' => 'CoolTester42'],
+                            ],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(
+                        description: 'Nickname updated.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['nickname' => ['type' => 'string']],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing or empty `nickname`.'),
+                    '422' => new Response(description: '`nickname` exceeds 128 characters.'),
+                    '403' => new Response(description: 'Not the tester themselves.'),
+                    '404' => new Response(description: 'Tester not found.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
+            ),
+        ));
+
+        // ── POST /api/users/{id}/profile-picture ──────────────────────────────────
+        $paths->addPath('/api/users/{id}/profile-picture', new PathItem(
+            post: new Operation(
+                operationId: 'uploadUserProfilePicture',
+                tags: ['User'],
+                summary: 'Upload a profile picture for a team user',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER` (own account) or `ROLE_ADMIN` (any account)
+
+Accepts `multipart/form-data` with a `file` field. The image is validated, stored in S3 with public-read ACL, and the resulting URL is persisted on the user.
+
+**Validation rules:**
+- ≤ 500 KB
+- ≤ 800 × 800 px
+- Must be square (width === height)
+- Must be `image/png` or `image/jpeg`
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                requestBody: new RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['file'],
+                            'properties' => [
+                                'file' => ['type' => 'string', 'format' => 'binary'],
+                            ],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(
+                        description: 'Image uploaded and URL stored.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['profilePictureUrl' => ['type' => 'string', 'format' => 'uri']],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing `file` field.'),
+                    '404' => new Response(description: 'User not found.'),
+                    '422' => new Response(description: 'Image validation failed (size / dimensions / mime).'),
+                    '403' => new Response(description: 'Not the user themselves and not ROLE_ADMIN.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
+            ),
+        ));
+
+        // ── GET /api/public-profiles/{id} ────────────────────────────────────────
+        $paths->addPath('/api/public-profiles/{id}', new PathItem(
+            get: new Operation(
+                operationId: 'getPublicProfile',
+                tags: ['PublicProfile'],
+                summary: 'Get the public profile of any user or tester',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER` or `ROLE_TESTER`
+
+Returns the public profile of any user (team member or tester) by UUID. Exposes only non-sensitive fields: `id`, `type`, `nickname`, `profilePictureUrl`, and `roles`.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                responses: [
+                    '200' => new Response(
+                        description: 'Public profile',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => [
+                                    'id' => ['type' => 'string', 'format' => 'uuid'],
+                                    'type' => ['type' => 'string', 'enum' => ['USER', 'TESTER']],
+                                    'nickname' => ['type' => 'string'],
+                                    'profilePictureUrl' => ['type' => 'string', 'format' => 'uri'],
+                                    'roles' => ['type' => 'array', 'items' => ['type' => 'string']],
+                                ],
+                            ])),
+                        ]),
+                    ),
+                    '404' => new Response(description: 'User not found.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
+            ),
+        ));
+
+        // ── DELETE /api/users/{id}/profile-picture ────────────────────────────────
+        $paths->addPath('/api/users/{id}/profile-picture', new PathItem(
+            delete: new Operation(
+                operationId: 'deleteUserProfilePicture',
+                tags: ['User'],
+                summary: 'Reset profile picture to default avatar',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER` (own account) or `ROLE_ADMIN` (any account)
+
+Resets `profilePictureUrl` back to `/assets/gator_avatar.png`. Does not delete any file from S3.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                responses: [
+                    '200' => new Response(
+                        description: 'Profile picture reset to default.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['profilePictureUrl' => ['type' => 'string', 'example' => '/assets/gator_avatar.png']],
+                            ])),
+                        ]),
+                    ),
+                    '404' => new Response(description: 'User not found.'),
+                    '403' => new Response(description: 'Not the user themselves and not ROLE_ADMIN.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
+            ),
+        ));
+
         // ── POST /api/auth/me/change-password ────────────────────────────────
         $paths->addPath('/api/auth/me/change-password', new PathItem(
             post: new Operation(
@@ -506,8 +719,16 @@ MD,
         // ── Annotate auto-generated /api/users paths ─────────────────────────
         $this->annotatePathsWithRole($paths, '/api/users', 'ROLE_ADMIN', [
             'GET' => 'List or retrieve team user accounts.',
-            'POST' => 'Create a new team user account. `plainPassword` is required.',
-            'PATCH' => 'Partially update a team user account. `plainPassword` is optional.',
+            'POST' => 'Create a new team user account. `plainPassword` and `nickname` (max 128 chars) are required.',
+            'PATCH' => 'Partially update a team user account. `plainPassword` is optional. `nickname` max 128 chars.',
+        ]);
+
+        // ── Annotate auto-generated /api/tester_annotations paths ────────────────
+        $this->annotatePathsWithRole($paths, '/api/tester_annotations', 'ROLE_USER', [
+            'GET' => 'List or retrieve tester annotations. Filter by `?relateTo=/api/testers/{uuid}`. Order by `?order[created]=asc|desc` or `?order[updated]=asc|desc`.',
+            'POST' => 'Create an annotation for a tester. `relateTo` (tester IRI) and `content` are required. Set `createdBy` to the authenticated user IRI.',
+            'PATCH' => 'Partially update an annotation.',
+            'DELETE' => 'Delete an annotation.',
         ]);
 
         // ── Annotate auto-generated /api/settings paths ───────────────────────

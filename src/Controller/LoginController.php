@@ -11,6 +11,7 @@ use App\Services\Entities\TestPlanManager;
 use App\Services\Entities\UserBuiltInDbService;
 use App\Services\LoginRateLimiterService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -28,6 +29,8 @@ final class LoginController extends AbstractController
         JWTService              $jwtService,
         RefreshTokenService     $refreshTokenService,
         LoginRateLimiterService $rateLimiter,
+        #[Autowire(env: 'APP_AUTH_MODE')]
+        string $appAuthMode,
     ): Response
     {
         $username = $request->getPayload()?->get('username');
@@ -43,7 +46,7 @@ final class LoginController extends AbstractController
             return $this->json(['logged' => false, 'error' => 'Invalid mode'], 400);
         }
 
-        if (!in_array($authMode, ['app', 'ldap', 'code'], true)) {
+        if (!in_array($authMode, ['app', 'db', 'ldap', 'code'], true)) {
             return $this->json(['logged' => false, 'error' => 'Invalid authMode'], 400);
         }
 
@@ -68,7 +71,8 @@ final class LoginController extends AbstractController
         if ($mode === 'team') {
             $user = null;
 
-            if ($authMode === 'ldap') {
+            // APP_AUTH_MODE (env) decides the backend — not the client-supplied authMode.
+            if ($appAuthMode === 'ldap') {
                 try {
                     $userData = $ldapService->checkUserLogin($username, $password);
                     if ($userData['email'] === null) {
@@ -80,7 +84,10 @@ final class LoginController extends AbstractController
                 $user = $userBuiltInDbService->getUserByEmail($userData['email'])
                     ?? $userBuiltInDbService->createUser($userData, 'ldap');
 
-            } elseif ($authMode === 'app') {
+            } else {
+                // APP_AUTH_MODE=db — authenticate against the local password hash.
+                // Users with no password set (e.g. created via LDAP sync) are blocked
+                // until an admin sets a password via POST /api/users/{id}/change-password.
                 try {
                     $user = $userBuiltInDbService->checkUserLogin($username, $password);
                 } catch (\Throwable $e) {
@@ -98,9 +105,9 @@ final class LoginController extends AbstractController
 
             return $this->json([
                 'logged' => true,
-                'jwt' => $jwtService->getJWT($user, false, ['mode' => 'team', 'authMode' => $authMode]),
+                'jwt' => $jwtService->getJWT($user, false, ['mode' => 'team', 'authMode' => $appAuthMode]),
                 'refreshToken' => $refreshTokenService->issue($user, 'user'),
-                'authMode' => $authMode,
+                'authMode' => $appAuthMode,
             ]);
         }
 
@@ -138,6 +145,28 @@ final class LoginController extends AbstractController
         }
 
         return $this->json(['logged' => false, 'error' => 'Invalid request'], 400);
+    }
+
+    // ── GET /api/auth/mode ────────────────────────────────────────────────
+
+    /**
+     * Returns the server-side authentication mode so the frontend can adapt
+     * its login form accordingly (e.g. label the username field "Email" in
+     * db mode vs "Username / CN" in ldap mode).
+     *
+     * Public — no authentication required.
+     */
+    #[Route('/api/auth/mode', name: 'app_auth_mode', methods: ['GET'])]
+    public function authMode(
+        #[Autowire(env: 'APP_AUTH_MODE')]
+        string $appAuthMode,
+    ): Response
+    {
+        return $this->json([
+            'mode' => $appAuthMode,
+            // In db mode the login identifier is always the user's e-mail address.
+            'usernameIsEmail' => $appAuthMode === 'db',
+        ]);
     }
 
     // ── POST /api/auth/login_tester ───────────────────────────────────────

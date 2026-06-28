@@ -91,6 +91,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ApiFilter(SearchFilter::class, strategy: 'partial')]
     private ?string $email = null;
 
+    #[ORM\Column(length: 128)]
+    #[Groups(['testers:read', 'testers:write', 'users:read', 'users:write'])]
+    private string $nickname = '';
+
+    #[ORM\Column(length: 512, options: ['default' => '/assets/gator_avatar.png'])]
+    #[Groups(['testers:read', 'users:read'])]
+    private string $profilePictureUrl = '/assets/gator_avatar.png';
+
     #[ORM\Column(type: 'string', enumType: UserType::class, length: 20, options: ['default' => 'USER'])]
     #[Groups(['testers:read', 'users:read'])]
     private UserType $type = UserType::USER;
@@ -183,6 +191,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    public function getNickname(): string
+    {
+        return $this->nickname;
+    }
+
+    public function setNickname(string $nickname): static
+    {
+        $this->nickname = $nickname;
+
+        return $this;
+    }
+
+    public function getProfilePictureUrl(): string
+    {
+        return $this->profilePictureUrl;
+    }
+
+    public function setProfilePictureUrl(string $profilePictureUrl): static
+    {
+        $this->profilePictureUrl = $profilePictureUrl;
 
         return $this;
     }

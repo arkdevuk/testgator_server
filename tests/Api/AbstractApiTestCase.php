@@ -68,6 +68,22 @@ abstract class AbstractApiTestCase extends WebTestCase
     }
 
     /**
+     * Returns a JWT for the admin user (ROLE_USER + ROLE_ADMIN).
+     */
+    protected function getAdminToken(): string
+    {
+        $admin = static::$em->getRepository(User::class)
+            ->findOneBy(['email' => TestFixtures::ADMIN_EMAIL]);
+
+        self::assertNotNull($admin, 'Admin user not found — fixtures may not have loaded.');
+
+        /** @var JWTService $jwt */
+        $jwt = static::$container->get(JWTService::class);
+
+        return $jwt->getJWT($admin, false, ['mode' => 'team', 'authMode' => 'app']);
+    }
+
+    /**
      * Returns a JWT for a tester (ROLE_TESTER).
      * Defaults to the enrolled tester; pass TestFixtures::TESTER_EMAIL_2
      * for the tester with no test plan assignment.

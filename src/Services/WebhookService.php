@@ -19,7 +19,7 @@ class WebhookService
     public function __construct(
         private readonly SettingsService $settingsService,
         private readonly LoggerInterface $logger,
-        #[Autowire(env: 'default:1.0:APP_VERSION')]
+        #[Autowire(env: 'default:app.version.default:APP_VERSION')]
         private readonly string          $appVersion = '1.0',
     )
     {

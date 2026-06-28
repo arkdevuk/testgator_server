@@ -61,6 +61,13 @@ class UserBuiltInDbService
             throw new \Exception('User not found');
         }
 
+        $stored = $user->getPassword();
+        if ($stored === null || $stored === '') {
+            // Account exists but has no password set (e.g. LDAP-created account
+            // or newly provisioned account awaiting admin password setup).
+            throw new \Exception('No password set for this account. Please contact an administrator.');
+        }
+
         if ($this->passwordHasher->isPasswordValid($user, $password)) {
             return $user;
         }
