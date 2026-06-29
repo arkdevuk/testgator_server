@@ -55,6 +55,7 @@ use App\Entity\User;
 )]
 #[ApiFilter(DateFilter::class, properties: ['created'])]
 #[ApiFilter(AnswerQueryFilter::class)]
+#[ApiFilter(SearchFilter::class, properties: ['question.plan' => 'exact'])]
 #[ApiFilter(OrderFilter::class, properties: ['created', 'state'], arguments: ['orderParameterName' => 'order'])]
 class Answer
 {
