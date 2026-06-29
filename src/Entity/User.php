@@ -99,6 +99,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['testers:read', 'users:read'])]
     private string $profilePictureUrl = '/assets/gator_avatar.png';
 
+    /**
+     * Arbitrary string tags set by the dev team only.
+     *
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json', options: ['default' => '[]'])]
+    #[Groups(['testers:read', 'testers:write', 'users:read', 'users:write', 'publicProfile:read'])]
+    private array $tags = [];
+
     #[ORM\Column(type: 'string', enumType: UserType::class, length: 20, options: ['default' => 'USER'])]
     #[Groups(['testers:read', 'users:read'])]
     private UserType $type = UserType::USER;
@@ -215,6 +224,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setProfilePictureUrl(string $profilePictureUrl): static
     {
         $this->profilePictureUrl = $profilePictureUrl;
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getTags(): array
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param list<string> $tags
+     */
+    public function setTags(array $tags): static
+    {
+        $this->tags = array_values(array_unique($tags));
 
         return $this;
     }

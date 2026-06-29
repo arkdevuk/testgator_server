@@ -598,6 +598,7 @@ MD,
                                     'nickname' => ['type' => 'string'],
                                     'profilePictureUrl' => ['type' => 'string', 'format' => 'uri'],
                                     'roles' => ['type' => 'array', 'items' => ['type' => 'string']],
+                                    'tags' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Custom tags set by the dev team'],
                                 ],
                             ])),
                         ]),
@@ -719,16 +720,35 @@ MD,
         // ── Annotate auto-generated /api/users paths ─────────────────────────
         $this->annotatePathsWithRole($paths, '/api/users', 'ROLE_ADMIN', [
             'GET' => 'List or retrieve team user accounts.',
-            'POST' => 'Create a new team user account. `plainPassword` and `nickname` (max 128 chars) are required.',
-            'PATCH' => 'Partially update a team user account. `plainPassword` is optional. `nickname` max 128 chars.',
+            'POST' => 'Create a new team user account. `plainPassword` and `nickname` (max 128 chars) are required. `tags` is an optional array of strings.',
+            'PATCH' => 'Partially update a team user account. `plainPassword` is optional. `nickname` max 128 chars. `tags` is an optional array of strings (dev team only).',
         ]);
 
         // ── Annotate auto-generated /api/tester_annotations paths ────────────────
         $this->annotatePathsWithRole($paths, '/api/tester_annotations', 'ROLE_USER', [
             'GET' => 'List or retrieve tester annotations. Filter by `?relateTo=/api/testers/{uuid}`. Order by `?order[created]=asc|desc` or `?order[updated]=asc|desc`.',
-            'POST' => 'Create an annotation for a tester. `relateTo` (tester IRI) and `content` are required. Set `createdBy` to the authenticated user IRI.',
-            'PATCH' => 'Partially update an annotation.',
-            'DELETE' => 'Delete an annotation.',
+            'POST' => 'Create an annotation for a tester. `relateTo` (tester IRI) and `content` are required. `createdBy` is auto-populated from the authenticated user.',
+            'PATCH' => 'Partially update an annotation. PATCH/DELETE restricted to the annotation author or ROLE_ADMIN.',
+            'DELETE' => 'Delete an annotation. Restricted to the annotation author or ROLE_ADMIN.',
+        ]);
+
+        // ── Annotate auto-generated /api/tester_tags paths ───────────────────────
+        $this->annotatePathsWithRole($paths, '/api/tester_tags', 'ROLE_USER or ROLE_TESTER (read) / ROLE_USER (write)', [
+            'GET' => 'List or retrieve tester tags. Filter by `?label=` (partial). Includes soft-deleted tags (`deleted=true`).',
+            'POST' => 'Create a new tag. `label` is required (max 128 chars). `id` (slug) is auto-derived from `label` but may be supplied. `createdBy` is auto-populated.',
+            'DELETE' => 'Soft-delete the tag (`deleted` is set to `true`; row is kept).',
+        ], [
+            'POST' => 'ROLE_USER',
+            'DELETE' => 'ROLE_USER',
+        ]);
+
+        // ── Annotate auto-generated /api/testers paths ────────────────────────
+        $this->annotatePathsWithRole($paths, '/api/testers', 'ROLE_USER', [
+            'GET' => 'List or retrieve tester accounts. Response includes `tags` (string array set by dev team).',
+            'POST' => 'Create a new tester account.',
+            'PATCH' => 'Partially update a tester account. `tags` is writable — dev team only (testers cannot call this endpoint).',
+            'PUT' => 'Replace a tester account.',
+            'DELETE' => 'Delete a tester account.',
         ]);
 
         // ── Annotate auto-generated /api/settings paths ───────────────────────

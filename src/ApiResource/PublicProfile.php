@@ -33,6 +33,9 @@ class PublicProfile
     #[Groups(['publicProfile:read'])]
     private array $roles = [];
 
+    #[Groups(['publicProfile:read'])]
+    private array $tags = [];
+
     public function getId(): ?Uuid
     {
         return $this->id;
@@ -85,6 +88,17 @@ class PublicProfile
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
+        return $this;
+    }
+
+    public function getTags(): array
+    {
+        return $this->tags;
+    }
+
+    public function setTags(array $tags): static
+    {
+        $this->tags = $tags;
         return $this;
     }
 }

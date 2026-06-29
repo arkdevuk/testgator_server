@@ -39,6 +39,7 @@ class PublicProfileStateProvider implements ProviderInterface
             ->setType($user->getType()->value)
             ->setNickname($user->getNickname())
             ->setProfilePictureUrl($user->getProfilePictureUrl())
-            ->setRoles($user->getRoles());
+            ->setRoles($user->getRoles())
+            ->setTags($user->getTags());
     }
 }
