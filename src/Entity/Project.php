@@ -66,12 +66,31 @@ class Project
      * @var Collection<int, Release>
      */
     #[ORM\OneToMany(targetEntity: Release::class, mappedBy: 'project')]
+    #[ORM\OrderBy(['id' => 'ASC'])]
     #[Groups(['project:read'])]
     private Collection $releases;
 
     #[ORM\ManyToOne]
     #[Groups(['project:read', 'team:write', 'release:read'])]
     private ?File $picture = null;
+
+    /**
+     * URL of the project picture (square PNG/JPEG ≤ 800 px, ≤ 500 KB).
+     * Set via POST /api/projects/{id}/project-picture — not writable through
+     * the standard PATCH body.
+     */
+    #[ORM\Column(length: 512, nullable: true)]
+    #[Groups(['project:read'])]
+    private ?string $projectPictureUrl = null;
+
+    /**
+     * URL of the project banner (PNG ≤ 1024 px either side, < 1 MB).
+     * Set via POST /api/projects/{id}/project-banner — not writable through
+     * the standard PATCH body.
+     */
+    #[ORM\Column(length: 512, nullable: true)]
+    #[Groups(['project:read'])]
+    private ?string $projectBannerUrl = null;
 
     /**
      * @var Collection<int, User>
@@ -163,6 +182,30 @@ class Project
     public function setPicture(?File $picture): static
     {
         $this->picture = $picture;
+
+        return $this;
+    }
+
+    public function getProjectPictureUrl(): ?string
+    {
+        return $this->projectPictureUrl;
+    }
+
+    public function setProjectPictureUrl(?string $projectPictureUrl): static
+    {
+        $this->projectPictureUrl = $projectPictureUrl;
+
+        return $this;
+    }
+
+    public function getProjectBannerUrl(): ?string
+    {
+        return $this->projectBannerUrl;
+    }
+
+    public function setProjectBannerUrl(?string $projectBannerUrl): static
+    {
+        $this->projectBannerUrl = $projectBannerUrl;
 
         return $this;
     }

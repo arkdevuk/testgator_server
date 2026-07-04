@@ -640,6 +640,149 @@ MD,
             ),
         ));
 
+        // ── POST /api/projects/{id}/project-picture ──────────────────────────────
+        $paths->addPath('/api/projects/{id}/project-picture', new PathItem(
+            post: new Operation(
+                operationId: 'uploadProjectPicture',
+                tags: ['Project'],
+                summary: 'Upload a project picture',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER`
+
+Accepts `multipart/form-data` with a `file` field. Validates, stores in the public S3 bucket, and persists the URL on the project.
+
+**Validation rules:**
+- ≤ 500 KB
+- ≤ 800 × 800 px
+- Must be square (width === height)
+- Must be `image/png` or `image/jpeg`
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
+                ],
+                requestBody: new RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['file'],
+                            'properties' => ['file' => ['type' => 'string', 'format' => 'binary']],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(
+                        description: 'Picture uploaded.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['projectPictureUrl' => ['type' => 'string', 'format' => 'uri', 'nullable' => true]],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing `file` field.'),
+                    '404' => new Response(description: 'Project not found.'),
+                    '422' => new Response(description: 'Image validation failed.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
+            ),
+            delete: new Operation(
+                operationId: 'deleteProjectPicture',
+                tags: ['Project'],
+                summary: 'Remove project picture (reset to null)',
+                description: '> 🔒 **Required role:** `ROLE_USER`',
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
+                ],
+                responses: [
+                    '200' => new Response(
+                        description: 'Picture removed.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['projectPictureUrl' => ['type' => 'string', 'nullable' => true, 'example' => null]],
+                            ])),
+                        ]),
+                    ),
+                    '404' => new Response(description: 'Project not found.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
+            ),
+        ));
+
+        // ── POST /api/projects/{id}/project-banner ────────────────────────────────
+        $paths->addPath('/api/projects/{id}/project-banner', new PathItem(
+            post: new Operation(
+                operationId: 'uploadProjectBanner',
+                tags: ['Project'],
+                summary: 'Upload a project banner',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER`
+
+Accepts `multipart/form-data` with a `file` field. Validates, stores in the public S3 bucket, and persists the URL on the project.
+
+**Validation rules:**
+- < 1 MB
+- ≤ 1024 px on either side (non-square allowed)
+- Must be `image/png`
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
+                ],
+                requestBody: new RequestBody(
+                    required: true,
+                    content: new \ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                            'type' => 'object',
+                            'required' => ['file'],
+                            'properties' => ['file' => ['type' => 'string', 'format' => 'binary']],
+                        ])),
+                    ]),
+                ),
+                responses: [
+                    '200' => new Response(
+                        description: 'Banner uploaded.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['projectBannerUrl' => ['type' => 'string', 'format' => 'uri', 'nullable' => true]],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing `file` field.'),
+                    '404' => new Response(description: 'Project not found.'),
+                    '422' => new Response(description: 'Image validation failed (size / dimensions / mime).'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
+            ),
+            delete: new Operation(
+                operationId: 'deleteProjectBanner',
+                tags: ['Project'],
+                summary: 'Remove project banner (reset to null)',
+                description: '> 🔒 **Required role:** `ROLE_USER`',
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
+                ],
+                responses: [
+                    '200' => new Response(
+                        description: 'Banner removed.',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(schema: new \ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['projectBannerUrl' => ['type' => 'string', 'nullable' => true, 'example' => null]],
+                            ])),
+                        ]),
+                    ),
+                    '404' => new Response(description: 'Project not found.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
+            ),
+        ));
+
         // ── POST /api/auth/me/change-password ────────────────────────────────
         $paths->addPath('/api/auth/me/change-password', new PathItem(
             post: new Operation(
