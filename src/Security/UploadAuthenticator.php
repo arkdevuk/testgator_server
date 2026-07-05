@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use Exception;
 use App\Entity\User;
 use App\Services\Authentification\JWTService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -10,26 +11,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
-use Symfony\Component\Uid\UuidV7 as Uuid;
 
 class UploadAuthenticator extends AbstractAuthenticator
 {
 
-    protected JWTService $JWTService;
-    protected EntityManagerInterface $em;
-
-    public function __construct(
-        JWTService             $JWTService,
-        EntityManagerInterface $em
-    )
+    public function __construct(protected JWTService $JWTService, protected EntityManagerInterface $em)
     {
-        $this->JWTService = $JWTService;
-        $this->em = $em;
     }
 
     public function supports(
@@ -44,7 +35,7 @@ class UploadAuthenticator extends AbstractAuthenticator
         $headerValue = $request->headers->get('Authorization');
         $jwtString = trim(str_replace('Bearer ', '', $headerValue));
 
-        if ($jwtString === '' || $jwtString === null || $jwtString === 'null') {
+        if (in_array($jwtString, ['', null, 'null'], true)) {
             throw new AuthenticationException('Invalid JWT');
         }
 
@@ -57,7 +48,7 @@ class UploadAuthenticator extends AbstractAuthenticator
                 || !in_array('web/api/upload', $authData['scope'], true)) {
                 throw new AuthenticationException('Invalid access scope');
             }
-        } catch (\Exception $e) {
+        } catch (Exception) {
             throw new AuthenticationException('Invalid JWT');
         }
 
@@ -82,15 +73,8 @@ class UploadAuthenticator extends AbstractAuthenticator
         $self = &$this;
         return new SelfValidatingPassport(
             new UserBadge($u->getId(),
-                static function ($userIdentifier) use ($self) {
-                    $u = $self->em->getRepository(User::class)
-                        ->findOneBy(['id' => $userIdentifier]);
-                    if (!$u instanceof User) {
-                        return null;
-                    }
-
-                    return $u;
-                }
+                static fn($userIdentifier): ?object => $self->em->getRepository(User::class)
+                    ->findOneBy(['id' => $userIdentifier])
             ), []
         );
 

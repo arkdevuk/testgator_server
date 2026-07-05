@@ -2,8 +2,9 @@
 
 namespace App\Services\Authentification;
 
+use DateTimeImmutable;
+use RuntimeException;
 use App\Entity\RefreshToken;
-use App\Entity\User;
 use App\Repository\RefreshTokenRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -11,7 +12,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class RefreshTokenService
 {
     /** Refresh tokens are valid for 30 days */
-    private const TTL_DAYS = 30;
+    private const int TTL_DAYS = 30;
 
     public function __construct(
         private readonly EntityManagerInterface $em,
@@ -34,7 +35,7 @@ class RefreshTokenService
             tokenHash: $hash,
             userGuid: $user->getId()?->toString() ?? '',
             userType: $userType,
-            expiresAt: new \DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
+            expiresAt: new DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
             extra: $extra,
         );
 
@@ -57,7 +58,7 @@ class RefreshTokenService
             tokenHash: $hash,
             userGuid: $challenge,
             userType: 'guest',
-            expiresAt: new \DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
+            expiresAt: new DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
             extra: $extra,
         );
 
@@ -74,23 +75,23 @@ class RefreshTokenService
      * Returns ['userGuid' => ..., 'userType' => ..., 'refreshToken' => <new raw>]
      * or throws \RuntimeException on any failure.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function consume(string $rawToken): array
     {
         $record = $this->repo->findByHash($this->hash($rawToken));
 
-        if ($record === null) {
-            throw new \RuntimeException('Refresh token not found.');
+        if (!$record instanceof RefreshToken) {
+            throw new RuntimeException('Refresh token not found.');
         }
 
         if (!$record->isValid()) {
             // Revoke as a precaution in case it was already used (token reuse detection)
-            if ($record->getRevokedAt() === null) {
+            if (!$record->getRevokedAt() instanceof DateTimeImmutable) {
                 $record->revoke();
                 $this->em->flush();
             }
-            throw new \RuntimeException('Refresh token is expired or revoked.');
+            throw new RuntimeException('Refresh token is expired or revoked.');
         }
 
         // Rotate: revoke old, issue new — both in one flush
@@ -103,7 +104,7 @@ class RefreshTokenService
             tokenHash: $newHash,
             userGuid: $record->getUserGuid(),
             userType: $record->getUserType(),
-            expiresAt: new \DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
+            expiresAt: new DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
             extra: $record->getExtra(),
         );
 
@@ -125,7 +126,7 @@ class RefreshTokenService
     public function revoke(string $rawToken): void
     {
         $record = $this->repo->findByHash($this->hash($rawToken));
-        if ($record !== null && $record->getRevokedAt() === null) {
+        if ($record instanceof RefreshToken && !$record->getRevokedAt() instanceof DateTimeImmutable) {
             $record->revoke();
             $this->em->flush();
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
@@ -19,13 +21,13 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  *   - answer.important is always restored to its previous value (testers cannot change it)
  * Team users (type USER) can assign any tester and set important freely.
  */
-final class AnswerStateProcessor implements ProcessorInterface
+final readonly class AnswerStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface       $persistProcessor,
-        private readonly Security                 $security,
-        private readonly EventDispatcherInterface $dispatcher,
+        private ProcessorInterface       $persistProcessor,
+        private Security                 $security,
+        private EventDispatcherInterface $dispatcher,
     )
     {
     }

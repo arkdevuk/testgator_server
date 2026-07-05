@@ -2,32 +2,22 @@
 
 namespace App\Services\Communication;
 
+use Throwable;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class MailingService
 {
-    protected MailerInterface $mailer;
-    protected Environment $twig;
-
-    public function __construct(
-        MailerInterface $mailer,
-        Environment     $twig,
-    )
+    public function __construct(protected MailerInterface $mailer, protected Environment $twig)
     {
-        $this->mailer = $mailer;
-        $this->twig = $twig;
     }
 
     public function render(string $template, array $context): string
     {
         try {
             return $this->twig->render($template, $context);
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             return '';
         }
     }
@@ -38,7 +28,7 @@ class MailingService
         string $body
     ): void
     {
-        $email = (new Email())
+        $email = new Email()
             ->from($_ENV['MAILER_SENDER_ADDRESS'])
             ->to($to)
             ->subject($subject)

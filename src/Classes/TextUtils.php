@@ -16,7 +16,7 @@ final class TextUtils
         foreach ($words as $key => $word) {
             $words[$key] = preg_replace('/[^a-z0-9]/', '', $word);
             $v = trim($words[$key]);
-            if (!empty($v)) {
+            if ($v !== '' && $v !== '0') {
                 $newWords[] = $v;
             }
         }
@@ -27,8 +27,7 @@ final class TextUtils
     {
         $str = strtolower($str);
         $str = self::removeAccents($str);
-        $str = self::normalizeSpacing($str);
-        return $str;
+        return self::normalizeSpacing($str);
     }
 
     public static function removeAccents(string $str): string

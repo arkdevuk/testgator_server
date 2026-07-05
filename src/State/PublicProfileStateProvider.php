@@ -34,7 +34,7 @@ class PublicProfileStateProvider implements ProviderInterface
             return null;
         }
 
-        return (new PublicProfile())
+        return new PublicProfile()
             ->setId($user->getId())
             ->setType($user->getType()->value)
             ->setNickname($user->getNickname())

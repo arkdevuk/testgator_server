@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Exception;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class AppConfigService
@@ -22,7 +23,7 @@ class AppConfigService
         try {
             $configContent = file_get_contents($this->configPath);
             $this->config = yaml_parse($configContent);
-        } catch (\Exception $e) {
+        } catch (Exception) {
             $this->config = [];
             $this->active = false;
         }

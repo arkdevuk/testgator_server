@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use InvalidArgumentException;
+use RuntimeException;
 use App\Entity\User;
 use App\Enum\UserType;
 use App\Repository\UserRepository;
@@ -155,7 +157,7 @@ final class ProfilePictureController extends AbstractController
 
         try {
             $mime = $this->profilePictureService->validateImage($file->getPathname());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -165,7 +167,7 @@ final class ProfilePictureController extends AbstractController
                 $mime,
                 (string)$user->getId(),
             );
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

@@ -2,7 +2,7 @@
 
 namespace App\Services\Authentification;
 
-use App\Entity\User;
+use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -17,15 +17,10 @@ class JWTService
 
     private function getExpireTime(bool $rememberMe = false): int
     {
-        // default is 1 minutes for testing
-        //$expire = time() + 60 * 1;
-        // PROD default
-        $expire = time() + (60 * 60 * 24);
         if ($rememberMe) {
-            // set for 30 days
-            $expire = time() + (60 * 60 * 24 * 30);
+            return time() + (60 * 60 * 24 * 30);
         }
-        return $expire;
+        return time() + (60 * 60 * 24);
     }
 
     private function generateJWT(UserInterface $u, int $expire, array $more = [])
@@ -43,11 +38,8 @@ class JWTService
 
     /**
      * use this function to generate a token
-     *
-     * @param array $payload
-     * @return string
      */
-    public function generateToken(array $payload = [])
+    public function generateToken(array $payload = []): string
     {
         $env = $_ENV['APP_ENV'] === 'prod' ? 'prod' : 'dev';
         // if password is correct, generate JWT
@@ -65,9 +57,7 @@ class JWTService
      * and return the payload
      * if the payload contains the 'exp' field it also checks if the token is expired
      *
-     * @param string $jwt
-     * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function decodeJWT(string $jwt): array
     {
@@ -79,7 +69,7 @@ class JWTService
         $authData = self::jwtPayloadToArray($content);
 
         if (isset($authData['exp']) && $authData['exp'] < time()) {
-            throw new \Exception('Invalid JWT');
+            throw new Exception('Invalid JWT');
         }
 
         return $authData;

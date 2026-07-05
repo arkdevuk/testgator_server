@@ -4,7 +4,7 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.2",
+      "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
       "api-platform/doctrine-orm": "^4.0",
@@ -48,6 +48,13 @@
             "symfony/flex": true,
             "symfony/runtime": true
         },
+      "policy": {
+        "advisories": {
+          "ignore-id": [
+            "PKSA-5r1g-c7b7-y1zg"
+          ]
+        }
+      },
         "bump-after-update": true,
         "sort-packages": true
     },
@@ -93,7 +100,11 @@
         }
     },
   "require-dev": {
+    "deptrac/deptrac": "*",
     "doctrine/doctrine-fixtures-bundle": "^4.0",
+    "friendsofphp/php-cs-fixer": "^3.75",
+    "phpstan/phpstan": "^2.2",
+    "rector/rector": "^2.5",
     "symfony/browser-kit": "7.2.*",
     "symfony/css-selector": "7.2.*",
     "symfony/debug-bundle": "7.2.*",

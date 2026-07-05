@@ -30,11 +30,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
         new Get(
             uriTemplate: '/projects/{id}/stats',
-            output: ProjectStats::class,
             normalizationContext: [],
             security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
-            provider: ProjectStatsStateProvider::class,
+            output: ProjectStats::class,
             name: 'project_stats',
+            provider: ProjectStatsStateProvider::class,
         ),
         new Post(security: "is_granted('ROLE_USER')", processor: ProjectStateProcessor::class),
         new Put(security: "is_granted('ROLE_USER')", processor: ProjectStateProcessor::class),
@@ -164,11 +164,9 @@ class Project
 
     public function removeRelease(Release $release): static
     {
-        if ($this->releases->removeElement($release)) {
-            // set the owning side to null (unless already changed)
-            if ($release->getProject() === $this) {
-                $release->setProject(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->releases->removeElement($release) && $release->getProject() === $this) {
+            $release->setProject(null);
         }
 
         return $this;

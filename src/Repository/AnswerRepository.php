@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use DateTimeInterface;
 use App\Entity\Answer;
 use App\Enum\AnswerState;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -55,7 +56,7 @@ class AnswerRepository extends ServiceEntityRepository
             $state = $answer->getState()->value;
             $counts[$state] = ($counts[$state] ?? 0) + 1;
 
-            $date = ($answer->getUpdated() ?? $answer->getCreated())?->format(\DateTimeInterface::ATOM);
+            $date = ($answer->getUpdated() ?? $answer->getCreated())?->format(DateTimeInterface::ATOM);
 
             $answerList[] = [
                 'answerId' => $answer->getId(),

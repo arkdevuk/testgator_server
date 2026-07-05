@@ -27,3 +27,7 @@ phpstan.neon
 ###< phpstan/phpstan ###
 
 /docker-var/*
+
+###> deptrac/deptrac ###
+/.deptrac.cache
+###< deptrac/deptrac ###

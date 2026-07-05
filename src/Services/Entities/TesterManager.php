@@ -2,6 +2,10 @@
 
 namespace App\Services\Entities;
 
+use DateTime;
+use Throwable;
+use Exception;
+use DateTimeInterface;
 use App\Entity\User;
 use App\Enum\UserType;
 use App\Services\Communication\MailingService;
@@ -14,19 +18,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class TesterManager
 {
-    protected EntityManagerInterface $em;
-    protected MailingService $mailingService;
-    protected TranslatorInterface $translator;
-
-    public function __construct(
-        EntityManagerInterface $em,
-        MailingService         $mailingService,
-        TranslatorInterface    $translator,
-    )
+    public function __construct(protected EntityManagerInterface $em, protected MailingService $mailingService, protected TranslatorInterface $translator)
     {
-        $this->em = $em;
-        $this->mailingService = $mailingService;
-        $this->translator = $translator;
     }
 
     public function updateTesterCode(User $tester): string
@@ -36,7 +29,7 @@ class TesterManager
         // store the code in the user
         $tester->setOtp((string)$code);
         $tester->setOtpTry(0);
-        $tester->setOtpDate(new \DateTime());
+        $tester->setOtpDate(new DateTime());
         $this->em->persist($tester);
         $this->em->flush();
         // send mail
@@ -55,7 +48,7 @@ class TesterManager
                 $subject,
                 $content
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             // ignore
         }
 
@@ -78,38 +71,38 @@ class TesterManager
                 $subject,
                 $content
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             // a failing mail must never abort tester creation (or fixture loading)
         }
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function checkTesterLogin(string $email, string $code): ?User
     {
         $tester = $this->getTesterByEmail($email);
-        if ($tester === null) {
-            throw new \Exception('User not found');
+        if (!$tester instanceof User) {
+            throw new Exception('User not found');
         }
 
         // Reject immediately if the code has expired — don't burn an attempt
-        if ($tester->getOtpDate() === null
+        if (!$tester->getOtpDate() instanceof DateTimeInterface
             || $tester->getOtpDate()->getTimestamp() < (time() - 300)) {
-            throw new \Exception('Code expired');
+            throw new Exception('Code expired');
         }
 
         // Enforce attempt limit before checking the code so an attacker cannot
         // squeeze in an extra guess while the counter is being incremented
         if ($tester->getOtpTry() >= 3) {
-            throw new \Exception('Too many attempts');
+            throw new Exception('Too many attempts');
         }
 
         if ($tester->getOtp() === null || $tester->getOtp() === '' || $tester->getOtp() !== $code) {
             $tester->setOtpTry($tester->getOtpTry() + 1);
             $this->em->persist($tester);
             $this->em->flush();
-            throw new \Exception('Invalid code');
+            throw new Exception('Invalid code');
         }
 
         $tester->setOtp(null);

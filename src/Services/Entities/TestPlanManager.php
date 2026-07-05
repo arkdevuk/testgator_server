@@ -7,13 +7,8 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class TestPlanManager
 {
-    protected EntityManagerInterface $em;
-
-    public function __construct(
-        EntityManagerInterface $em
-    )
+    public function __construct(protected EntityManagerInterface $em)
     {
-        $this->em = $em;
     }
 
     public function getTestPlanById(int $id): ?TestPlan

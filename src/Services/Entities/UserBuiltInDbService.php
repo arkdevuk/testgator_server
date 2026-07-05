@@ -2,6 +2,7 @@
 
 namespace App\Services\Entities;
 
+use Exception;
 use App\Entity\User;
 use App\Enum\UserType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,22 +10,10 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserBuiltInDbService
 {
-    protected EntityManagerInterface $em;
-    protected UserPasswordHasherInterface $passwordHasher;
-
-    public function __construct(
-        EntityManagerInterface      $em,
-        UserPasswordHasherInterface $passwordHasher,
-    )
+    public function __construct(protected EntityManagerInterface $em, protected UserPasswordHasherInterface $passwordHasher)
     {
-        $this->em = $em;
-        $this->passwordHasher = $passwordHasher;
     }
 
-    /**
-     * @param array $userData
-     * @return void
-     */
     public function createUser(array $userData, string $src = 'app'): User
     {
         $user = new User();
@@ -52,27 +41,27 @@ class UserBuiltInDbService
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function checkUserLogin(string $email, string $password): ?User
     {
         $user = $this->getUserByEmail($email);
-        if ($user === null) {
-            throw new \Exception('User not found');
+        if (!$user instanceof User) {
+            throw new Exception('User not found');
         }
 
         $stored = $user->getPassword();
         if ($stored === null || $stored === '') {
             // Account exists but has no password set (e.g. LDAP-created account
             // or newly provisioned account awaiting admin password setup).
-            throw new \Exception('No password set for this account. Please contact an administrator.');
+            throw new Exception('No password set for this account. Please contact an administrator.');
         }
 
         if ($this->passwordHasher->isPasswordValid($user, $password)) {
             return $user;
         }
 
-        throw new \Exception('Invalid credentials');
+        throw new Exception('Invalid credentials');
     }
 
     public function getUserByEmail(string $email): ?User

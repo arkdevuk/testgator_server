@@ -1,24 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\User;
 use App\Repository\AnswerRepository;
 use App\Repository\QuestionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class QuestionStatsController extends AbstractController
 {
+    public function __construct(private readonly QuestionRepository $questionRepository, private readonly AnswerRepository $answerRepository)
+    {
+    }
     #[Route('/api/questions/{id}/stats', name: 'app_question_stats', methods: ['GET'])]
     public function __invoke(
         int                $id,
-        QuestionRepository $questionRepository,
-        AnswerRepository   $answerRepository,
-    ): Response
+    ): JsonResponse
     {
-        $question = $questionRepository->find($id);
+        $question = $this->questionRepository->find($id);
 
         if ($question === null) {
             return $this->json(['error' => 'Question not found'], 404);
@@ -33,6 +36,6 @@ final class QuestionStatsController extends AbstractController
             }
         }
 
-        return $this->json($answerRepository->getStatsByQuestion($id));
+        return $this->json($this->answerRepository->getStatsByQuestion($id));
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
@@ -13,12 +15,12 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 /**
  * Auto-populates createdBy from the authenticated user on POST.
  */
-final class TesterAnnotationStateProcessor implements ProcessorInterface
+final readonly class TesterAnnotationStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface $persistProcessor,
-        private readonly Security           $security,
+        private ProcessorInterface $persistProcessor,
+        private Security           $security,
     )
     {
     }

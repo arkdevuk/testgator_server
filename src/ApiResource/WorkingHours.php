@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ApiResource;
 
 use ApiPlatform\Metadata\ApiProperty;
@@ -16,19 +18,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')")]
 class WorkingHours
 {
-    #[ApiProperty(identifier: true)]
-    #[Groups(['workingHours:read'])]
-    private ?string $id;
-
-
-    #[Groups(['workingHours:read'])]
-    private array $details = [];
-
-
-    public function __construct(string $day, array $details)
+    public function __construct(
+        #[ApiProperty(identifier: true)]
+        #[Groups(['workingHours:read'])]
+        private ?string $id,
+        #[Groups(['workingHours:read'])]
+        private array   $details
+    )
     {
-        $this->id = $day;
-        $this->details = $details;
     }
 
     public function getId(): ?string

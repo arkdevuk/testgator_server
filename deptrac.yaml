@@ -1,0 +1,353 @@
+deptrac:
+  exclude_files:
+    - '#.*test.*#'
+    - '#/src/Factory/#'
+
+  paths:
+    - ./src
+
+  # ------------------------------------------------------------
+  # Layers
+  # ------------------------------------------------------------
+  layers:
+
+    # =========================
+    # API / HTTP entry points
+    # =========================
+
+    - name: ApiResource
+      collectors:
+        - type: classLike
+          value: ^App\\ApiResource\\.*
+
+    - name: Controller
+      collectors:
+        - type: classLike
+          value: ^App\\Controller\\.*
+
+    - name: Interface
+      collectors:
+        - type: classLike
+          value: ^App\\Interface\\.*
+
+    - name: OpenApi
+      collectors:
+        - type: classLike
+          value: ^App\\OpenApi\\.*
+
+    - name: StateProcessor
+      collectors:
+        - type: classLike
+          value: ^App\\State\\StateProcessor\\.*
+
+    - name: StateProvider
+      collectors:
+        - type: classLike
+          value: ^App\\State\\StateProvider\\.*
+
+
+    # =========================
+    # Application core
+    # =========================
+    - name: DtoCriteria
+      collectors:
+        - type: classLike
+          value: ^App\\Dto\\Criteria\\.*
+
+    - name: DtoInput
+      collectors:
+        - type: classLike
+          value: ^App\\Dto\\Input\\.*
+
+    - name: DtoOutput
+      collectors:
+        - type: classLike
+          value: ^App\\Dto\\Output\\.*
+
+    - name: Entity
+      collectors:
+        - type: classLike
+          value: ^App\\Entity\\.*
+
+    - name: Enum
+      collectors:
+        - type: classLike
+          value: ^App\\Enum\\.*
+
+    - name: Exception
+      collectors:
+        - type: classLike
+          value: ^App\\Exception\\.*
+
+    - name: Mapper
+      collectors:
+        - type: classLike
+          value: ^App\\Mapper\\.*
+
+    - name: Message
+      collectors:
+        - type: classLike
+          value: ^App\\Message\\.*
+
+    - name: MessageHandler
+      collectors:
+        - type: classLike
+          value: ^App\\MessageHandler\\.*
+
+    - name: DuplicateCriteriaNormalizer
+      collectors:
+        - type: classLike
+          value: ^App\\Service\\Company\\Duplicate\\CompanyDuplicateCandidateCriteriaNormalizer$
+
+    - name: Repository
+      collectors:
+        - type: classLike
+          value: ^App\\Repository\\.*
+
+    - name: Security
+      collectors:
+        - type: classLike
+          value: ^App\\Security\\.*
+
+    - name: Serialization
+      collectors:
+        - type: classLike
+          value: ^App\\Utils\\Serialization\\.*
+
+    - name: Service
+      collectors:
+        - type: bool
+          must:
+            - type: classLike
+              value: ^App\\Service\\.*
+
+    - name: Validator
+      collectors:
+        - type: classLike
+          value: ^App\\Validator\\.*
+
+    - name: ValueObject
+      collectors:
+        - type: classLike
+          value: ^App\\ValueObject\\.*
+
+    # =========================
+    # Framework layers
+    # =========================
+    - name: ApiFilter
+      collectors:
+        - type: classLike
+          value: ^App\\Filter\\.*
+
+    - name: ApiPlatform
+      collectors:
+        - type: classLike
+          value: ^ApiPlatform\\.*
+
+    - name: Doctrine
+      collectors:
+        - type: classLike
+          value: ^Doctrine\\.*
+
+    - name: PSR
+      collectors:
+        - type: classLike
+          value: ^Psr\\.*
+
+    - name: Logger
+      collectors:
+        - type: classLike
+          value: ^App\\Logger\\.*
+
+    - name: Symfony
+      collectors:
+        - type: bool
+          must:
+            - type: classLike
+              value: ^Symfony\\.*
+          must_not:
+            - type: classLike
+              value: ^Symfony\\Component\\Uid\\.*
+
+    - name: SymfonyUid
+      collectors:
+        - type: classLike
+          value: ^Symfony\\Component\\Uid\\.*
+  # ------------------------------------------------------------
+  # Ruleset
+  # ------------------------------------------------------------
+  ruleset:
+
+    # =========================
+    # API / HTTP entry points
+    # =========================
+
+    ApiResource:
+      - ApiPlatform
+      - Entity
+      - Enum
+      - StateProcessor
+      - StateProvider
+      - Symfony
+
+    Controller:
+      - Security
+      - Service
+      - Symfony
+
+    OpenApi:
+      - ApiPlatform
+      - Entity
+      - Enum
+      - Symfony
+
+    StateProcessor:
+      - ApiPlatform
+      - DtoInput
+      - DtoOutput
+      - Entity
+      - Enum
+      - Exception
+      - Logger
+      - Mapper
+      - Message
+      - Security
+      - Service
+      - Symfony
+      - SymfonyUid
+
+    StateProvider:
+      - ApiPlatform
+      - DtoOutput
+      - Entity
+      - Enum
+      - Interface
+      - Security
+      - Service
+      - Symfony
+      - SymfonyUid
+
+    # =========================
+    # Application core
+    # =========================
+
+    DtoInput:
+      - ApiPlatform
+      - DtoOutput
+      - Enum
+      - StateProvider
+      - Symfony
+
+    DtoOutput:
+      - DtoInput
+      - Enum
+      - Symfony
+      - ApiPlatform
+      - StateProcessor
+      - StateProvider
+
+    DuplicateCriteriaNormalizer:
+      - DtoCriteria
+
+    Entity:
+      - ApiFilter
+      - ApiPlatform
+      - ApiResource
+      - Doctrine
+      - DtoInput
+      - DtoOutput
+      - Enum
+      - Exception
+      - Repository
+      - Serialization
+      - StateProcessor
+      - StateProvider
+      - Symfony
+      - SymfonyUid
+      - Validator
+      - ValueObject
+
+    Enum:
+      - Entity
+
+    Exception:
+      - Enum
+
+    Interface:
+      - Service
+
+    Logger:
+      - ApiPlatform
+      - PSR
+      - Symfony
+
+    Mapper:
+      - DtoOutput
+      - Entity
+
+    Message:
+      - Enum
+      - Symfony
+
+    MessageHandler:
+      - Entity
+      - Enum
+      - Message
+      - Repository
+      - Service
+      - Symfony
+
+    Repository:
+      - Doctrine
+      - DtoCriteria
+      - DuplicateCriteriaNormalizer
+      - Entity
+      - Enum
+      - SymfonyUid
+
+    Security:
+      - Entity
+      - Enum
+      - Repository
+      - Symfony
+
+    Service:
+      - Doctrine
+      - DtoCriteria
+      - DtoInput
+      - DtoOutput
+      - Entity
+      - Enum
+      - Exception
+      - Interface
+      - Message
+      - Repository
+      - Security
+      - Symfony
+      - SymfonyUid
+      - ValueObject
+      - Logger
+
+    Validator:
+      - Symfony
+      - Service
+      - Entity
+
+    ValueObject: [ ]
+
+    # =========================
+    # Framework layers
+    # =========================
+
+    ApiPlatform: [ ]
+
+    Doctrine: [ ]
+
+    DtoCriteria: [ ]
+
+    Symfony: [ ]
+
+    ApiFilter:
+      - ApiPlatform
+      - Doctrine
+

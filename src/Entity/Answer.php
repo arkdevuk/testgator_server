@@ -74,7 +74,7 @@ class Answer
     #[ORM\Column(nullable: true)]
     private ?array $systemInfos = null;
 
-    #[ORM\Column(type: 'string', enumType: AnswerState::class, length: 20)]
+    #[ORM\Column(type: Types::STRING, length: 20, enumType: AnswerState::class)]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private AnswerState $state = AnswerState::PENDING;
 

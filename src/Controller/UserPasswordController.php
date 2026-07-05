@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use InvalidArgumentException;
 use App\Entity\User;
 use App\Event\UserPasswordChangedAppEvent;
 use App\Repository\UserRepository;
@@ -54,7 +55,7 @@ final class UserPasswordController extends AbstractController
 
         try {
             $this->passwordService->checkPassword($newPassword);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 

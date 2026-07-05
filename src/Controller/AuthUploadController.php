@@ -2,25 +2,27 @@
 
 namespace App\Controller;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Throwable;
 use App\Entity\User;
-use App\Services\Authentification\GuestAuthService;
-use App\Services\Entities\TestPlanManager;
 use App\Services\FileService;
 use App\Traits\GuidAware;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class AuthUploadController extends AbstractController
 {
     use GuidAware;
 
+    public function __construct(private readonly FileService $fileService)
+    {
+    }
+
     #[Route('/api/uploads/request', name: 'upload_request')]
     public function upload_request(
-        FileService $fileService,
         Request     $request,
-    ): Response
+    ): JsonResponse
     {
         $u = $this->getUser();
         if (!$u instanceof User) {
@@ -31,7 +33,7 @@ final class AuthUploadController extends AbstractController
 
         try {
             $payload = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             return $this->json([
                 'error' => 'Invalid JSON',
             ], 400);
@@ -46,7 +48,7 @@ final class AuthUploadController extends AbstractController
             ], 400);
         }
         // get upload max size from current php.ini configuration
-        $maxSize = $fileService->getMaxUploadFileSize();
+        $maxSize = $this->fileService->getMaxUploadFileSize();
         // check if the file size is within the limits
         if ($filesize > $maxSize) {
             return $this->json([
@@ -67,7 +69,7 @@ final class AuthUploadController extends AbstractController
         ];
         // auth already handled, generate a JWT token
         return $this->json([
-            'jwt' => $fileService->getUploadRequest($jwtPayload),
+            'jwt' => $this->fileService->getUploadRequest($jwtPayload),
             'max_size' => $maxSize,
         ]);
     }

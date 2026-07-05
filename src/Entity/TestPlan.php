@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
 use ApiPlatform\Doctrine\Common\Filter\DateFilterInterface;
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
@@ -40,10 +41,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Get(
             uriTemplate: '/test_plans/{id}/testing_progression',
             normalizationContext: [],
-            output: TestingProgression::class,
             security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
-            provider: TestingProgressionStateProvider::class,
+            output: TestingProgression::class,
             name: 'test_plan_testing_progression',
+            provider: TestingProgressionStateProvider::class,
         ),
         new Post(security: "is_granted('ROLE_USER')", processor: TestPlanStateProcessor::class),
         new Put(security: "is_granted('ROLE_USER')", processor: TestPlanStateProcessor::class),
@@ -87,7 +88,7 @@ class TestPlan
     #[ORM\Column(length: 255)]
     #[Groups(['testPlan:read', 'team:write'])]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
-    private ?string $state = null;
+    private ?string $state = TestPlanState::DRAFT;
 
     #[ORM\ManyToOne(inversedBy: 'plans')]
     #[ORM\JoinColumn(nullable: false)]
@@ -119,7 +120,7 @@ class TestPlan
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     #[Groups(['testPlan:read', 'testPlan:write'])]
     #[ApiFilter(DateFilter::class, strategy: DateFilterInterface::EXCLUDE_NULL)]
-    private ?\DateTimeInterface $dueDate = null;
+    private ?DateTimeInterface $dueDate = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['testPlan:read', 'testPlan:write'])]
@@ -129,7 +130,6 @@ class TestPlan
     {
         $this->questions = new ArrayCollection();
         $this->key = $this->generateHumanHash(128);
-        $this->state = TestPlanState::DRAFT;
         $this->setNow();
         $this->testersEnrolled = new ArrayCollection();
     }
@@ -231,11 +231,9 @@ class TestPlan
 
     public function removeQuestion(Question $question): static
     {
-        if ($this->questions->removeElement($question)) {
-            // set the owning side to null (unless already changed)
-            if ($question->getPlan() === $this) {
-                $question->setPlan(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->questions->removeElement($question) && $question->getPlan() === $this) {
+            $question->setPlan(null);
         }
 
         return $this;
@@ -278,12 +276,12 @@ class TestPlan
         return $this->testersEnrolled->count();
     }
 
-    public function getDueDate(): ?\DateTimeInterface
+    public function getDueDate(): ?DateTimeInterface
     {
         return $this->dueDate;
     }
 
-    public function setDueDate(\DateTimeInterface $dueDate): static
+    public function setDueDate(DateTimeInterface $dueDate): static
     {
         $this->dueDate = $dueDate;
 

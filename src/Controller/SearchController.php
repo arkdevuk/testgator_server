@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\User;
@@ -10,7 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/search')]
 final class SearchController extends AbstractController
 {
     public function __construct(
@@ -19,7 +20,7 @@ final class SearchController extends AbstractController
     {
     }
 
-    #[Route('/query', name: 'search_query', methods: ['GET'])]
+    #[Route('/api/search/query', name: 'search_query', methods: ['GET'])]
     public function query(Request $request): JsonResponse
     {
         $user = $this->getUser();
@@ -45,7 +46,6 @@ final class SearchController extends AbstractController
 
         return $this->json($results);
     }
-
     /**
      * Resolves scope(s) from the request.
      * Supports:
@@ -62,19 +62,19 @@ final class SearchController extends AbstractController
         // Array style: scope[]=x&scope[]=y
         $array = $request->query->all('scope');
 
-        if (empty($array)) {
+        if ($array === []) {
             // Comma-separated style: scope=x,y  or  scope=x
             $raw = trim($request->query->getString('scope', ''));
             if ($raw === '') {
                 return $user->isTester() ? SearchService::TESTER_SCOPES : SearchService::ALL_SCOPES;
             }
-            $array = array_map('trim', explode(',', $raw));
+            $array = array_map(trim(...), explode(',', $raw));
         }
 
         $array = array_values(array_unique(array_filter($array)));
 
         $invalid = array_diff($array, SearchService::ALL_SCOPES);
-        if (!empty($invalid)) {
+        if ($invalid !== []) {
             return null;
         }
 

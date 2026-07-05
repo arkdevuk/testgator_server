@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use DateTimeImmutable;
 use App\Entity\RefreshToken;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -24,7 +25,7 @@ class RefreshTokenRepository extends ServiceEntityRepository
     /** Purge tokens that have been expired or revoked for more than $days days */
     public function purgeStale(int $days = 7): int
     {
-        $cutoff = new \DateTimeImmutable("-{$days} days");
+        $cutoff = new DateTimeImmutable("-{$days} days");
 
         return $this->createQueryBuilder('rt')
             ->delete()

@@ -56,8 +56,8 @@ class SearchService
         }
 
         $terms = array_values(array_filter(
-            array_map('trim', preg_split('/\s+/', mb_strtolower($query))),
-            fn(string $t) => $t !== ''
+            array_map(trim(...), preg_split('/\s+/', mb_strtolower($query))),
+            fn(string $t): bool => $t !== ''
         ));
 
         $results = [];
@@ -79,7 +79,7 @@ class SearchService
             }
         }
 
-        usort($results, fn($a, $b) => $b['score'] <=> $a['score']);
+        usort($results, fn(array $a, array $b): int => $b['score'] <=> $a['score']);
 
         return $results;
     }
@@ -105,7 +105,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (Project $p) use ($scores) {
+        return array_map(function (Project $p) use ($scores): array {
             $s = $scores[$p->getId()] ?? ['score' => 0.0, 'extracts' => []];
             return [
                 'type' => self::SCOPE_PROJECTS,
@@ -127,7 +127,7 @@ class SearchService
     {
         $pattern = '%' . implode('%', $terms) . '%';
         $q = $this->em->createQuery($dql)->setParameter('p', $pattern);
-        if ($tester !== null) {
+        if ($tester instanceof User) {
             $q->setParameter('user', $tester);
         }
         return $q->getResult();
@@ -151,7 +151,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (User $u) use ($scores) {
+        return array_map(function (User $u) use ($scores): array {
             $s = $scores[(string)$u->getId()] ?? ['score' => 0.0, 'extracts' => []];
             return [
                 'type' => self::SCOPE_TESTERS,
@@ -167,7 +167,7 @@ class SearchService
     private function searchTestPlans(array $terms, ?User $tester): array
     {
         $dql = 'SELECT tp FROM App\Entity\TestPlan tp';
-        $dql .= $tester !== null
+        $dql .= $tester instanceof User
             ? ' JOIN tp.testersEnrolled te WHERE te = :user AND (LOWER(tp.name) LIKE :p OR LOWER(tp.description) LIKE :p OR LOWER(tp.content) LIKE :p)'
             : ' WHERE LOWER(tp.name) LIKE :p OR LOWER(tp.description) LIKE :p OR LOWER(tp.content) LIKE :p';
 
@@ -185,7 +185,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (TestPlan $tp) use ($scores) {
+        return array_map(function (TestPlan $tp) use ($scores): array {
             $s = $scores[$tp->getId()] ?? ['score' => 0.0, 'extracts' => []];
             return [
                 'type' => self::SCOPE_TEST_PLAN,
@@ -201,7 +201,7 @@ class SearchService
     private function searchQuestions(array $terms, ?User $tester): array
     {
         $dql = 'SELECT q FROM App\Entity\Question q';
-        $dql .= $tester !== null
+        $dql .= $tester instanceof User
             ? ' JOIN q.plan tp JOIN tp.testersEnrolled te WHERE te = :user AND (LOWER(q.name) LIKE :p OR LOWER(q.content) LIKE :p)'
             : ' WHERE LOWER(q.name) LIKE :p OR LOWER(q.content) LIKE :p';
 
@@ -218,7 +218,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (Question $q) use ($scores) {
+        return array_map(function (Question $q) use ($scores): array {
             $s = $scores[$q->getId()] ?? ['score' => 0.0, 'extracts' => []];
             return [
                 'type' => self::SCOPE_QUESTIONS,
@@ -236,7 +236,7 @@ class SearchService
     private function searchAnswers(array $terms, ?User $tester): array
     {
         $dql = 'SELECT a FROM App\Entity\Answer a WHERE LOWER(a.comment) LIKE :p';
-        if ($tester !== null) {
+        if ($tester instanceof User) {
             $dql .= ' AND a.tester = :user';
         }
 
@@ -252,7 +252,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (Answer $a) use ($scores) {
+        return array_map(function (Answer $a) use ($scores): array {
             $s = $scores[$a->getId()] ?? ['score' => 0.0, 'extracts' => []];
             $comment = $a->getComment() ?? '';
             return [

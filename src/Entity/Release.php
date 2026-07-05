@@ -51,12 +51,11 @@ class Release
 
     #[ORM\Column(type: Types::TEXT, options: ['default' => ''])]
     #[Groups(['release:read', 'team:write', 'testPlan:read'])]
-    private ?string $description;
+    private ?string $description = '';
 
     public function __construct()
     {
         $this->plans = new ArrayCollection();
-        $this->description = '';
     }
 
     public function getId(): ?int
@@ -108,11 +107,9 @@ class Release
 
     public function removePlan(TestPlan $plan): static
     {
-        if ($this->plans->removeElement($plan)) {
-            // set the owning side to null (unless already changed)
-            if ($plan->getRelease() === $this) {
-                $plan->setRelease(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->plans->removeElement($plan) && $plan->getRelease() === $this) {
+            $plan->setRelease(null);
         }
 
         return $this;

@@ -13,11 +13,11 @@ namespace App\Services;
  */
 class BM25Scorer
 {
-    private const K1 = 1.5;
-    private const B = 0.75;
+    private const float K1 = 1.5;
+    private const float B = 0.75;
 
     // Context window size (chars) around each match for extracts
-    private const EXTRACT_WINDOW = 80;
+    private const int EXTRACT_WINDOW = 80;
 
     /**
      * Score a set of documents against the given terms.
@@ -33,8 +33,8 @@ class BM25Scorer
      */
     public function score(array $documents, array $terms): array
     {
-        if (empty($documents) || empty($terms)) {
-            return array_map(fn() => ['score' => 0.0, 'extracts' => []], $documents);
+        if ($documents === [] || $terms === []) {
+            return array_map(fn(): array => ['score' => 0.0, 'extracts' => []], $documents);
         }
 
         $fieldNames = array_keys(reset($documents));

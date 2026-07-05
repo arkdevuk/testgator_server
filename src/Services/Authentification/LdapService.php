@@ -2,13 +2,15 @@
 
 namespace App\Services\Authentification;
 
+use Exception;
+use InvalidArgumentException;
 use Symfony\Component\Ldap\Ldap;
 
 class LdapService
 {
-    private string $baseDn;
-    private string $admin;
-    private string $password;
+    private readonly string $baseDn;
+    private readonly string $admin;
+    private readonly string $password;
     private ?string $mustHaveGroup;
 
     public function __construct()
@@ -25,7 +27,7 @@ class LdapService
     public function checkUserLogin(
         string $uid,
         string $password
-    )
+    ): array
     {
         // Validate inputs before touching LDAP
         $this->validatePassword($password);
@@ -38,7 +40,7 @@ class LdapService
         $query = $ldap->query($this->baseDn, "(&(objectClass=person)(uid={$escapedUid}))");
         $results = $query->execute()->toArray();
         if (count($results) === 0) {
-            throw new \Exception('User not found');
+            throw new Exception('User not found');
         }
         $user = $results[0];
         $dn = $user->getDn();
@@ -62,10 +64,8 @@ class LdapService
         foreach ($groups as $group) {
             $userInfos['groups'][] = $group->getAttributes()['cn'][0];
         }
-        if ($this->mustHaveGroup !== null) {
-            if (!in_array($this->mustHaveGroup, $userInfos['groups'])) {
-                throw new \Exception('User not in required group');
-            }
+        if ($this->mustHaveGroup !== null && !in_array($this->mustHaveGroup, $userInfos['groups'])) {
+            throw new Exception('User not in required group');
         }
         return $userInfos;
     }
@@ -85,20 +85,20 @@ class LdapService
      * Bind passwords are not interpolated into filter strings, but null bytes
      * can truncate strings in some LDAP server implementations.
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function validatePassword(string $password): void
     {
-        if (strlen($password) === 0) {
-            throw new \InvalidArgumentException('Password must not be empty');
+        if ($password === '') {
+            throw new InvalidArgumentException('Password must not be empty');
         }
 
         if (strlen($password) > 1024) {
-            throw new \InvalidArgumentException('Password exceeds maximum length');
+            throw new InvalidArgumentException('Password exceeds maximum length');
         }
 
         if (str_contains($password, "\x00")) {
-            throw new \InvalidArgumentException('Password contains invalid characters');
+            throw new InvalidArgumentException('Password contains invalid characters');
         }
     }
 

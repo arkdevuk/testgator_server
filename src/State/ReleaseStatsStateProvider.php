@@ -14,13 +14,8 @@ use App\Services\Entities\ReleaseManager;
 class ReleaseStatsStateProvider implements ProviderInterface
 {
 
-    protected ReleaseManager $releaseManager;
-
-    public function __construct(
-        ReleaseManager $releaseManager
-    )
+    public function __construct(protected ReleaseManager $releaseManager)
     {
-        $this->releaseManager = $releaseManager;
     }
 
     public function provide(Operation $operation,

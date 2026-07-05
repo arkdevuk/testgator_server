@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
+use InvalidArgumentException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
@@ -17,13 +20,13 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  * - Forces type = USER on every write.
  * - Hashes plainPassword when provided (required on POST, optional on PATCH).
  */
-final class UserStateProcessor implements ProcessorInterface
+final readonly class UserStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface          $persistProcessor,
-        private readonly UserPasswordHasherInterface $hasher,
-        private readonly EventDispatcherInterface $dispatcher,
+        private ProcessorInterface          $persistProcessor,
+        private UserPasswordHasherInterface $hasher,
+        private EventDispatcherInterface    $dispatcher,
     )
     {
     }
@@ -39,7 +42,7 @@ final class UserStateProcessor implements ProcessorInterface
         $plain = $data->getPlainPassword();
 
         if ($operation instanceof Post && ($plain === null || $plain === '')) {
-            throw new \InvalidArgumentException('plainPassword is required when creating a user.');
+            throw new InvalidArgumentException('plainPassword is required when creating a user.');
         }
 
         if ($plain !== null && $plain !== '') {

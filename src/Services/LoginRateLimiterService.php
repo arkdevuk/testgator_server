@@ -14,8 +14,8 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class LoginRateLimiterService
 {
-    private const MAX_ATTEMPTS = 5;
-    private const WINDOW_SECONDS = 900; // 15 minutes
+    private const int MAX_ATTEMPTS = 5;
+    private const int WINDOW_SECONDS = 900; // 15 minutes
 
     public function __construct(
         private readonly CacheItemPoolInterface $cache,
@@ -36,14 +36,10 @@ class LoginRateLimiterService
         $key = $this->cacheKey($ip, $username);
         $item = $this->cache->getItem($key);
 
-        if ($item->isHit()) {
-            $data = $item->get();
-        } else {
-            $data = [
-                'count' => 0,
-                'reset_at' => time() + self::WINDOW_SECONDS,
-            ];
-        }
+        $data = $item->isHit() ? $item->get() : [
+            'count' => 0,
+            'reset_at' => time() + self::WINDOW_SECONDS,
+        ];
 
         $retryAfter = max(0, $data['reset_at'] - time());
 

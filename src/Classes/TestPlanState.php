@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Classes;
 
 final class TestPlanState
 {
-    public const DRAFT = 'draft';
-    public const PUBLISHED = 'published';
-    public const ARCHIVED = 'archived';
+    public const string DRAFT = 'draft';
+    public const string PUBLISHED = 'published';
+    public const string ARCHIVED = 'archived';
 
 }

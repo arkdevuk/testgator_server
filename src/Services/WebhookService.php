@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use DateTimeImmutable;
+use DateTimeInterface;
+use Throwable;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
@@ -39,7 +42,7 @@ class WebhookService
                 return;
             }
 
-            $url = $this->settingsService->getSettingValue('webhook_url', 'webhook', null);
+            $url = $this->settingsService->getSettingValue('webhook_url', 'webhook');
 
             if ($url === null || !filter_var($url, FILTER_VALIDATE_URL)) {
                 return;
@@ -47,7 +50,7 @@ class WebhookService
 
             $body = json_encode([
                 'event' => $eventName,
-                'date' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+                'date' => new DateTimeImmutable()->format(DateTimeInterface::ATOM),
                 'entity' => $entityData,
                 'project' => $projectData,
             ], JSON_THROW_ON_ERROR);
@@ -61,7 +64,7 @@ class WebhookService
                     'status' => $statusCode,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Swallow every failure — a webhook must never crash the main workflow
             $this->logger->warning('Webhook dispatch failed', [
                 'event' => $eventName,
@@ -98,9 +101,7 @@ class WebhookService
         ]);
 
         curl_exec($ch);
-        $statusCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
-        return $statusCode;
+        return curl_getinfo($ch, CURLINFO_HTTP_CODE);
     }
 }

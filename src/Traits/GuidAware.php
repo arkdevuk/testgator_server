@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use Exception;
+
 trait GuidAware
 {
     protected function generateHumanHash(int $length = 64): string
@@ -10,7 +12,7 @@ trait GuidAware
         while (strlen($hash) < $length) {
             try {
                 $hash .= hash('sha512', random_bytes($length));
-            } catch (\Exception $e) {
+            } catch (Exception) {
                 $hash .= hash('sha512', random_int(0, $length * 100000));
             }
         }

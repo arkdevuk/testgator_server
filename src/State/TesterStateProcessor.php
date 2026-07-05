@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\DeleteOperationInterface;
@@ -16,14 +18,14 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  * Forces type = TESTER on every User created/updated through the
  * /api/testers resource, then delegates to the default Doctrine processors.
  */
-final class TesterStateProcessor implements ProcessorInterface
+final readonly class TesterStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface       $persistProcessor,
+        private ProcessorInterface       $persistProcessor,
         #[Autowire(service: 'api_platform.doctrine.orm.state.remove_processor')]
-        private readonly ProcessorInterface       $removeProcessor,
-        private readonly EventDispatcherInterface $dispatcher,
+        private ProcessorInterface       $removeProcessor,
+        private EventDispatcherInterface $dispatcher,
     )
     {
     }

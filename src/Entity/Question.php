@@ -74,13 +74,12 @@ class Question
 
     #[ORM\Column(options: ['default' => 0])]
     #[Groups(['question:read', 'team:write'])]
-    private ?int $displayOrder = null;
+    private ?int $displayOrder = 0;
 
     public function __construct()
     {
         $this->answers = new ArrayCollection();
         $this->files = new ArrayCollection();
-        $this->displayOrder = 0;
     }
 
     public function getId(): ?int
@@ -132,11 +131,9 @@ class Question
 
     public function removeAnswer(Answer $answer): static
     {
-        if ($this->answers->removeElement($answer)) {
-            // set the owning side to null (unless already changed)
-            if ($answer->getQuestion() === $this) {
-                $answer->setQuestion(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->answers->removeElement($answer) && $answer->getQuestion() === $this) {
+            $answer->setQuestion(null);
         }
 
         return $this;

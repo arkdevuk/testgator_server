@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventListener;
 
 use App\Entity\User;
@@ -12,16 +14,8 @@ use Doctrine\ORM\Events;
 #[AsEntityListener(event: Events::postPersist, method: 'postPersist', entity: User::class)]
 class CreateTesterListener
 {
-    protected EntityManagerInterface $entityManager;
-    protected TesterManager $testerManager;
-
-    public function __construct(
-        EntityManagerInterface $entityManager,
-        TesterManager          $testerManager
-    )
+    public function __construct(protected EntityManagerInterface $entityManager, protected TesterManager $testerManager)
     {
-        $this->entityManager = $entityManager;
-        $this->testerManager = $testerManager;
     }
 
     public function postPersist(User $entity, PostPersistEventArgs $args): void

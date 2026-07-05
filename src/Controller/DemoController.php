@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use DateTime;
 use App\Entity\Answer;
 use App\Enum\AnswerState;
 use App\Repository\TestPlanRepository;
@@ -19,7 +20,7 @@ final class DemoController extends AbstractController
 {
     // ── Canned comments per state ─────────────────────────────────────────────
 
-    private const COMMENTS = [
+    private const array COMMENTS = [
         AnswerState::PASS->value => [
             'Everything worked as expected. No issues found during testing.',
             'Tested successfully on Chrome and Firefox. All steps completed without errors.',
@@ -52,11 +53,13 @@ final class DemoController extends AbstractController
         ],
     ];
 
+    public function __construct(private readonly TestPlanRepository $testPlanRepository, private readonly EntityManagerInterface $em)
+    {
+    }
+
     #[Route('/api/demo/add_demo_answer', name: 'app_demo_add_demo_answer', methods: ['POST'])]
     public function __invoke(
         Request                $request,
-        TestPlanRepository     $testPlanRepository,
-        EntityManagerInterface $em,
     ): JsonResponse
     {
         $body = json_decode($request->getContent(), true) ?? [];
@@ -80,7 +83,7 @@ final class DemoController extends AbstractController
             return $this->json(['error' => 'Invalid testingPlanIri format. Expected e.g. /api/test_plans/12'], Response::HTTP_BAD_REQUEST);
         }
 
-        $testPlan = $testPlanRepository->find((int)$m[1]);
+        $testPlan = $this->testPlanRepository->find((int)$m[1]);
 
         if (!$testPlan) {
             return $this->json(['error' => 'TestPlan not found'], Response::HTTP_NOT_FOUND);
@@ -100,7 +103,7 @@ final class DemoController extends AbstractController
             return $this->json(['error' => 'This testing plan has no enrolled testers'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $now = new \DateTime();
+        $now = new DateTime();
         $states = AnswerState::cases();
         $created = 0;
 
@@ -111,11 +114,17 @@ final class DemoController extends AbstractController
 
             // Random date: question creation → now, falling back to test plan creation
             $from = null;
-            if (method_exists($question, 'getCreated')) $from = $question->getCreated();
-            if ($from === null && method_exists($testPlan, 'getCreated')) $from = $testPlan->getCreated();
-            if ($from === null) $from = (clone $now)->modify('-30 days');
+            if (method_exists($question, 'getCreated')) {
+                $from = $question->getCreated();
+            }
+            if ($from === null && method_exists($testPlan, 'getCreated')) {
+                $from = $testPlan->getCreated();
+            }
+            if ($from === null) {
+                $from = (clone $now)->modify('-30 days');
+            }
             $randomTs = random_int($from->getTimestamp(), $now->getTimestamp());
-            $randomDate = (new \DateTime())->setTimestamp($randomTs);
+            $randomDate = new DateTime()->setTimestamp($randomTs);
 
             $answer = new Answer();
             $answer->setCreated($randomDate);
@@ -132,11 +141,11 @@ final class DemoController extends AbstractController
                 'demo' => true,
             ]);
 
-            $em->persist($answer);
+            $this->em->persist($answer);
             $created++;
         }
 
-        $em->flush();
+        $this->em->flush();
 
         return $this->json([
             'success' => true,

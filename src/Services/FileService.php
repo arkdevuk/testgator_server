@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use Exception;
 use App\Entity\File;
-use App\Entity\Media;
 use App\Services\Authentification\JWTService;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,39 +12,15 @@ use Symfony\Contracts\Cache\CacheInterface;
 
 class FileService
 {
-    /**
-     * @var S3Client|null
-     */
     protected ?S3Client $s3Client;
 
-    /**
-     * @var CacheInterface
-     */
-    protected CacheInterface $cache;
-
-    /**
-     * @var JWTService
-     */
-    protected JWTService $jwtService;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    protected EntityManagerInterface $em;
-
-    protected RequestStack $requestStack;
-
     public function __construct(
-        CacheInterface         $uploadRequestCache,
-        JWTService             $jwtService,
-        EntityManagerInterface $em,
-        RequestStack $requestStack,
+        protected CacheInterface         $cache,
+        protected JWTService             $jwtService,
+        protected EntityManagerInterface $em,
+        protected RequestStack           $requestStack,
     )
     {
-        $this->cache = $uploadRequestCache;
-        $this->jwtService = $jwtService;
-        $this->em = $em;
-        $this->requestStack = $requestStack;
         // constructor body
         $mode = $_ENV['FILE_STORAGE_MODE'] ?? 'local';
         if ($mode === 'local') {
@@ -135,7 +111,6 @@ class FileService
 
     /**
      * Return the maximum upload file size in bytes allowed by the server
-     * @return int
      */
     public function getMaxUploadFileSize(): int
     {
@@ -151,10 +126,10 @@ class FileService
         };
     }
 
-    public function test()
+    public function test(): void
     {
-        if ($this->s3Client === null) {
-            throw new \Exception('S3 client not initialized');
+        if (!$this->s3Client instanceof S3Client) {
+            throw new Exception('S3 client not initialized');
         }
 
         $bucket = $_ENV['AWS_BUCKET'] ?? 'none';

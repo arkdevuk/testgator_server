@@ -7,23 +7,15 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\ApiResource\Me;
-use App\ApiResource\ReleaseStats;
-use App\Entity\Release;
 use App\Entity\User;
-use App\Services\Entities\ReleaseManager;
 use Symfony\Bundle\SecurityBundle\Security;
 
 
 class MeStateProvider implements ProviderInterface
 {
 
-    protected Security $security;
-
-    public function __construct(
-        Security $security,
-    )
+    public function __construct(protected Security $security)
     {
-        $this->security = $security;
     }
 
     public function provide(Operation $operation,

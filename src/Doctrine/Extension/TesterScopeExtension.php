@@ -28,10 +28,10 @@ use Symfony\Bundle\SecurityBundle\Security;
  *
  * Applies to both collections and items (a non-matching item yields a 404).
  */
-final class TesterScopeExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
+final readonly class TesterScopeExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
 {
     public function __construct(
-        private readonly Security $security,
+        private Security $security,
     )
     {
     }
@@ -56,7 +56,7 @@ final class TesterScopeExtension implements QueryCollectionExtensionInterface, Q
 
         // All other restrictions apply to tester accounts only.
         $tester = $this->getCurrentTester();
-        if ($tester === null) {
+        if (!$tester instanceof User) {
             return;
         }
 

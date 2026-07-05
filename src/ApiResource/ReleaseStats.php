@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ApiResource;
 
 use ApiPlatform\Metadata\ApiProperty;
@@ -17,10 +19,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[Get(security: "is_granted('ROLE_USER')")]
 class ReleaseStats
 {
-    #[ApiProperty(identifier: true)]
-    #[Groups(['releaseStats:read'])]
-    private ?int $id;
-
     #[Groups(['releaseStats:read'])]
     #[ApiProperty()]
     private Release $release;
@@ -34,9 +32,12 @@ class ReleaseStats
     #[Groups(['releaseStats:read'])]
     private int $totalPlans = 0;
 
-    public function __construct(int $releaseId)
+    public function __construct(
+        #[ApiProperty(identifier: true)]
+        #[Groups(['releaseStats:read'])]
+        private ?int $id
+    )
     {
-        $this->id = $releaseId;
     }
 
     public function getId(): ?int
@@ -104,10 +105,9 @@ class ReleaseStats
     #[Groups(['releaseStats:read'])]
     public function getPercentage(): float
     {
-        $percentage = 0;
         if ($this->totalWait !== 0 && $this->totalResponded !== 0) {
-            $percentage = ($this->totalResponded / $this->totalWait) * 100;
+            return ($this->totalResponded / $this->totalWait) * 100;
         }
-        return $percentage;
+        return 0;
     }
 }

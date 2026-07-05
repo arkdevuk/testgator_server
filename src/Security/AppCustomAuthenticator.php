@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use Exception;
 use App\Entity\User;
 use App\Services\Authentification\JWTService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,16 +18,8 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class AppCustomAuthenticator extends AbstractAuthenticator
 {
-    protected EntityManagerInterface $em;
-    protected JWTService $jwtService;
-
-    public function __construct(
-        EntityManagerInterface $em,
-        JWTService $jwtService,
-    )
+    public function __construct(protected EntityManagerInterface $em, protected JWTService $jwtService)
     {
-        $this->em = $em;
-        $this->jwtService = $jwtService;
     }
 
     public function supports(Request $request): ?bool
@@ -41,13 +34,13 @@ class AppCustomAuthenticator extends AbstractAuthenticator
         $headerValue = $request->headers->get('Authorization');
         $jwtString = trim(str_replace('Bearer ', '', $headerValue));
 
-        if ($jwtString === '' || $jwtString === null || $jwtString === 'null') {
+        if (in_array($jwtString, ['', null, 'null'], true)) {
             throw new AuthenticationException('Invalid JWT');
         }
 
         try {
             $authData = $this->jwtService->decodeJWT($jwtString);
-        } catch (\Exception $e) {
+        } catch (Exception) {
             throw new AuthenticationException('Invalid JWT');
         }
 
@@ -67,7 +60,7 @@ class AppCustomAuthenticator extends AbstractAuthenticator
         }
 
         // if user not found, error
-        if (!$u) {
+        if (!$u instanceof User) {
             throw new AuthenticationException('Invalid JWT');
         }
 
@@ -79,21 +72,13 @@ class AppCustomAuthenticator extends AbstractAuthenticator
 
         // if user found, return Passport
         $self = &$this;
-        $passport = new SelfValidatingPassport(
-            new UserBadge($u->getId(),
-                static function ($userIdentifier) use ($self) {
-                    $u = $self->em->getRepository(User::class)
-                        ->findOneBy(['id' => $userIdentifier]);
-                    if (!$u instanceof User) {
-                        return null;
-                    }
 
-                    return $u;
-                }
+        return new SelfValidatingPassport(
+            new UserBadge($u->getId(),
+                static fn($userIdentifier): ?object => $self->em->getRepository(User::class)
+                    ->findOneBy(['id' => $userIdentifier])
             ), []
         );
-
-        return $passport;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response

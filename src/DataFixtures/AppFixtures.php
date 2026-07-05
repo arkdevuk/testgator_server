@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DataFixtures;
 
+use DateTime;
 use App\Classes\TestPlanState;
 use App\Entity\Project;
 use App\Entity\Release;
@@ -73,7 +76,7 @@ class AppFixtures extends Fixture
 
 
         // datetime now + 30 days
-        $dueDate = new \DateTime();
+        $dueDate = new DateTime();
         $dueDate->modify('+30 days');
 
         $testPlan = new TestPlan();
@@ -92,7 +95,7 @@ class AppFixtures extends Fixture
         $manager->persist($testPlan);
 
         // datetime now + 30 days
-        $dueDate = new \DateTime();
+        $dueDate = new DateTime();
         $dueDate->modify('+5 days');
 
         $testPlan = new TestPlan();
@@ -110,7 +113,7 @@ class AppFixtures extends Fixture
         $manager->persist($testPlan);
 
         // datetime now + 30 days
-        $dueDate = new \DateTime();
+        $dueDate = new DateTime();
         $dueDate->modify('-5 days');
 
         $testPlan = new TestPlan();

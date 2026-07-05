@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\Delete;
@@ -16,14 +18,12 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  *   POST   → auto-populates createdBy from the authenticated user.
  *   DELETE → soft-delete (sets deleted = true) instead of removing the row.
  */
-final class TesterTagStateProcessor implements ProcessorInterface
+final readonly class TesterTagStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface $persistProcessor,
-        #[Autowire(service: 'api_platform.doctrine.orm.state.remove_processor')]
-        private readonly ProcessorInterface $removeProcessor,
-        private readonly Security           $security,
+        private ProcessorInterface $persistProcessor,
+        private Security           $security,
     )
     {
     }

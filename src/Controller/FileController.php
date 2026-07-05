@@ -2,23 +2,23 @@
 
 namespace App\Controller;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\File;
 use App\Services\FileService;
 use App\Services\SettingsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class FileController extends AbstractController
 {
+    public function __construct(private readonly FileService $fileService, private readonly SettingsService $settingsService)
+    {
+    }
     #[Route('/public/apx/upload', name: 'upload_file')]
     public function upload_file(
-        FileService     $fileService,
-        SettingsService $settingsService,
         Request         $request,
-    ): Response
+    ): JsonResponse
     {
         // CORS
         header("Access-Control-Allow-Headers: Authorization, Content-Type, Accept");
@@ -32,7 +32,7 @@ final class FileController extends AbstractController
         ob_end_clean();
 
         // Check whether uploads are enabled (setting: general.allow_upload, default: true)
-        if ($settingsService->getSettingValue('allow_upload', 'general', 'true') === 'false') {
+        if ($this->settingsService->getSettingValue('allow_upload', 'general', 'true') === 'false') {
             return $this->json(['error' => 'Uploads are disabled', 'message' => 'uploads_disabled'], 403);
         }
 
@@ -80,15 +80,7 @@ final class FileController extends AbstractController
             $data['message'] = 'file_format_not_allowed';
             return $this->json($data, 400);
         }
-
-        // detect type using mime
-        $type = null;
-        foreach ($allowedMime as $k => $v) {
-            if (in_array($fileType, $v, true)) {
-                $type = $k;
-                break;
-            }
-        }
+        $type = array_find_key($allowedMime, fn($v): bool => in_array($fileType, $v, true));
 
         if ($type === null) {
             $data['error'] = 'File type not allowed';
@@ -103,7 +95,7 @@ final class FileController extends AbstractController
         $newPath = tempnam(sys_get_temp_dir(), 'upload');
         $file->move(dirname($newPath), basename($newPath));
 
-        $data = $fileService->storeFile($newPath, $mime, $fileEntity);
+        $data = $this->fileService->storeFile($newPath, $mime, $fileEntity);
         @unlink($newPath);
 
         return $this->json($data);

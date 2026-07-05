@@ -13,13 +13,8 @@ use App\Services\AppConfigService;
 class WorkingHoursStateProvider implements ProviderInterface
 {
 
-    protected AppConfigService $appConfigService;
-
-    public function __construct(
-        AppConfigService $appConfigService
-    )
+    public function __construct(protected AppConfigService $appConfigService)
     {
-        $this->appConfigService = $appConfigService;
     }
 
     public function provide(Operation $operation,

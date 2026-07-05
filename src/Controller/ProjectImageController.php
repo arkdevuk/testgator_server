@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use InvalidArgumentException;
+use RuntimeException;
 use App\Repository\ProjectRepository;
 use App\Services\ProfilePictureService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,7 +56,7 @@ final class ProjectImageController extends AbstractController
 
         try {
             $mime = $this->profilePictureService->validateImage($file->getPathname());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -63,7 +65,7 @@ final class ProjectImageController extends AbstractController
             $ext = $allMimes[$mime];
             $key = 'project-pictures/' . $id . '.' . $ext;
             $url = $this->profilePictureService->uploadPublicImage($file->getPathname(), $mime, $key);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
@@ -106,14 +108,14 @@ final class ProjectImageController extends AbstractController
 
         try {
             $mime = $this->profilePictureService->validateBannerImage($file->getPathname());
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         try {
             $key = 'project-banners/' . $id . '.png';
             $url = $this->profilePictureService->uploadPublicImage($file->getPathname(), $mime, $key);
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

@@ -1,0 +1,22 @@
+parameters:
+    level: 5
+
+    paths:
+        - src/
+
+    excludePaths:
+        - src/DataFixtures/*
+        - src/OpenApi/*
+
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors:
+        -
+            message: '#Method .* is unused#'
+            reportUnmatched: false
+        -
+            message: '#Property App\\Entity\\.*::\$id#'
+            reportUnmatched: false
+        -
+            message: '#does not specify its types: T#'
+            reportUnmatched: false

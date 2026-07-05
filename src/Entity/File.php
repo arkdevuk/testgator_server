@@ -11,7 +11,6 @@ use App\Repository\FileRepository;
 use App\Traits\Entity\TimeStampable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\UuidV7 as Uuid;
 
 #[ORM\HasLifecycleCallbacks]
@@ -19,7 +18,7 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
 #[ApiResource(
     operations: [
         new Get(provider: FileStateProvider::class),
-        new Delete(provider: FileStateProvider::class, processor: FileStateProcessor::class, status: 200),
+        new Delete(status: 200, provider: FileStateProvider::class, processor: FileStateProcessor::class),
     ]
 )]
 class File
@@ -35,7 +34,7 @@ class File
     private ?string $key = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $bucket = null;
+    private ?string $bucket = 'none';
 
     #[ORM\Column(length: 255)]
     private ?string $extension = null;
@@ -54,7 +53,6 @@ class File
     public function __construct(string $name)
     {
         $this->setNow();
-        $this->bucket = 'none';
         // set key using time and md5 hash of name
         $this->key = time() . md5($name);
     }

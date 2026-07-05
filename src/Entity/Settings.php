@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
@@ -23,11 +24,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         // Any authenticated user can read; non-admins are limited to public=true
         // rows automatically by TesterScopeExtension (applied at query level).
         new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER') or is_granted('ROLE_ADMIN')"),
-        new Get(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER') or is_granted('ROLE_ADMIN')", requirements: ['id' => '.+']),
+        new Get(requirements: ['id' => '.+'], security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER') or is_granted('ROLE_ADMIN')"),
         // Write access: ROLE_ADMIN only
         new Post(security: "is_granted('ROLE_ADMIN')"),
-        new Patch(security: "is_granted('ROLE_ADMIN')", requirements: ['id' => '.+']),
-        new Delete(security: "is_granted('ROLE_ADMIN')", requirements: ['id' => '.+']),
+        new Patch(requirements: ['id' => '.+'], security: "is_granted('ROLE_ADMIN')"),
+        new Delete(requirements: ['id' => '.+'], security: "is_granted('ROLE_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['settings:read', 'timestampable:read']],
     denormalizationContext: ['groups' => ['settings:write']],
@@ -66,7 +67,7 @@ class Settings
     )]
     private string $name = '';
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['settings:read', 'settings:write'])]
     private ?string $value = null;
 

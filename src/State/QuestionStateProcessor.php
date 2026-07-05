@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
@@ -11,12 +13,12 @@ use App\Event\QuestionUpdatedAppEvent;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-final class QuestionStateProcessor implements ProcessorInterface
+final readonly class QuestionStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private readonly ProcessorInterface       $persistProcessor,
-        private readonly EventDispatcherInterface $dispatcher,
+        private ProcessorInterface       $persistProcessor,
+        private EventDispatcherInterface $dispatcher,
     )
     {
     }

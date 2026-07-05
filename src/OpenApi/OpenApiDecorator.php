@@ -2,6 +2,8 @@
 
 namespace App\OpenApi;
 
+use ArrayObject;
+use ApiPlatform\OpenApi\Model\Paths;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\Model\MediaType;
 use ApiPlatform\OpenApi\Model\Operation;
@@ -38,10 +40,10 @@ use ApiPlatform\OpenApi\OpenApi;
  *   Filters : ?relateTo= (exact IRI)
  *   Order   : ?order[created]=asc|desc  ?order[updated]=asc|desc
  */
-final class OpenApiDecorator implements OpenApiFactoryInterface
+final readonly class OpenApiDecorator implements OpenApiFactoryInterface
 {
     public function __construct(
-        private readonly OpenApiFactoryInterface $inner,
+        private OpenApiFactoryInterface $inner,
     )
     {
     }
@@ -56,28 +58,11 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
             post: new Operation(
                 operationId: 'postAuthLogin',
                 tags: ['Auth'],
-                summary: 'Authenticate a team member or tester',
-                requestBody: new RequestBody(
-                    description: 'Login credentials',
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
-                            'type' => 'object',
-                            'required' => ['username', 'password'],
-                            'properties' => [
-                                'username' => ['type' => 'string', 'example' => 'admin@testgator.test'],
-                                'password' => ['type' => 'string', 'example' => 'Password1!'],
-                                'authMode' => ['type' => 'string', 'enum' => ['app', 'ldap', 'code'], 'default' => 'app'],
-                                'mode' => ['type' => 'string', 'enum' => ['team', 'tester'], 'default' => 'team'],
-                            ],
-                        ])),
-                    ])
-                ),
                 responses: [
                     '200' => new Response(
                         description: 'Authenticated',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => [
                                     'logged' => ['type' => 'boolean'],
@@ -91,6 +76,23 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
                     '403' => new Response(description: 'Invalid credentials'),
                     '400' => new Response(description: 'Bad request'),
                 ],
+                summary: 'Authenticate a team member or tester',
+                requestBody: new RequestBody(
+                    description: 'Login credentials',
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
+                            'type' => 'object',
+                            'required' => ['username', 'password'],
+                            'properties' => [
+                                'username' => ['type' => 'string', 'example' => 'admin@testgator.test'],
+                                'password' => ['type' => 'string', 'example' => 'Password1!'],
+                                'authMode' => ['type' => 'string', 'enum' => ['app', 'ldap', 'code'], 'default' => 'app'],
+                                'mode' => ['type' => 'string', 'enum' => ['team', 'tester'], 'default' => 'team'],
+                            ],
+                        ])),
+                    ]),
+                    required: true
+                ),
                 security: [],
             ),
         ));
@@ -100,27 +102,11 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
             post: new Operation(
                 operationId: 'postAuthLoginTester',
                 tags: ['Auth'],
-                summary: 'Authenticate a guest tester via HMAC challenge',
-                requestBody: new RequestBody(
-                    description: 'HMAC challenge payload',
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
-                            'type' => 'object',
-                            'required' => ['challenge', 'hash', 'tp'],
-                            'properties' => [
-                                'challenge' => ['type' => 'string'],
-                                'hash' => ['type' => 'string'],
-                                'tp' => ['type' => 'integer', 'description' => 'TestPlan ID'],
-                            ],
-                        ])),
-                    ])
-                ),
                 responses: [
                     '200' => new Response(
                         description: 'Authenticated',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => [
                                     'logged' => ['type' => 'boolean'],
@@ -135,6 +121,22 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
                     '404' => new Response(description: 'TestPlan not found'),
                     '400' => new Response(description: 'Bad request'),
                 ],
+                summary: 'Authenticate a guest tester via HMAC challenge',
+                requestBody: new RequestBody(
+                    description: 'HMAC challenge payload',
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
+                            'type' => 'object',
+                            'required' => ['challenge', 'hash', 'tp'],
+                            'properties' => [
+                                'challenge' => ['type' => 'string'],
+                                'hash' => ['type' => 'string'],
+                                'tp' => ['type' => 'integer', 'description' => 'TestPlan ID'],
+                            ],
+                        ])),
+                    ]),
+                    required: true
+                ),
                 security: [],
             ),
         ));
@@ -144,25 +146,11 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
             post: new Operation(
                 operationId: 'postAuthRefresh',
                 tags: ['Auth'],
-                summary: 'Rotate a refresh token and obtain a new JWT',
-                requestBody: new RequestBody(
-                    description: 'Refresh token',
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
-                            'type' => 'object',
-                            'required' => ['refreshToken'],
-                            'properties' => [
-                                'refreshToken' => ['type' => 'string'],
-                            ],
-                        ])),
-                    ])
-                ),
                 responses: [
                     '200' => new Response(
                         description: 'New JWT issued',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => [
                                     'jwt' => ['type' => 'string'],
@@ -174,6 +162,20 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
                     '401' => new Response(description: 'Invalid or expired refresh token'),
                     '400' => new Response(description: 'Missing refreshToken'),
                 ],
+                summary: 'Rotate a refresh token and obtain a new JWT',
+                requestBody: new RequestBody(
+                    description: 'Refresh token',
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
+                            'type' => 'object',
+                            'required' => ['refreshToken'],
+                            'properties' => [
+                                'refreshToken' => ['type' => 'string'],
+                            ],
+                        ])),
+                    ]),
+                    required: true
+                ),
                 security: [],
             ),
         ));
@@ -183,37 +185,11 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
             post: new Operation(
                 operationId: 'postDemoAddDemoAnswer',
                 tags: ['Demo'],
-                summary: 'Seed random demo answers into a testing plan',
-                description: 'Creates `number` answers (default 10, max 100) distributed randomly across all questions in the given testing plan. Each answer gets a random state (pass / pass_with_bugs / failed / blocked / pending) and a pre-written canned comment. Useful for populating a demo environment with realistic data.',
-                requestBody: new RequestBody(
-                    description: 'Demo seed parameters',
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
-                            'type' => 'object',
-                            'required' => ['testingPlanIri'],
-                            'properties' => [
-                                'testingPlanIri' => [
-                                    'type' => 'string',
-                                    'example' => '/api/test_plans/12',
-                                    'description' => 'IRI of the TestPlan to populate',
-                                ],
-                                'number' => [
-                                    'type' => 'integer',
-                                    'minimum' => 0,
-                                    'maximum' => 100,
-                                    'default' => 10,
-                                    'description' => 'Number of answers to create',
-                                ],
-                            ],
-                        ])),
-                    ])
-                ),
                 responses: [
                     '201' => new Response(
                         description: 'Answers created',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => [
                                     'success' => ['type' => 'boolean'],
@@ -233,6 +209,32 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
                     '404' => new Response(description: 'TestPlan not found'),
                     '422' => new Response(description: 'TestPlan has no questions'),
                 ],
+                summary: 'Seed random demo answers into a testing plan',
+                description: 'Creates `number` answers (default 10, max 100) distributed randomly across all questions in the given testing plan. Each answer gets a random state (pass / pass_with_bugs / failed / blocked / pending) and a pre-written canned comment. Useful for populating a demo environment with realistic data.',
+                requestBody: new RequestBody(
+                    description: 'Demo seed parameters',
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
+                            'type' => 'object',
+                            'required' => ['testingPlanIri'],
+                            'properties' => [
+                                'testingPlanIri' => [
+                                    'type' => 'string',
+                                    'example' => '/api/test_plans/12',
+                                    'description' => 'IRI of the TestPlan to populate',
+                                ],
+                                'number' => [
+                                    'type' => 'integer',
+                                    'minimum' => 0,
+                                    'maximum' => 100,
+                                    'default' => 10,
+                                    'description' => 'Number of answers to create',
+                                ],
+                            ],
+                        ])),
+                    ]),
+                    required: true
+                ),
             ),
         ));
 
@@ -241,20 +243,11 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
             get: new Operation(
                 operationId: 'getQuestionStats',
                 tags: ['Question'],
-                summary: 'Answer statistics for a question',
-                parameters: [
-                    new Parameter(
-                        name: 'id',
-                        in: 'path',
-                        required: true,
-                        schema: ['type' => 'integer'],
-                    ),
-                ],
                 responses: [
                     '200' => new Response(
                         description: 'Statistics',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => [
                                     'test_pass' => ['type' => 'integer'],
@@ -282,6 +275,15 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
                     '404' => new Response(description: 'Question not found'),
                     '401' => new Response(description: 'Unauthorized'),
                 ],
+                summary: 'Answer statistics for a question',
+                parameters: [
+                    new Parameter(
+                        name: 'id',
+                        in: 'path',
+                        required: true,
+                        schema: ['type' => 'integer'],
+                    ),
+                ],
             ),
         ));
 
@@ -290,6 +292,24 @@ final class OpenApiDecorator implements OpenApiFactoryInterface
             post: new Operation(
                 operationId: 'uploadFile',
                 tags: ['File'],
+                responses: [
+                    '200' => new Response(
+                        description: 'File uploaded successfully',
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
+                                'type' => 'object',
+                                'properties' => [
+                                    'id' => ['type' => 'string', 'format' => 'uuid', 'description' => 'File UUID'],
+                                    'url' => ['type' => 'string', 'format' => 'uri', 'description' => 'Signed S3 URL (valid 24 h)'],
+                                    'filename' => ['type' => 'string', 'example' => 'abc123.png'],
+                                    '@id' => ['type' => 'string', 'example' => '/api/files/019e...', 'description' => 'API Platform IRI — use for GET /api/files/{id}'],
+                                ],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'No file provided, file too large, or extension/MIME type not allowed.'),
+                    '403' => new Response(description: 'Uploads are disabled via the `general.allow_upload` setting.'),
+                ],
                 summary: 'Upload a file to S3-compatible storage',
                 description: <<<'MD'
 Uploads a single file via `multipart/form-data` and stores it in the configured S3 bucket.
@@ -306,9 +326,8 @@ Uploads a single file via `multipart/form-data` and stores it in the configured 
 MD,
                 requestBody: new RequestBody(
                     description: 'File to upload',
-                    required: true,
-                    content: new \ArrayObject([
-                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                    content: new ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new ArrayObject([
                             'type' => 'object',
                             'required' => ['file'],
                             'properties' => [
@@ -320,31 +339,14 @@ MD,
                             ],
                         ])),
                     ]),
+                    required: true,
                 ),
-                responses: [
-                    '200' => new Response(
-                        description: 'File uploaded successfully',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
-                                'type' => 'object',
-                                'properties' => [
-                                    'id' => ['type' => 'string', 'format' => 'uuid', 'description' => 'File UUID'],
-                                    'url' => ['type' => 'string', 'format' => 'uri', 'description' => 'Signed S3 URL (valid 24 h)'],
-                                    'filename' => ['type' => 'string', 'example' => 'abc123.png'],
-                                    '@id' => ['type' => 'string', 'example' => '/api/files/019e...', 'description' => 'API Platform IRI — use for GET /api/files/{id}'],
-                                ],
-                            ])),
-                        ]),
-                    ),
-                    '400' => new Response(description: 'No file provided, file too large, or extension/MIME type not allowed.'),
-                    '403' => new Response(description: 'Uploads are disabled via the `general.allow_upload` setting.'),
-                ],
                 security: [['bearerAuth' => []]],
             ),
         ));
 
         // ── GET /api/search/query ─────────────────────────────────────────
-        $openApi->getComponents()->getSchemas()['SearchResult'] = new \ArrayObject([
+        $openApi->getComponents()->getSchemas()['SearchResult'] = new ArrayObject([
             'type' => 'object',
             'properties' => [
                 'type' => [
@@ -381,6 +383,19 @@ MD,
             get: new Operation(
                 operationId: 'searchQuery',
                 tags: ['Search'],
+                responses: [
+                    '200' => new Response(
+                        description: 'Results sorted by BM25 score descending. Empty array when nothing matches.',
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
+                                'type' => 'array',
+                                'items' => ['$ref' => '#/components/schemas/SearchResult'],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing or empty `query` parameter, or unknown `scope` value.'),
+                    '401' => new Response(description: 'Unauthorized — valid Bearer token required.'),
+                ],
                 summary: 'Full-text BM25 search across entity types',
                 description: <<<'MD'
 Search across projects, testers, test plans, questions and answers using BM25 relevance scoring.
@@ -399,34 +414,21 @@ MD,
                     new Parameter(
                         name: 'query',
                         in: 'query',
-                        required: true,
                         description: 'Search string. Multiple words are split into individual terms and scored independently.',
+                        required: true,
                         schema: ['type' => 'string', 'example' => 'login page'],
                     ),
                     new Parameter(
                         name: 'scope',
                         in: 'query',
-                        required: false,
                         description: 'Limit to one or more entity types. Comma-separated or repeated as scope[]. Omit to search all accessible types.',
+                        required: false,
                         schema: [
                             'type' => 'string',
                             'enum' => ['projects', 'testers', 'test_plan', 'questions', 'answers'],
                             'example' => 'questions,answers',
                         ],
                     ),
-                ],
-                responses: [
-                    '200' => new Response(
-                        description: 'Results sorted by BM25 score descending. Empty array when nothing matches.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
-                                'type' => 'array',
-                                'items' => ['$ref' => '#/components/schemas/SearchResult'],
-                            ])),
-                        ]),
-                    ),
-                    '400' => new Response(description: 'Missing or empty `query` parameter, or unknown `scope` value.'),
-                    '401' => new Response(description: 'Unauthorized — valid Bearer token required.'),
                 ],
             ),
         ));
@@ -436,32 +438,11 @@ MD,
             post: new Operation(
                 operationId: 'setTesterProfilePictureUrl',
                 tags: ['Tester'],
-                summary: 'Set profile picture URL for a tester',
-                description: <<<'MD'
-> 🔒 **Required role:** tester themselves (`IS_AUTHENTICATED_FULLY`) or `ROLE_ADMIN`
-
-Sets `profilePictureUrl` from a URL payload. The URL must be a valid HTTP/HTTPS URL. No image processing is performed — the value is stored as-is.
-MD,
-                parameters: [
-                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
-                ],
-                requestBody: new RequestBody(
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
-                            'type' => 'object',
-                            'required' => ['url'],
-                            'properties' => [
-                                'url' => ['type' => 'string', 'format' => 'uri', 'example' => 'https://cdn.example.com/avatars/user.png'],
-                            ],
-                        ])),
-                    ]),
-                ),
                 responses: [
                     '200' => new Response(
                         description: 'URL updated.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => ['profilePictureUrl' => ['type' => 'string', 'format' => 'uri']],
                             ])),
@@ -473,6 +454,27 @@ MD,
                     '403' => new Response(description: 'Not the tester themselves and not ROLE_ADMIN.'),
                     '401' => new Response(description: 'Unauthenticated.'),
                 ],
+                summary: 'Set profile picture URL for a tester',
+                description: <<<'MD'
+> 🔒 **Required role:** tester themselves (`IS_AUTHENTICATED_FULLY`) or `ROLE_ADMIN`
+
+Sets `profilePictureUrl` from a URL payload. The URL must be a valid HTTP/HTTPS URL. No image processing is performed — the value is stored as-is.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                requestBody: new RequestBody(
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
+                            'type' => 'object',
+                            'required' => ['url'],
+                            'properties' => [
+                                'url' => ['type' => 'string', 'format' => 'uri', 'example' => 'https://cdn.example.com/avatars/user.png'],
+                            ],
+                        ])),
+                    ]),
+                    required: true,
+                ),
             ),
         ));
 
@@ -481,32 +483,11 @@ MD,
             post: new Operation(
                 operationId: 'setTesterNickname',
                 tags: ['Tester'],
-                summary: 'Update own nickname (tester only)',
-                description: <<<'MD'
-> 🔒 **Required role:** tester themselves only (`IS_AUTHENTICATED_FULLY` + same UUID)
-
-Allows a tester to update their own nickname. Max 128 characters. Admins cannot use this endpoint on behalf of a tester — use `PATCH /api/testers/{id}` for admin edits.
-MD,
-                parameters: [
-                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
-                ],
-                requestBody: new RequestBody(
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
-                            'type' => 'object',
-                            'required' => ['nickname'],
-                            'properties' => [
-                                'nickname' => ['type' => 'string', 'maxLength' => 128, 'example' => 'CoolTester42'],
-                            ],
-                        ])),
-                    ]),
-                ),
                 responses: [
                     '200' => new Response(
                         description: 'Nickname updated.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => ['nickname' => ['type' => 'string']],
                             ])),
@@ -518,6 +499,27 @@ MD,
                     '404' => new Response(description: 'Tester not found.'),
                     '401' => new Response(description: 'Unauthenticated.'),
                 ],
+                summary: 'Update own nickname (tester only)',
+                description: <<<'MD'
+> 🔒 **Required role:** tester themselves only (`IS_AUTHENTICATED_FULLY` + same UUID)
+
+Allows a tester to update their own nickname. Max 128 characters. Admins cannot use this endpoint on behalf of a tester — use `PATCH /api/testers/{id}` for admin edits.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
+                requestBody: new RequestBody(
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
+                            'type' => 'object',
+                            'required' => ['nickname'],
+                            'properties' => [
+                                'nickname' => ['type' => 'string', 'maxLength' => 128, 'example' => 'CoolTester42'],
+                            ],
+                        ])),
+                    ]),
+                    required: true,
+                ),
             ),
         ));
 
@@ -526,6 +528,22 @@ MD,
             post: new Operation(
                 operationId: 'uploadUserProfilePicture',
                 tags: ['User'],
+                responses: [
+                    '200' => new Response(
+                        description: 'Image uploaded and URL stored.',
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['profilePictureUrl' => ['type' => 'string', 'format' => 'uri']],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing `file` field.'),
+                    '404' => new Response(description: 'User not found.'),
+                    '422' => new Response(description: 'Image validation failed (size / dimensions / mime).'),
+                    '403' => new Response(description: 'Not the user themselves and not ROLE_ADMIN.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
                 summary: 'Upload a profile picture for a team user',
                 description: <<<'MD'
 > 🔒 **Required role:** `ROLE_USER` (own account) or `ROLE_ADMIN` (any account)
@@ -542,9 +560,8 @@ MD,
                     new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
                 ],
                 requestBody: new RequestBody(
-                    required: true,
-                    content: new \ArrayObject([
-                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                    content: new ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new ArrayObject([
                             'type' => 'object',
                             'required' => ['file'],
                             'properties' => [
@@ -552,23 +569,8 @@ MD,
                             ],
                         ])),
                     ]),
+                    required: true,
                 ),
-                responses: [
-                    '200' => new Response(
-                        description: 'Image uploaded and URL stored.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
-                                'type' => 'object',
-                                'properties' => ['profilePictureUrl' => ['type' => 'string', 'format' => 'uri']],
-                            ])),
-                        ]),
-                    ),
-                    '400' => new Response(description: 'Missing `file` field.'),
-                    '404' => new Response(description: 'User not found.'),
-                    '422' => new Response(description: 'Image validation failed (size / dimensions / mime).'),
-                    '403' => new Response(description: 'Not the user themselves and not ROLE_ADMIN.'),
-                    '401' => new Response(description: 'Unauthenticated.'),
-                ],
             ),
         ));
 
@@ -577,20 +579,11 @@ MD,
             get: new Operation(
                 operationId: 'getPublicProfile',
                 tags: ['PublicProfile'],
-                summary: 'Get the public profile of any user or tester',
-                description: <<<'MD'
-> 🔒 **Required role:** `ROLE_USER` or `ROLE_TESTER`
-
-Returns the public profile of any user (team member or tester) by UUID. Exposes only non-sensitive fields: `id`, `type`, `nickname`, `profilePictureUrl`, and `roles`.
-MD,
-                parameters: [
-                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
-                ],
                 responses: [
                     '200' => new Response(
                         description: 'Public profile',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => [
                                     'id' => ['type' => 'string', 'format' => 'uuid'],
@@ -606,6 +599,15 @@ MD,
                     '404' => new Response(description: 'User not found.'),
                     '401' => new Response(description: 'Unauthenticated.'),
                 ],
+                summary: 'Get the public profile of any user or tester',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER` or `ROLE_TESTER`
+
+Returns the public profile of any user (team member or tester) by UUID. Exposes only non-sensitive fields: `id`, `type`, `nickname`, `profilePictureUrl`, and `roles`.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
             ),
         ));
 
@@ -614,20 +616,11 @@ MD,
             delete: new Operation(
                 operationId: 'deleteUserProfilePicture',
                 tags: ['User'],
-                summary: 'Reset profile picture to default avatar',
-                description: <<<'MD'
-> 🔒 **Required role:** `ROLE_USER` (own account) or `ROLE_ADMIN` (any account)
-
-Resets `profilePictureUrl` back to `/assets/gator_avatar.png`. Does not delete any file from S3.
-MD,
-                parameters: [
-                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
-                ],
                 responses: [
                     '200' => new Response(
                         description: 'Profile picture reset to default.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => ['profilePictureUrl' => ['type' => 'string', 'example' => '/assets/gator_avatar.png']],
                             ])),
@@ -637,6 +630,15 @@ MD,
                     '403' => new Response(description: 'Not the user themselves and not ROLE_ADMIN.'),
                     '401' => new Response(description: 'Unauthenticated.'),
                 ],
+                summary: 'Reset profile picture to default avatar',
+                description: <<<'MD'
+> 🔒 **Required role:** `ROLE_USER` (own account) or `ROLE_ADMIN` (any account)
+
+Resets `profilePictureUrl` back to `/assets/gator_avatar.png`. Does not delete any file from S3.
+MD,
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
+                ],
             ),
         ));
 
@@ -645,6 +647,22 @@ MD,
             post: new Operation(
                 operationId: 'uploadProjectPicture',
                 tags: ['Project'],
+                responses: [
+                    '200' => new Response(
+                        description: 'Picture uploaded.',
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['projectPictureUrl' => ['type' => 'string', 'format' => 'uri', 'nullable' => true]],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing `file` field.'),
+                    '404' => new Response(description: 'Project not found.'),
+                    '422' => new Response(description: 'Image validation failed.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
                 summary: 'Upload a project picture',
                 description: <<<'MD'
 > 🔒 **Required role:** `ROLE_USER`
@@ -661,45 +679,24 @@ MD,
                     new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
                 ],
                 requestBody: new RequestBody(
-                    required: true,
-                    content: new \ArrayObject([
-                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                    content: new ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new ArrayObject([
                             'type' => 'object',
                             'required' => ['file'],
                             'properties' => ['file' => ['type' => 'string', 'format' => 'binary']],
                         ])),
                     ]),
+                    required: true,
                 ),
-                responses: [
-                    '200' => new Response(
-                        description: 'Picture uploaded.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
-                                'type' => 'object',
-                                'properties' => ['projectPictureUrl' => ['type' => 'string', 'format' => 'uri', 'nullable' => true]],
-                            ])),
-                        ]),
-                    ),
-                    '400' => new Response(description: 'Missing `file` field.'),
-                    '404' => new Response(description: 'Project not found.'),
-                    '422' => new Response(description: 'Image validation failed.'),
-                    '401' => new Response(description: 'Unauthenticated.'),
-                    '403' => new Response(description: 'Insufficient role.'),
-                ],
             ),
             delete: new Operation(
                 operationId: 'deleteProjectPicture',
                 tags: ['Project'],
-                summary: 'Remove project picture (reset to null)',
-                description: '> 🔒 **Required role:** `ROLE_USER`',
-                parameters: [
-                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
-                ],
                 responses: [
                     '200' => new Response(
                         description: 'Picture removed.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => ['projectPictureUrl' => ['type' => 'string', 'nullable' => true, 'example' => null]],
                             ])),
@@ -709,6 +706,11 @@ MD,
                     '401' => new Response(description: 'Unauthenticated.'),
                     '403' => new Response(description: 'Insufficient role.'),
                 ],
+                summary: 'Remove project picture (reset to null)',
+                description: '> 🔒 **Required role:** `ROLE_USER`',
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
+                ],
             ),
         ));
 
@@ -717,6 +719,22 @@ MD,
             post: new Operation(
                 operationId: 'uploadProjectBanner',
                 tags: ['Project'],
+                responses: [
+                    '200' => new Response(
+                        description: 'Banner uploaded.',
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
+                                'type' => 'object',
+                                'properties' => ['projectBannerUrl' => ['type' => 'string', 'format' => 'uri', 'nullable' => true]],
+                            ])),
+                        ]),
+                    ),
+                    '400' => new Response(description: 'Missing `file` field.'),
+                    '404' => new Response(description: 'Project not found.'),
+                    '422' => new Response(description: 'Image validation failed (size / dimensions / mime).'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
                 summary: 'Upload a project banner',
                 description: <<<'MD'
 > 🔒 **Required role:** `ROLE_USER`
@@ -732,45 +750,24 @@ MD,
                     new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
                 ],
                 requestBody: new RequestBody(
-                    required: true,
-                    content: new \ArrayObject([
-                        'multipart/form-data' => new MediaType(schema: new \ArrayObject([
+                    content: new ArrayObject([
+                        'multipart/form-data' => new MediaType(schema: new ArrayObject([
                             'type' => 'object',
                             'required' => ['file'],
                             'properties' => ['file' => ['type' => 'string', 'format' => 'binary']],
                         ])),
                     ]),
+                    required: true,
                 ),
-                responses: [
-                    '200' => new Response(
-                        description: 'Banner uploaded.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
-                                'type' => 'object',
-                                'properties' => ['projectBannerUrl' => ['type' => 'string', 'format' => 'uri', 'nullable' => true]],
-                            ])),
-                        ]),
-                    ),
-                    '400' => new Response(description: 'Missing `file` field.'),
-                    '404' => new Response(description: 'Project not found.'),
-                    '422' => new Response(description: 'Image validation failed (size / dimensions / mime).'),
-                    '401' => new Response(description: 'Unauthenticated.'),
-                    '403' => new Response(description: 'Insufficient role.'),
-                ],
             ),
             delete: new Operation(
                 operationId: 'deleteProjectBanner',
                 tags: ['Project'],
-                summary: 'Remove project banner (reset to null)',
-                description: '> 🔒 **Required role:** `ROLE_USER`',
-                parameters: [
-                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
-                ],
                 responses: [
                     '200' => new Response(
                         description: 'Banner removed.',
-                        content: new \ArrayObject([
-                            'application/json' => new MediaType(schema: new \ArrayObject([
+                        content: new ArrayObject([
+                            'application/json' => new MediaType(schema: new ArrayObject([
                                 'type' => 'object',
                                 'properties' => ['projectBannerUrl' => ['type' => 'string', 'nullable' => true, 'example' => null]],
                             ])),
@@ -780,6 +777,11 @@ MD,
                     '401' => new Response(description: 'Unauthenticated.'),
                     '403' => new Response(description: 'Insufficient role.'),
                 ],
+                summary: 'Remove project banner (reset to null)',
+                description: '> 🔒 **Required role:** `ROLE_USER`',
+                parameters: [
+                    new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'integer']),
+                ],
             ),
         ));
 
@@ -788,6 +790,12 @@ MD,
             post: new Operation(
                 operationId: 'changeOwnPassword',
                 tags: ['Auth'],
+                responses: [
+                    '200' => new Response(description: 'Password updated successfully.'),
+                    '400' => new Response(description: 'Missing `newPassword` field.'),
+                    '422' => new Response(description: 'Password does not meet policy requirements.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                ],
                 summary: 'Change own password',
                 description: <<<'MD'
 > 🔒 **Required role:** `ROLE_USER` (team members only — testers are excluded)
@@ -799,9 +807,8 @@ Allows any authenticated team member to change their own password.
 Dispatches `UserPasswordChangedAppEvent` on success.
 MD,
                 requestBody: new RequestBody(
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
                             'type' => 'object',
                             'required' => ['newPassword'],
                             'properties' => [
@@ -809,13 +816,8 @@ MD,
                             ],
                         ])),
                     ]),
+                    required: true,
                 ),
-                responses: [
-                    '200' => new Response(description: 'Password updated successfully.'),
-                    '400' => new Response(description: 'Missing `newPassword` field.'),
-                    '422' => new Response(description: 'Password does not meet policy requirements.'),
-                    '401' => new Response(description: 'Unauthenticated.'),
-                ],
             ),
         ));
 
@@ -824,6 +826,14 @@ MD,
             post: new Operation(
                 operationId: 'changeUserPasswordByAdmin',
                 tags: ['User'],
+                responses: [
+                    '200' => new Response(description: 'Password updated successfully.'),
+                    '400' => new Response(description: 'Missing `newPassword` field.'),
+                    '404' => new Response(description: 'User not found.'),
+                    '422' => new Response(description: 'Password does not meet policy requirements.'),
+                    '401' => new Response(description: 'Unauthenticated.'),
+                    '403' => new Response(description: 'Insufficient role.'),
+                ],
                 summary: 'Change password for another user (admin)',
                 description: <<<'MD'
 > 🔒 **Required role:** `ROLE_ADMIN`
@@ -838,9 +848,8 @@ MD,
                     new Parameter(name: 'id', in: 'path', required: true, schema: ['type' => 'string', 'format' => 'uuid']),
                 ],
                 requestBody: new RequestBody(
-                    required: true,
-                    content: new \ArrayObject([
-                        'application/json' => new MediaType(schema: new \ArrayObject([
+                    content: new ArrayObject([
+                        'application/json' => new MediaType(schema: new ArrayObject([
                             'type' => 'object',
                             'required' => ['newPassword'],
                             'properties' => [
@@ -848,15 +857,8 @@ MD,
                             ],
                         ])),
                     ]),
+                    required: true,
                 ),
-                responses: [
-                    '200' => new Response(description: 'Password updated successfully.'),
-                    '400' => new Response(description: 'Missing `newPassword` field.'),
-                    '404' => new Response(description: 'User not found.'),
-                    '422' => new Response(description: 'Password does not meet policy requirements.'),
-                    '401' => new Response(description: 'Unauthenticated.'),
-                    '403' => new Response(description: 'Insufficient role.'),
-                ],
             ),
         ));
 
@@ -923,7 +925,7 @@ MD,
      * @param array<string, string> $methodRoles HTTP method (uppercase) → role override (falls back to $defaultRole)
      */
     private function annotatePathsWithRole(
-        \ApiPlatform\OpenApi\Model\Paths $paths,
+        Paths $paths,
         string                           $prefix,
         string                           $defaultRole,
         array                            $methodDescriptions = [],

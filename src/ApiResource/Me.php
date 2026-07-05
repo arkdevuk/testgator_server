@@ -21,10 +21,6 @@ class Me
     #[Groups(['none:none'])]
     private UserInterface $user;
 
-    #[ApiProperty(identifier: false)]
-    #[Groups(['userSelf:read'])]
-    private ?Uuid $id = null;
-
     #[Groups(['userSelf:read'])]
     private ?string $email = null;
 
@@ -43,9 +39,12 @@ class Me
     #[Groups(['userSelf:read'])]
     private string $profilePictureUrl = '/assets/gator_avatar.png';
 
-    public function __construct(?Uuid $userId = null)
+    public function __construct(
+        #[ApiProperty(identifier: false)]
+        #[Groups(['userSelf:read'])]
+        private ?Uuid $id = null
+    )
     {
-        $this->id = $userId;
     }
 
 

@@ -30,16 +30,16 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')"),
         new Get(
-            security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
             requirements: ['id' => '[a-z0-9_-]+'],
+            security: "is_granted('ROLE_USER') or is_granted('ROLE_TESTER')",
         ),
         new Post(
             security: "is_granted('ROLE_USER')",
             processor: TesterTagStateProcessor::class,
         ),
         new Delete(
-            security: "is_granted('ROLE_USER')",
             requirements: ['id' => '[a-z0-9_-]+'],
+            security: "is_granted('ROLE_USER')",
             processor: TesterTagStateProcessor::class,
         ),
     ],

@@ -38,10 +38,10 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 #[AsEventListener(event: UserPasswordChangedAppEvent::class)]
 #[AsEventListener(event: DevCreatedAppEvent::class)]
 #[AsEventListener(event: TesterCreatedAppEvent::class)]
-final class WebhookEventListener
+final readonly class WebhookEventListener
 {
     public function __construct(
-        private readonly WebhookService $webhookService,
+        private WebhookService $webhookService,
     )
     {
     }
@@ -90,7 +90,7 @@ final class WebhookEventListener
 
     private function serializeProject(?Project $project): array
     {
-        if ($project === null) {
+        if (!$project instanceof Project) {
             return [];
         }
 
@@ -160,7 +160,7 @@ final class WebhookEventListener
             'id' => $question->getId(),
             'name' => $question->getName(),
             'content' => $question->getContent(),
-            'plan' => $question->getPlan() !== null
+            'plan' => $question->getPlan() instanceof TestPlan
                 ? ['id' => $question->getPlan()->getId(), 'name' => $question->getPlan()->getName()]
                 : null,
         ];
@@ -182,10 +182,10 @@ final class WebhookEventListener
             'id' => $answer->getId(),
             'state' => $answer->getState()->value,
             'comment' => $answer->getComment(),
-            'tester' => $answer->getTester() !== null
+            'tester' => $answer->getTester() instanceof User
                 ? $this->serializeTester($answer->getTester())
                 : null,
-            'question' => $answer->getQuestion() !== null
+            'question' => $answer->getQuestion() instanceof Question
                 ? ['id' => $answer->getQuestion()->getId(), 'name' => $answer->getQuestion()->getName()]
                 : null,
         ];

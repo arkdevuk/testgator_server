@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use DateTimeInterface;
+use DateTime;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
@@ -42,36 +44,22 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
 #[ORM\Index(name: 'IDX_USERS_TYPE', columns: ['type'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 // ── /api/testers — team members managing tester accounts ─────────────────────
-#[ApiResource(
-    shortName: 'Tester',
-    operations: [
-        // team only: testers cannot list or view other testers
-        new GetCollection(security: "is_granted('ROLE_USER')"),
-        new Get(security: "is_granted('ROLE_USER')"),
-        new Post(security: "is_granted('ROLE_USER')"),
-        new Put(security: "is_granted('ROLE_USER')"),
-        new Patch(security: "is_granted('ROLE_USER')"),
-        new Delete(security: "is_granted('ROLE_USER')"),
-    ],
-    normalizationContext: ['groups' => ['testers:read'], 'enable_max_depth' => true],
-    denormalizationContext: ['groups' => ['testers:write']],
-    processor: TesterStateProcessor::class,
-    forceEager: false,
-)]
+#[ApiResource(shortName: 'Tester', operations: [
+    // team only: testers cannot list or view other testers
+    new GetCollection(security: "is_granted('ROLE_USER')"),
+    new Get(security: "is_granted('ROLE_USER')"),
+    new Post(security: "is_granted('ROLE_USER')"),
+    new Put(security: "is_granted('ROLE_USER')"),
+    new Patch(security: "is_granted('ROLE_USER')"),
+    new Delete(security: "is_granted('ROLE_USER')"),
+], normalizationContext: ['groups' => ['testers:read'], 'enable_max_depth' => true], denormalizationContext: ['groups' => ['testers:write']], forceEager: false, processor: TesterStateProcessor::class)]
 // ── /api/users — admin management of team (type=USER) accounts ───────────────
-#[ApiResource(
-    shortName: 'User',
-    operations: [
-        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
-        new Get(security: "is_granted('ROLE_ADMIN')"),
-        new Post(security: "is_granted('ROLE_ADMIN')"),
-        new Patch(security: "is_granted('ROLE_ADMIN')"),
-    ],
-    normalizationContext: ['groups' => ['users:read', 'timestampable:read']],
-    denormalizationContext: ['groups' => ['users:write']],
-    processor: UserStateProcessor::class,
-    forceEager: false,
-)]
+#[ApiResource(shortName: 'User', operations: [
+    new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+    new Get(security: "is_granted('ROLE_ADMIN')"),
+    new Post(security: "is_granted('ROLE_ADMIN')"),
+    new Patch(security: "is_granted('ROLE_ADMIN')"),
+], normalizationContext: ['groups' => ['users:read', 'timestampable:read']], denormalizationContext: ['groups' => ['users:write']], forceEager: false, processor: UserStateProcessor::class)]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'email', 'active'], arguments: ['orderParameterName' => 'order'])]
 #[ApiFilter(TesterTestingPlanFilter::class, properties: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -104,11 +92,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      *
      * @var list<string>
      */
-    #[ORM\Column(type: 'json', options: ['default' => '[]'])]
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
     #[Groups(['testers:read', 'testers:write', 'users:read', 'users:write', 'publicProfile:read'])]
     private array $tags = [];
 
-    #[ORM\Column(type: 'string', enumType: UserType::class, length: 20, options: ['default' => 'USER'])]
+    #[ORM\Column(type: Types::STRING, length: 20, enumType: UserType::class, options: ['default' => 'USER'])]
     #[Groups(['testers:read', 'users:read'])]
     private UserType $type = UserType::USER;
 
@@ -157,24 +145,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(options: ['default' => 0])]
     #[Groups(['none:read'])]
-    private ?int $otpTry = null;
+    private ?int $otpTry = 0;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['none:read'])]
-    private ?\DateTimeInterface $otpDate = null;
+    private ?DateTimeInterface $otpDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['testers:read', 'users:read'])]
-    private ?\DateTimeInterface $lastActive = null;
+    private ?DateTimeInterface $lastActive = null;
 
     public function __construct()
     {
-        $this->src = 'app';
-        $this->type = UserType::USER;
-        $this->active = true;
         $this->projects = new ArrayCollection();
-        $this->otpDate = new \DateTime();
-        $this->otpTry = 0;
+        $this->otpDate = new DateTime();
         $this->setNow();
     }
 
@@ -417,24 +401,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getOtpDate(): ?\DateTimeInterface
+    public function getOtpDate(): ?DateTimeInterface
     {
         return $this->otpDate;
     }
 
-    public function setOtpDate(?\DateTimeInterface $otpDate): static
+    public function setOtpDate(?DateTimeInterface $otpDate): static
     {
         $this->otpDate = $otpDate;
 
         return $this;
     }
 
-    public function getLastActive(): ?\DateTimeInterface
+    public function getLastActive(): ?DateTimeInterface
     {
         return $this->lastActive;
     }
 
-    public function setLastActive(?\DateTimeInterface $lastActive): static
+    public function setLastActive(?DateTimeInterface $lastActive): static
     {
         $this->lastActive = $lastActive;
 

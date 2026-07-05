@@ -2,6 +2,8 @@
 
 namespace App\Traits\Entity;
 
+use Doctrine\DBAL\Types\Types;
+use DateTime;
 use ApiPlatform\Metadata\ApiProperty;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,12 +12,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 trait TimeStampable
 {
     #[ApiProperty(readable: true, writable: false, iris: 'https://schema.org/DateTime')]
-    #[ORM\Column(name: 'created', type: 'datetime')]
+    #[ORM\Column(name: 'created', type: Types::DATETIME_MUTABLE)]
     #[Groups(['timestampable:read'])]
     protected ?DateTimeInterface $created = null;
 
     #[ApiProperty(readable: true, writable: false, iris: 'https://schema.org/DateTime')]
-    #[ORM\Column(name: 'updated', type: 'datetime')]
+    #[ORM\Column(name: 'updated', type: Types::DATETIME_MUTABLE)]
     #[Groups(['timestampable:read'])]
     protected ?DateTimeInterface $updated = null;
 
@@ -31,8 +33,6 @@ trait TimeStampable
 
     /**
      * Sets created.
-     *
-     * @return $this
      */
     public function setCreated(DateTimeInterface $created): self
     {
@@ -53,8 +53,6 @@ trait TimeStampable
 
     /**
      * Sets updated.
-     *
-     * @return $this
      */
     public function setUpdated(DateTimeInterface $updated): self
     {
@@ -65,14 +63,14 @@ trait TimeStampable
 
     public function autoUpdate(): self
     {
-        $this->updated = new \DateTime();
+        $this->updated = new DateTime();
 
         return $this;
     }
 
     public function setNow(): self
     {
-        $now = new \DateTime();
+        $now = new DateTime();
         $this->setCreated($now);
         $this->setUpdated($now);
 
@@ -82,7 +80,7 @@ trait TimeStampable
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTime();
+        $now = new DateTime();
         if ($this->created === null) {
             $this->created = $now;
         }
@@ -92,6 +90,6 @@ trait TimeStampable
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
-        $this->updated = new \DateTime();
+        $this->updated = new DateTime();
     }
 }
