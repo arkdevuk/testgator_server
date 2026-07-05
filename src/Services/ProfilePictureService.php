@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
+use Aws\S3\S3Client;
 use InvalidArgumentException;
 use RuntimeException;
-use Aws\S3\S3Client;
 
 /**
  * Validates and stores project/user images in the public S3 bucket.
@@ -50,6 +52,7 @@ class ProfilePictureService
      * Validates the image at $tmpPath.
      *
      * @return string Detected MIME type (image/png or image/jpeg)
+     *
      * @throws InvalidArgumentException with a user-facing message on any violation
      */
     public function validateImage(string $tmpPath): string
@@ -59,9 +62,7 @@ class ProfilePictureService
         }
 
         if (filesize($tmpPath) > self::MAX_BYTES) {
-            throw new InvalidArgumentException(
-                sprintf('Image must be less than %d KB.', self::MAX_BYTES / 1024)
-            );
+            throw new InvalidArgumentException(sprintf('Image must be less than %d KB.', self::MAX_BYTES / 1024));
         }
 
         $info = @getimagesize($tmpPath);
@@ -77,19 +78,11 @@ class ProfilePictureService
         [$width, $height] = $info;
 
         if ($width > self::MAX_PX || $height > self::MAX_PX) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Image must not exceed %d×%d px (uploaded image is %d×%d).',
-                    self::MAX_PX, self::MAX_PX,
-                    $width, $height,
-                )
-            );
+            throw new InvalidArgumentException(sprintf('Image must not exceed %d×%d px (uploaded image is %d×%d).', self::MAX_PX, self::MAX_PX, $width, $height));
         }
 
         if ($width !== $height) {
-            throw new InvalidArgumentException(
-                sprintf('Image must be square — uploaded image is %d×%d px.', $width, $height)
-            );
+            throw new InvalidArgumentException(sprintf('Image must be square — uploaded image is %d×%d px.', $width, $height));
         }
 
         return $mime;
@@ -101,6 +94,7 @@ class ProfilePictureService
      * Rules: PNG only, < 1 MB, ≤ 1024 × 1024 px (non-square allowed).
      *
      * @return string Always 'image/png'
+     *
      * @throws InvalidArgumentException on any violation
      */
     public function validateBannerImage(string $tmpPath): string
@@ -110,9 +104,7 @@ class ProfilePictureService
         }
 
         if (filesize($tmpPath) >= self::BANNER_MAX_BYTES) {
-            throw new InvalidArgumentException(
-                sprintf('Banner must be less than %d MB.', self::BANNER_MAX_BYTES / (1024 * 1024))
-            );
+            throw new InvalidArgumentException(sprintf('Banner must be less than %d MB.', self::BANNER_MAX_BYTES / (1024 * 1024)));
         }
 
         $info = @getimagesize($tmpPath);
@@ -128,13 +120,7 @@ class ProfilePictureService
         [$width, $height] = $info;
 
         if ($width > self::BANNER_MAX_PX || $height > self::BANNER_MAX_PX) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Banner must not exceed %d px on either side (uploaded image is %d×%d).',
-                    self::BANNER_MAX_PX,
-                    $width, $height,
-                )
-            );
+            throw new InvalidArgumentException(sprintf('Banner must not exceed %d px on either side (uploaded image is %d×%d).', self::BANNER_MAX_PX, $width, $height));
         }
 
         return $mime;
@@ -149,7 +135,9 @@ class ProfilePictureService
      * @param string $tmpPath Absolute path to the temporary file
      * @param string $mime MIME type returned by validateImage() / validateBannerImage()
      * @param string $key Full S3 object key (e.g. 'profile-pictures/uuid.png')
-     * @return string           Public URL of the stored image
+     *
+     * @return string Public URL of the stored image
+     *
      * @throws RuntimeException when S3 is not configured
      */
     public function uploadPublicImage(string $tmpPath, string $mime, string $key): string
@@ -161,7 +149,7 @@ class ProfilePictureService
         $this->s3Client->putObject([
             'Bucket' => $_ENV['AWS_PUBLIC_BUCKET'],
             'Key' => $key,
-            'Body' => fopen($tmpPath, 'rb'),
+            'Body' => fopen($tmpPath, 'r'),
             'ContentType' => $mime,
         ]);
 
@@ -177,7 +165,9 @@ class ProfilePictureService
      * @param string $tmpPath Absolute path to the temporary file
      * @param string $mime MIME type returned by validateImage()
      * @param string $uuid User UUID — used as the S3 object key
-     * @return string           Public URL of the stored image
+     *
+     * @return string Public URL of the stored image
+     *
      * @throws RuntimeException when S3 is not configured
      */
     public function uploadImage(string $tmpPath, string $mime, string $uuid): string

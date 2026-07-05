@@ -11,7 +11,7 @@ class GuestAuthService
     use GuidAware;
 
     /**
-     * This function generates a challenge for the user
+     * This function generates a challenge for the user.
      */
     public function getChallenge(): string
     {
@@ -20,7 +20,7 @@ class GuestAuthService
 
     /**
      * Use this function to get the hash of a challenge
-     * do not use custom code as the hash computation might change
+     * do not use custom code as the hash computation might change.
      */
     public function getHash(
         string $challenge,
@@ -32,7 +32,7 @@ class GuestAuthService
 
     /**
      * Use this function to validate a hash
-     * do not use custom code as the hash computation might change
+     * do not use custom code as the hash computation might change.
      */
     public function validateHash(
         string $challenge,

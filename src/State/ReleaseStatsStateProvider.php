@@ -1,7 +1,8 @@
 <?php
 
-namespace App\State;
+declare(strict_types=1);
 
+namespace App\State;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Operation;
@@ -10,17 +11,15 @@ use App\ApiResource\ReleaseStats;
 use App\Entity\Release;
 use App\Services\Entities\ReleaseManager;
 
-
 class ReleaseStatsStateProvider implements ProviderInterface
 {
-
     public function __construct(protected ReleaseManager $releaseManager)
     {
     }
 
     public function provide(Operation $operation,
-                            array     $uriVariables = [],
-                            array     $context = []): object|array|null
+                            array $uriVariables = [],
+                            array $context = []): object|array|null
     {
         if ($operation instanceof Get) {
             // todo add symfony/cache to avoid recomputing this data every time | ~10 minutes
@@ -42,7 +41,7 @@ class ReleaseStatsStateProvider implements ProviderInterface
             $totalPlans = 0;
 
             foreach ($release->getPlans()->getIterator() as $plan) {
-                $totalPlans++;
+                ++$totalPlans;
                 $totalQuestions += $q = $plan->getQuestions()->count();
                 $testers = $plan->getTestersEnrolled()->count();
                 $totalWait += ($q * $testers);
@@ -60,6 +59,7 @@ class ReleaseStatsStateProvider implements ProviderInterface
 
             return $stats;
         }
+
         return null;
     }
 }

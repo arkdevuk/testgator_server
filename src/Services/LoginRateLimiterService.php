@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use Psr\Cache\CacheItemPoolInterface;
@@ -28,8 +30,8 @@ class LoginRateLimiterService
      * whether the attempt is allowed.
      *
      * @return array{allowed: bool, retryAfter: int}
-     *   - allowed    : false when the limit is exceeded
-     *   - retryAfter : seconds until the window resets (0 when allowed)
+     *                                               - allowed    : false when the limit is exceeded
+     *                                               - retryAfter : seconds until the window resets (0 when allowed)
      */
     public function attempt(string $ip, string $username): array
     {
@@ -47,7 +49,7 @@ class LoginRateLimiterService
             return ['allowed' => false, 'retryAfter' => $retryAfter];
         }
 
-        $data['count']++;
+        ++$data['count'];
         $item->set($data);
         $item->expiresAfter($retryAfter);
         $this->cache->save($item);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Services;
 
 use App\Services\LoginRateLimiterService;
@@ -150,6 +152,7 @@ class LoginRateLimiterServiceTest extends TestCase
         $this->cache->method('deleteItem')
             ->willReturnCallback(function (string $key) use (&$capturedKeys) {
                 $capturedKeys[] = $key;
+
                 return true;
             });
 

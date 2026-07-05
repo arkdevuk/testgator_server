@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\Question;
 use App\Entity\TestPlan;
 
 /**
- * Tests for /api/questions
+ * Tests for /api/questions.
  */
 class QuestionTest extends AbstractApiTestCase
 {

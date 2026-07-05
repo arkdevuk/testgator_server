@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\OpenApi;
 
-use ArrayObject;
-use ApiPlatform\OpenApi\Model\Paths;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\Model\MediaType;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\PathItem;
+use ApiPlatform\OpenApi\Model\Paths;
 use ApiPlatform\OpenApi\Model\RequestBody;
 use ApiPlatform\OpenApi\Model\Response;
 use ApiPlatform\OpenApi\OpenApi;
+use ArrayObject;
 
 /**
  * Injects custom (non-ApiResource) routes into the OpenAPI spec:
@@ -926,10 +928,10 @@ MD,
      */
     private function annotatePathsWithRole(
         Paths $paths,
-        string                           $prefix,
-        string                           $defaultRole,
-        array                            $methodDescriptions = [],
-        array                            $methodRoles = [],
+        string $prefix,
+        string $defaultRole,
+        array  $methodDescriptions = [],
+        array  $methodRoles = [],
     ): void
     {
         foreach ($paths->getPaths() as $path => $pathItem) {

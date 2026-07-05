@@ -25,7 +25,7 @@ final class Version20260606191136 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->addSql("ALTER TABLE answer RENAME COLUMN state TO status");
-        $this->addSql("ALTER TABLE answer ALTER COLUMN status DROP DEFAULT");
+        $this->addSql('ALTER TABLE answer RENAME COLUMN state TO status');
+        $this->addSql('ALTER TABLE answer ALTER COLUMN status DROP DEFAULT');
     }
 }

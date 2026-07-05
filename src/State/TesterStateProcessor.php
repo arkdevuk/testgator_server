@@ -22,9 +22,9 @@ final readonly class TesterStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private ProcessorInterface       $persistProcessor,
+        private ProcessorInterface $persistProcessor,
         #[Autowire(service: 'api_platform.doctrine.orm.state.remove_processor')]
-        private ProcessorInterface       $removeProcessor,
+        private ProcessorInterface $removeProcessor,
         private EventDispatcherInterface $dispatcher,
     )
     {

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\State;
 
-use InvalidArgumentException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\User;
 use App\Enum\UserType;
 use App\Event\DevCreatedAppEvent;
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -24,9 +24,9 @@ final readonly class UserStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private ProcessorInterface          $persistProcessor,
+        private ProcessorInterface       $persistProcessor,
         private UserPasswordHasherInterface $hasher,
-        private EventDispatcherInterface    $dispatcher,
+        private EventDispatcherInterface $dispatcher,
     )
     {
     }

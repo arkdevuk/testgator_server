@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ApiResource;
 
 use ApiPlatform\Metadata\ApiProperty;
@@ -28,7 +30,7 @@ class Me
     private array $roles = [];
 
     /**
-     * Account type: USER (team member) or TESTER
+     * Account type: USER (team member) or TESTER.
      */
     #[Groups(['userSelf:read'])]
     private ?string $type = null;
@@ -47,15 +49,15 @@ class Me
     {
     }
 
-
     public function getUser(): UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(UserInterface $user): Me
+    public function setUser(UserInterface $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -69,9 +71,10 @@ class Me
         return $this->email;
     }
 
-    public function setEmail(?string $email): Me
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -80,9 +83,10 @@ class Me
         return $this->roles;
     }
 
-    public function setRoles(array $roles): Me
+    public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
         return $this;
     }
 
@@ -91,9 +95,10 @@ class Me
         return $this->type;
     }
 
-    public function setType(?string $type): Me
+    public function setType(?string $type): self
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -102,9 +107,10 @@ class Me
         return $this->nickname;
     }
 
-    public function setNickname(string $nickname): Me
+    public function setNickname(string $nickname): self
     {
         $this->nickname = $nickname;
+
         return $this;
     }
 
@@ -113,9 +119,10 @@ class Me
         return $this->profilePictureUrl;
     }
 
-    public function setProfilePictureUrl(string $profilePictureUrl): Me
+    public function setProfilePictureUrl(string $profilePictureUrl): self
     {
         $this->profilePictureUrl = $profilePictureUrl;
+
         return $this;
     }
 }

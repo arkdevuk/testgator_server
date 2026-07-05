@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use DateTimeInterface;
 use ApiPlatform\Doctrine\Common\Filter\DateFilterInterface;
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
@@ -15,13 +16,14 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\ApiResource\TestingProgression;
 use App\Classes\TestPlanState;
 use App\Repository\TestPlanRepository;
-use App\ApiResource\TestingProgression;
-use App\State\TestPlanStateProcessor;
 use App\State\TestingProgressionStateProvider;
+use App\State\TestPlanStateProcessor;
 use App\Traits\Entity\TimeStampable;
 use App\Traits\GuidAware;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -62,7 +64,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiFilter(OrderFilter::class, properties: ['id', 'release', 'state', 'dueDate'], arguments: ['orderParameterName' => 'order'])]
 class TestPlan
 {
-
     use GuidAware;
     use TimeStampable;
 

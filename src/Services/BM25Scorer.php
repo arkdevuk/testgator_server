@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
+
+use const PREG_SPLIT_NO_EMPTY;
 
 /**
  * BM25 scorer with per-field weighting and snippet extraction.
@@ -29,6 +33,7 @@ class BM25Scorer
      *
      * @param array<string|int, array<string, array{text: string, weight: float}>> $documents
      * @param string[] $terms (already lowercased)
+     *
      * @return array<string|int, array{score: float, extracts: string[]}>
      */
     public function score(array $documents, array $terms): array
@@ -57,7 +62,7 @@ class BM25Scorer
                 $count = 0;
                 foreach ($documents as $doc) {
                     if ($this->tf(mb_strtolower($doc[$field]['text'] ?? ''), $term) > 0) {
-                        $count++;
+                        ++$count;
                     }
                 }
                 $df[$term][$field] = $count;
@@ -114,6 +119,7 @@ class BM25Scorer
     private function wordCount(string $text): int
     {
         $words = preg_split('/\s+/', trim($text), -1, PREG_SPLIT_NO_EMPTY);
+
         return max(1, count($words ?: []));
     }
 
@@ -145,7 +151,7 @@ class BM25Scorer
 
             $snippets[] = $snippet;
             $pos += $termLen;
-            $found++;
+            ++$found;
         }
 
         return $snippets;

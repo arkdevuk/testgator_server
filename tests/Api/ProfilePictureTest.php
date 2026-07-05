@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\User;
@@ -57,6 +59,7 @@ class ProfilePictureTest extends AbstractApiTestCase
         $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => $email, 'type' => UserType::TESTER]);
         self::assertNotNull($tester);
+
         return (string)$tester->getId();
     }
 
@@ -157,6 +160,7 @@ class ProfilePictureTest extends AbstractApiTestCase
         $user = static::$em->getRepository(User::class)
             ->findOneBy(['email' => $email, 'type' => UserType::USER]);
         self::assertNotNull($user);
+
         return (string)$user->getId();
     }
 
@@ -171,6 +175,7 @@ class ProfilePictureTest extends AbstractApiTestCase
             imagejpeg($img, $path, 90);
         }
         imagedestroy($img);
+
         return $path;
     }
 
@@ -259,7 +264,7 @@ class ProfilePictureTest extends AbstractApiTestCase
         $id = $this->getTeamUserUuid();
 
         // Minimal valid 1×1 GIF89a
-        $gif = base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
+        $gif = base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', true);
         $path = tempnam(sys_get_temp_dir(), 'ppic_gif_') . '.gif';
         $this->tmpFiles[] = $path;
         file_put_contents($path, $gif);

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\DataFixtures;
 
-use DateTime;
 use App\Classes\TestPlanState;
 use App\Entity\Project;
 use App\Entity\Release;
 use App\Entity\TestPlan;
 use App\Entity\User;
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -73,7 +73,6 @@ class AppFixtures extends Fixture
             $testerEntities[] = $t;
         }
         $manager->flush();
-
 
         // datetime now + 30 days
         $dueDate = new DateTime();

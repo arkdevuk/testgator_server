@@ -25,8 +25,8 @@ final readonly class AnswerStateProcessor implements ProcessorInterface
 {
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private ProcessorInterface       $persistProcessor,
-        private Security                 $security,
+        private ProcessorInterface $persistProcessor,
+        private Security           $security,
         private EventDispatcherInterface $dispatcher,
     )
     {

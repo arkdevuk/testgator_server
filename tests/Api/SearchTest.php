@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\Project;
@@ -8,7 +10,7 @@ use App\Enum\UserType;
 use App\Tests\DataFixtures\TestFixtures;
 
 /**
- * Tests for GET /api/search/query
+ * Tests for GET /api/search/query.
  *
  * Fixture reference (TestFixtures):
  *  - Project "Alpha Project"       description: "First test project"

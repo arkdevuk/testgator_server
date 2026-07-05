@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
@@ -13,6 +14,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Repository\SettingsRepository;
 use App\Traits\Entity\TimeStampable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -42,7 +44,7 @@ class Settings
     use TimeStampable;
 
     /**
-     * Composite key: "{section}.{name}" — e.g. "general.webhook_url"
+     * Composite key: "{section}.{name}" — e.g. "general.webhook_url".
      */
     #[ORM\Id]
     #[ORM\Column(length: 255)]

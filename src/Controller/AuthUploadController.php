@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Throwable;
 use App\Entity\User;
 use App\Services\FileService;
 use App\Traits\GuidAware;
+
+use const JSON_THROW_ON_ERROR;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Throwable;
 
 final class AuthUploadController extends AbstractController
 {
@@ -21,7 +26,7 @@ final class AuthUploadController extends AbstractController
 
     #[Route('/api/uploads/request', name: 'upload_request')]
     public function upload_request(
-        Request     $request,
+        Request $request,
     ): JsonResponse
     {
         $u = $this->getUser();
@@ -67,6 +72,7 @@ final class AuthUploadController extends AbstractController
             ],
             'requestID' => time() . $this->generateHumanHash(54),
         ];
+
         // auth already handled, generate a JWT token
         return $this->json([
             'jwt' => $this->fileService->getUploadRequest($jwtPayload),

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Entities;
 
-use Exception;
 use App\Entity\User;
 use App\Enum\UserType;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserBuiltInDbService
@@ -24,7 +26,7 @@ class UserBuiltInDbService
         if ($key === '') {
             $key = 'admin';
         }
-        if (isset($userData['groups']) && in_array($key, $userData['groups'])) {
+        if (isset($userData['groups']) && in_array($key, $userData['groups'], true)) {
             $roles[] = 'ROLE_ADMIN';
         }
 

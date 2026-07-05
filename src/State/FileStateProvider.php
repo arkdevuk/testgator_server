@@ -15,7 +15,7 @@ class FileStateProvider implements ProviderInterface
 {
     public function __construct(
         private readonly FileRepository $fileRepository,
-        private readonly FileService    $fileService,
+        private readonly FileService $fileService,
     )
     {
     }

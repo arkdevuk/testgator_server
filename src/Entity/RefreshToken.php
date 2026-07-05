@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
-use DateTimeImmutable;
 use App\Repository\RefreshTokenRepository;
+use DateTimeImmutable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\UuidV7 as Uuid;
 
@@ -44,11 +46,11 @@ class RefreshToken
     private ?DateTimeImmutable $revokedAt = null;
 
     public function __construct(
-        string             $tokenHash,
-        string             $userGuid,
-        string             $userType,
+        string $tokenHash,
+        string $userGuid,
+        string $userType,
         DateTimeImmutable $expiresAt,
-        ?array             $extra = null,
+        ?array $extra = null,
     )
     {
         $this->tokenHash = $tokenHash;

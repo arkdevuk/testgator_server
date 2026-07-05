@@ -1,12 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
+
+use const CURLINFO_HTTP_CODE;
+use const CURLOPT_CONNECTTIMEOUT;
+use const CURLOPT_HTTPHEADER;
+use const CURLOPT_POST;
+use const CURLOPT_POSTFIELDS;
+use const CURLOPT_RETURNTRANSFER;
+use const CURLOPT_TIMEOUT;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use Throwable;
+
+use const FILTER_VALIDATE_URL;
+use const JSON_THROW_ON_ERROR;
+
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Throwable;
 
 /**
  * Sends outbound webhook calls when the feature is enabled via settings.
@@ -23,7 +37,7 @@ class WebhookService
         private readonly SettingsService $settingsService,
         private readonly LoggerInterface $logger,
         #[Autowire(env: 'default:app.version.default:APP_VERSION')]
-        private readonly string          $appVersion = '1.0',
+        private readonly string $appVersion = '1.0',
     )
     {
     }

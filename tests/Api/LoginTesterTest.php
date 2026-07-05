@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\TestPlan;
@@ -7,7 +9,7 @@ use App\Tests\DataFixtures\TestFixtures;
 
 /**
  * Tests for /api/auth/login_tester (guest/tester JWT via TestPlan key+hash)
- * and /api/uploads/request
+ * and /api/uploads/request.
  */
 class LoginTesterTest extends AbstractApiTestCase
 {

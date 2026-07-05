@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Services\LoginRateLimiterService;
@@ -62,7 +64,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
 
     public function testFiveFailedAttemptsAreAllAllowed(): void
     {
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 5; ++$i) {
             $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
             self::assertNotSame(
                 429,
@@ -74,7 +76,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
 
     public function testSixthAttemptIsRateLimited(): void
     {
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
         }
 
@@ -87,7 +89,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
     public function testRateLimitAppliesEvenWithCorrectPassword(): void
     {
         // Exhaust the window with wrong passwords…
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
         }
 
@@ -100,7 +102,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
 
     public function testRetryAfterHeaderPresentOn429(): void
     {
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
         }
 
@@ -117,7 +119,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
     public function testSuccessfulLoginResetsWindowCounter(): void
     {
         // Use 4 of the 5 allowed slots.
-        for ($i = 0; $i < 4; $i++) {
+        for ($i = 0; $i < 4; ++$i) {
             $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
         }
 
@@ -126,7 +128,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
         $this->assertStatusCode(200);
 
         // A fresh window of 5 should now be available — 5th attempt = allowed.
-        for ($i = 0; $i < 4; $i++) {
+        for ($i = 0; $i < 4; ++$i) {
             $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
         }
         $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
@@ -140,7 +142,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
     public function testOtpFlowBypassesRateLimit(): void
     {
         // Exhaust the window for tester's username.
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $this->login(TestFixtures::TESTER_EMAIL, self::WRONG_PASSWORD, 'tester');
         }
 
@@ -161,7 +163,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
     public function testLockingOneUserDoesNotAffectAnother(): void
     {
         // Lock out USER_EMAIL.
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $this->login(TestFixtures::USER_EMAIL, self::WRONG_PASSWORD);
         }
 

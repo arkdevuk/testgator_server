@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\Answer;
@@ -9,7 +11,7 @@ use App\Enum\UserType;
 use App\Tests\DataFixtures\TestFixtures;
 
 /**
- * Tests for /api/answers
+ * Tests for /api/answers.
  */
 class AnswerTest extends AbstractApiTestCase
 {
@@ -152,6 +154,7 @@ class AnswerTest extends AbstractApiTestCase
     {
         $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
+
         return static::$em->getRepository(Answer::class)
             ->findOneBy(['tester' => $tester]);
     }

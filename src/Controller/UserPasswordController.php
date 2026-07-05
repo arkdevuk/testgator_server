@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use InvalidArgumentException;
 use App\Entity\User;
 use App\Event\UserPasswordChangedAppEvent;
 use App\Repository\UserRepository;
 use App\Services\Authentification\PasswordService;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,17 +22,17 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 final class UserPasswordController extends AbstractController
 {
     public function __construct(
-        private readonly PasswordService             $passwordService,
+        private readonly PasswordService          $passwordService,
         private readonly UserPasswordHasherInterface $hasher,
-        private readonly EntityManagerInterface      $em,
-        private readonly EventDispatcherInterface    $dispatcher,
-        private readonly UserRepository              $userRepository,
+        private readonly EntityManagerInterface   $em,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly UserRepository           $userRepository,
     )
     {
     }
 
     /**
-     * POST /api/auth/me/change-password
+     * POST /api/auth/me/change-password.
      *
      * Allows any authenticated team member (ROLE_USER, type != TESTER) to change
      * their own password. Testers are excluded because they only receive ROLE_TESTER.
@@ -70,7 +72,7 @@ final class UserPasswordController extends AbstractController
     // ── Shared logic ──────────────────────────────────────────────────────────
 
     /**
-     * POST /api/users/{id}/change-password
+     * POST /api/users/{id}/change-password.
      *
      * Allows a ROLE_ADMIN to change the password of any team user account.
      */

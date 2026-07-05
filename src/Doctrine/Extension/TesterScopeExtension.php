@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Doctrine\Extension;
 
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
@@ -51,6 +53,7 @@ final readonly class TesterScopeExtension implements QueryCollectionExtensionInt
             if (!$this->security->isGranted('ROLE_ADMIN')) {
                 $queryBuilder->andWhere(sprintf('%s.public = true', $rootAlias));
             }
+
             return;
         }
 

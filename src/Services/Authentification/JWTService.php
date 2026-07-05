@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Authentification;
 
 use Exception;
@@ -12,6 +14,7 @@ class JWTService
     public function getJWT(UserInterface $user, bool $rememberMe = false, array $more = []): string
     {
         $expire = $this->getExpireTime($rememberMe);
+
         return $this->generateJWT($user, $expire, $more);
     }
 
@@ -20,10 +23,11 @@ class JWTService
         if ($rememberMe) {
             return time() + (60 * 60 * 24 * 30);
         }
+
         return time() + (60 * 60 * 24);
     }
 
-    private function generateJWT(UserInterface $u, int $expire, array $more = [])
+    private function generateJWT(UserInterface $u, int $expire, array $more = []): string
     {
         $payload = [
             'guid' => $u->getId()?->toString(),
@@ -33,11 +37,12 @@ class JWTService
             'more' => $more,
             'scope' => ['web/app', 'web/api'],
         ];
+
         return $this->generateToken($payload);
     }
 
     /**
-     * use this function to generate a token
+     * use this function to generate a token.
      */
     public function generateToken(array $payload = []): string
     {
@@ -49,13 +54,14 @@ class JWTService
             ...$payload,
             'ip_hash' => md5($_SERVER['REMOTE_ADDR']), // if ip changes, JWT is invalid
         ];
+
         return JWT::encode($payload, $privateKey, 'RS256');
     }
 
     /**
      * This function decode a JWT token
      * and return the payload
-     * if the payload contains the 'exp' field it also checks if the token is expired
+     * if the payload contains the 'exp' field it also checks if the token is expired.
      *
      * @throws Exception
      */
@@ -84,6 +90,7 @@ class JWTService
         foreach ((array)$obj as $key => $value) {
             $arr[$key] = is_object($value) ? self::jwtPayloadToArray($value) : $value;
         }
+
         return $arr;
     }
 }

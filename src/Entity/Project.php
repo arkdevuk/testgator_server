@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
@@ -137,7 +139,6 @@ class Project
         return $this;
     }
 
-
     #[Groups(['project:read'])]
     public function getTotalReleases(): int
     {
@@ -248,6 +249,7 @@ class Project
                 'name' => $latest->getName(),
             ];
         }
+
         return null;
     }
 }

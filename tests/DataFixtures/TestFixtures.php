@@ -1,15 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\DataFixtures;
 
 use App\Classes\TestPlanState;
 use App\Entity\Answer;
-use App\Enum\AnswerState;
 use App\Entity\Project;
 use App\Entity\Question;
 use App\Entity\Release;
 use App\Entity\TestPlan;
 use App\Entity\User;
+use App\Enum\AnswerState;
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -103,7 +106,7 @@ class TestFixtures extends Fixture
         $this->addReference(self::REF_RELEASE_2, $release2);
 
         // ── TestPlans ─────────────────────────────────────────────────────
-        $dueDate = new \DateTime('+30 days');
+        $dueDate = new DateTime('+30 days');
 
         $plan = new TestPlan();
         $plan->setName('Published Plan')

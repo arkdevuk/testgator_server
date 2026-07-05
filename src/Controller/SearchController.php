@@ -46,12 +46,13 @@ final class SearchController extends AbstractController
 
         return $this->json($results);
     }
+
     /**
      * Resolves scope(s) from the request.
      * Supports:
      *   ?scope=projects,questions          (comma-separated)
      *   ?scope[]=projects&scope[]=questions (array style)
-     *   ?scope=                             (omitted → all accessible)
+     *   ?scope=                             (omitted → all accessible).
      *
      * Returns null if any value is invalid.
      *

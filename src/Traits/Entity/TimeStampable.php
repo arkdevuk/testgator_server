@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Traits\Entity;
 
-use Doctrine\DBAL\Types\Types;
-use DateTime;
 use ApiPlatform\Metadata\ApiProperty;
+use DateTime;
 use DateTimeInterface;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 

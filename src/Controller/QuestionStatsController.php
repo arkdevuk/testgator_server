@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\User;
 use App\Repository\AnswerRepository;
 use App\Repository\QuestionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class QuestionStatsController extends AbstractController
@@ -16,9 +16,10 @@ final class QuestionStatsController extends AbstractController
     public function __construct(private readonly QuestionRepository $questionRepository, private readonly AnswerRepository $answerRepository)
     {
     }
+
     #[Route('/api/questions/{id}/stats', name: 'app_question_stats', methods: ['GET'])]
     public function __invoke(
-        int                $id,
+        int $id,
     ): JsonResponse
     {
         $question = $this->questionRepository->find($id);

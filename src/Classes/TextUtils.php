@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Classes;
 
 final class TextUtils
@@ -20,6 +22,7 @@ final class TextUtils
                 $newWords[] = $v;
             }
         }
+
         return $newWords;
     }
 
@@ -27,6 +30,7 @@ final class TextUtils
     {
         $str = strtolower($str);
         $str = self::removeAccents($str);
+
         return self::normalizeSpacing($str);
     }
 
@@ -51,6 +55,7 @@ final class TextUtils
         $stopWords = [
             'le', 'la', 'les', 'l\'', 'un', 'une', 'des', 'du', 'de', 'd\'', 'à', 'au', 'aux', 'et', 'ou', 'où', 'mais', 'donc', 'or', 'ni', 'car', 'ce', 'cet', 'cette', 'ces', 'ceux', 'celui', 'celle', 'celles', 'ceux', 'ceci', 'cela', 'ça', 'ici', 'là', 'lorsque', 'puisque', 'parce que', 'si', 'comme', 'quand', 'que', 'quoi', 'qui', 'qu\'', 'quand', 'quel', 'quelle', 'quelles', 'quels', 'qu\'est-ce', 'qu\'il', 'qu\'elle', 'qu\'on', 'qu\'en', 'qu\'y', 'qu\'a', 'qu\'au', 'qu\'aux', 'qu\'un', 'qu\'une', 'qu\'il', 'qu\'elle', 'qu\'elles', 'qu\'ils', 'qu\'elles', 'qu\'on', 'qu\'en', 'qu\'y', 'qu\'a', 'qu\'au', 'qu\'aux', 'qu\'un', 'qu\'une', 'qu\'on', 'qu\'en', 'qu\'y', 'qu\'a', 'qu\'au', 'qu\'aux', 'qu\'un', 'qu\'une', 'qu\'on', 'qu\'en', 'qu\'y', 'qu\'a', 'qu\'au', 'qu\'aux', 'qu\'un', 'qu\'une', 'qu\'on', 'qu\'en', 'qu\'y', 'qu\'a', 'qu\'au', 'qu\'aux', 'qu\'un', 'qu\'une', 'qu\'on', 'qu\'en', 'qu\'y', 'qu\'a', 'qu\'au', 'qu\'aux', 'qu\'un', 'qu\'une', 'qu\'on', 'qu\'en', 'qu\'y', 'qu\'a', 'qu\'au', 'qu\'aux', 'qu\'un', 'qu\'une',
         ];
+
         return array_diff($words, $stopWords);
     }
 

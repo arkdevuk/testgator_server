@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
@@ -17,9 +19,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class TestingProgressionStateProvider implements ProviderInterface
 {
     public function __construct(
-        private readonly TestPlanRepository     $testPlanRepository,
+        private readonly TestPlanRepository $testPlanRepository,
         private readonly EntityManagerInterface $em,
-        private readonly Security               $security,
+        private readonly Security           $security,
     )
     {
     }
@@ -68,7 +70,7 @@ class TestingProgressionStateProvider implements ProviderInterface
         $questionsAnswered = 0;
         foreach ($answersByQuestion as $answer) {
             if ($answer->getState() !== AnswerState::PENDING) {
-                $questionsAnswered++;
+                ++$questionsAnswered;
             }
         }
 

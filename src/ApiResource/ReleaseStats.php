@@ -50,8 +50,7 @@ class ReleaseStats
         return $this->release;
     }
 
-
-    public function setRelease(Release $release): ReleaseStats
+    public function setRelease(Release $release): self
     {
         $this->release = $release;
 
@@ -63,9 +62,10 @@ class ReleaseStats
         return $this->totalQuestions;
     }
 
-    public function setTotalQuestions(int $totalQuestions): ReleaseStats
+    public function setTotalQuestions(int $totalQuestions): self
     {
         $this->totalQuestions = $totalQuestions;
+
         return $this;
     }
 
@@ -74,9 +74,10 @@ class ReleaseStats
         return $this->totalWait;
     }
 
-    public function setTotalWait(int $totalWait): ReleaseStats
+    public function setTotalWait(int $totalWait): self
     {
         $this->totalWait = $totalWait;
+
         return $this;
     }
 
@@ -85,9 +86,10 @@ class ReleaseStats
         return $this->totalResponded;
     }
 
-    public function setTotalResponded(int $totalResponded): ReleaseStats
+    public function setTotalResponded(int $totalResponded): self
     {
         $this->totalResponded = $totalResponded;
+
         return $this;
     }
 
@@ -96,9 +98,10 @@ class ReleaseStats
         return $this->totalPlans;
     }
 
-    public function setTotalPlans(int $totalPlans): ReleaseStats
+    public function setTotalPlans(int $totalPlans): self
     {
         $this->totalPlans = $totalPlans;
+
         return $this;
     }
 
@@ -108,6 +111,7 @@ class ReleaseStats
         if ($this->totalWait !== 0 && $this->totalResponded !== 0) {
             return ($this->totalResponded / $this->totalWait) * 100;
         }
+
         return 0;
     }
 }

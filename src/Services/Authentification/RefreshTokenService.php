@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Authentification;
 
-use DateTimeImmutable;
-use RuntimeException;
 use App\Entity\RefreshToken;
 use App\Repository\RefreshTokenRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class RefreshTokenService

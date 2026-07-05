@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Classes\TestPlanState;
 use App\Entity\Release;
 use App\Entity\TestPlan;
-use App\Tests\DataFixtures\TestFixtures;
+use DateTime;
 
 /**
- * Tests for /api/test_plans
+ * Tests for /api/test_plans.
  */
 class TestPlanTest extends AbstractApiTestCase
 {
@@ -120,7 +122,7 @@ class TestPlanTest extends AbstractApiTestCase
             'name' => 'New Regression Plan',
             'description' => 'Full regression for 1.0.0',
             'release' => '/api/releases/' . $release->getId(),
-            'dueDate' => (new \DateTime('+14 days'))->format(\DateTime::ATOM),
+            'dueDate' => (new DateTime('+14 days'))->format(DateTime::ATOM),
             'state' => TestPlanState::DRAFT,
         ], $token);
 
@@ -134,7 +136,7 @@ class TestPlanTest extends AbstractApiTestCase
         $this->jsonRequest('POST', '/api/test_plans', [
             'name' => 'Should Fail',
             'release' => '/api/releases/1',
-            'dueDate' => (new \DateTime('+7 days'))->format(\DateTime::ATOM),
+            'dueDate' => (new DateTime('+7 days'))->format(DateTime::ATOM),
             'state' => TestPlanState::DRAFT,
         ]);
         $this->assertStatusCode(401);

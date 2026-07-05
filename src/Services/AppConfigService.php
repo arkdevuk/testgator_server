@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use Exception;
@@ -36,10 +38,10 @@ class AppConfigService
      * - 'app.working_days' returns the array of working days.
      * - 'app.working_days.monday' returns Monday's working hours.
      *
-     * @param string $path Dot-notated string path to the desired config value.
-     * @param mixed $defaultValue Value to return if the path is not found in the config.
+     * @param string $path dot-notated string path to the desired config value
+     * @param mixed $defaultValue value to return if the path is not found in the config
      *
-     * @return mixed The value found at the specified path, or the default value if not found.
+     * @return mixed the value found at the specified path, or the default value if not found
      */
     public function getValue(string $path, mixed $defaultValue = null): mixed
     {

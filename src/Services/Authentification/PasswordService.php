@@ -18,7 +18,7 @@ use InvalidArgumentException;
 class PasswordService
 {
     /**
-     * @throws InvalidArgumentException with a human-readable message if any rule fails.
+     * @throws InvalidArgumentException with a human-readable message if any rule fails
      */
     public function checkPassword(string $password): void
     {

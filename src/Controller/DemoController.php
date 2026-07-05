@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use DateTime;
 use App\Entity\Answer;
+use App\Entity\TestPlan;
 use App\Enum\AnswerState;
 use App\Repository\TestPlanRepository;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -59,7 +62,7 @@ final class DemoController extends AbstractController
 
     #[Route('/api/demo/add_demo_answer', name: 'app_demo_add_demo_answer', methods: ['POST'])]
     public function __invoke(
-        Request                $request,
+        Request $request,
     ): JsonResponse
     {
         $body = json_decode($request->getContent(), true) ?? [];
@@ -85,7 +88,7 @@ final class DemoController extends AbstractController
 
         $testPlan = $this->testPlanRepository->find((int)$m[1]);
 
-        if (!$testPlan) {
+        if (!$testPlan instanceof TestPlan) {
             return $this->json(['error' => 'TestPlan not found'], Response::HTTP_NOT_FOUND);
         }
 
@@ -107,7 +110,7 @@ final class DemoController extends AbstractController
         $states = AnswerState::cases();
         $created = 0;
 
-        for ($i = 0; $i < $number; $i++) {
+        for ($i = 0; $i < $number; ++$i) {
             $state = $states[array_rand($states)];
             $question = $questions[array_rand($questions)];
             $comments = self::COMMENTS[$state->value];
@@ -142,7 +145,7 @@ final class DemoController extends AbstractController
             ]);
 
             $this->em->persist($answer);
-            $created++;
+            ++$created;
         }
 
         $this->em->flush();

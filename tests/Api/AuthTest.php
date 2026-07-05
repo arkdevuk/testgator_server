@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Tests\DataFixtures\TestFixtures;
 
 /**
- * Tests for /api/auth/login and /api/auth/me
+ * Tests for /api/auth/login and /api/auth/me.
  */
 class AuthTest extends AbstractApiTestCase
 {

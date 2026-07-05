@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\User;
@@ -7,7 +9,7 @@ use App\Enum\UserType;
 use App\Tests\DataFixtures\TestFixtures;
 
 /**
- * Tests for /api/testers
+ * Tests for /api/testers.
  */
 class TesterTest extends AbstractApiTestCase
 {

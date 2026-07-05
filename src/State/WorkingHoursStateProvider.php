@@ -1,7 +1,8 @@
 <?php
 
-namespace App\State;
+declare(strict_types=1);
 
+namespace App\State;
 
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
@@ -9,17 +10,15 @@ use ApiPlatform\State\ProviderInterface;
 use App\ApiResource\WorkingHours;
 use App\Services\AppConfigService;
 
-
 class WorkingHoursStateProvider implements ProviderInterface
 {
-
     public function __construct(protected AppConfigService $appConfigService)
     {
     }
 
     public function provide(Operation $operation,
-                            array     $uriVariables = [],
-                            array     $context = []): array
+                            array $uriVariables = [],
+                            array $context = []): array
     {
         if ($operation instanceof GetCollection) {
             $dayOfTheWeeks = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -44,6 +43,7 @@ class WorkingHoursStateProvider implements ProviderInterface
 
             return $output;
         }
+
         return [];
     }
 }

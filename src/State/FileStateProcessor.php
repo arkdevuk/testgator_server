@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 class FileStateProcessor implements ProcessorInterface
 {
     public function __construct(
-        private readonly FileService            $fileService,
+        private readonly FileService $fileService,
         private readonly EntityManagerInterface $em,
     )
     {

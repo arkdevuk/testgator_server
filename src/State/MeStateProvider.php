@@ -1,7 +1,8 @@
 <?php
 
-namespace App\State;
+declare(strict_types=1);
 
+namespace App\State;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Operation;
@@ -10,17 +11,15 @@ use App\ApiResource\Me;
 use App\Entity\User;
 use Symfony\Bundle\SecurityBundle\Security;
 
-
 class MeStateProvider implements ProviderInterface
 {
-
     public function __construct(protected Security $security)
     {
     }
 
     public function provide(Operation $operation,
-                            array     $uriVariables = [],
-                            array     $context = []): object|array|null
+                            array $uriVariables = [],
+                            array $context = []): object|array|null
     {
         if ($operation instanceof Get) {
             $u = $this->security->getUser();
@@ -35,8 +34,10 @@ class MeStateProvider implements ProviderInterface
                 ->setType($u->getType()->value)
                 ->setNickname($u->getNickname())
                 ->setProfilePictureUrl($u->getProfilePictureUrl());
+
             return $me;
         }
+
         return null;
     }
 }

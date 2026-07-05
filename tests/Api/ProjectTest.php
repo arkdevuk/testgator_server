@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\Project;
-use App\Tests\DataFixtures\TestFixtures;
 
 /**
- * Tests for /api/projects
+ * Tests for /api/projects.
  */
 class ProjectTest extends AbstractApiTestCase
 {

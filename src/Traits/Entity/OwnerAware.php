@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Traits\Entity;
 
 use App\Entity\User;
@@ -23,5 +25,4 @@ trait OwnerAware
 
         return $this;
     }
-
 }

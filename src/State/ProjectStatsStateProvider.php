@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ProjectStatsStateProvider implements ProviderInterface
 {
     public function __construct(
-        private readonly ProjectRepository      $projectRepository,
+        private readonly ProjectRepository $projectRepository,
         private readonly EntityManagerInterface $em,
     )
     {

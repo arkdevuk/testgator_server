@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filter;
 
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
@@ -8,12 +10,10 @@ use ApiPlatform\Metadata\Operation;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
 
-
 // filter will be like /api/testers?testingPlan=12
 // we will filter testers based on the testing plan id so we can use other filters from the testers entity
 class TesterTestingPlanFilter extends AbstractFilter
 {
-
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         // filter only if the User entity (exposed as the Tester resource) is being queried
@@ -45,8 +45,6 @@ class TesterTestingPlanFilter extends AbstractFilter
             ->join('releases.plans', 'plans')
             ->andWhere('plans.id = :' . $parameter)
             ->setParameter($parameter, $value);
-
-
     }
 
     public function getDescription(string $resourceClass): array

@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\User;
 use App\Enum\UserType;
 use App\Services\Authentification\JWTService;
 use App\Tests\DataFixtures\TestFixtures;
+use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
+use Doctrine\Common\DataFixtures\Loader;
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\Loader;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 abstract class AbstractApiTestCase extends WebTestCase
@@ -106,9 +108,9 @@ abstract class AbstractApiTestCase extends WebTestCase
     // ─────────────────────────────────────────────────────────────────────────
 
     protected function jsonRequest(
-        string  $method,
-        string  $uri,
-        ?array  $payload = null,
+        string $method,
+        string $uri,
+        ?array $payload = null,
         ?string $token = null,
     ): array
     {

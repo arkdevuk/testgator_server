@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Entity\Answer;
@@ -34,13 +36,14 @@ class SearchService
 
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly BM25Scorer             $bm25,
+        private readonly BM25Scorer $bm25,
     )
     {
     }
 
     /**
      * @param string[] $scopes
+     *
      * @return array<int, array{type: string, iri: string, score: float, name: string, extracts: string[]}>
      */
     public function search(string $query, array $scopes, ?User $user): array
@@ -96,7 +99,7 @@ class SearchService
 
         $documents = [];
         foreach ($items as $p) {
-            /** @var Project $p */
+            /* @var Project $p */
             $documents[$p->getId()] = [
                 'name' => ['text' => $p->getName() ?? '', 'weight' => 3.0],
                 'description' => ['text' => $p->getDescription() ?? '', 'weight' => 1.0],
@@ -107,6 +110,7 @@ class SearchService
 
         return array_map(function (Project $p) use ($scores): array {
             $s = $scores[$p->getId()] ?? ['score' => 0.0, 'extracts' => []];
+
             return [
                 'type' => self::SCOPE_PROJECTS,
                 'iri' => '/api/projects/' . $p->getId(),
@@ -130,6 +134,7 @@ class SearchService
         if ($tester instanceof User) {
             $q->setParameter('user', $tester);
         }
+
         return $q->getResult();
     }
 
@@ -143,7 +148,7 @@ class SearchService
 
         $documents = [];
         foreach ($items as $u) {
-            /** @var User $u */
+            /* @var User $u */
             $documents[(string)$u->getId()] = [
                 'email' => ['text' => $u->getEmail() ?? '', 'weight' => 3.0],
             ];
@@ -153,6 +158,7 @@ class SearchService
 
         return array_map(function (User $u) use ($scores): array {
             $s = $scores[(string)$u->getId()] ?? ['score' => 0.0, 'extracts' => []];
+
             return [
                 'type' => self::SCOPE_TESTERS,
                 'iri' => '/api/testers/' . $u->getId(),
@@ -175,7 +181,7 @@ class SearchService
 
         $documents = [];
         foreach ($items as $tp) {
-            /** @var TestPlan $tp */
+            /* @var TestPlan $tp */
             $documents[$tp->getId()] = [
                 'name' => ['text' => $tp->getName() ?? '', 'weight' => 3.0],
                 'description' => ['text' => $tp->getDescription() ?? '', 'weight' => 1.0],
@@ -187,6 +193,7 @@ class SearchService
 
         return array_map(function (TestPlan $tp) use ($scores): array {
             $s = $scores[$tp->getId()] ?? ['score' => 0.0, 'extracts' => []];
+
             return [
                 'type' => self::SCOPE_TEST_PLAN,
                 'iri' => '/api/test_plans/' . $tp->getId(),
@@ -209,7 +216,7 @@ class SearchService
 
         $documents = [];
         foreach ($items as $q) {
-            /** @var Question $q */
+            /* @var Question $q */
             $documents[$q->getId()] = [
                 'name' => ['text' => $q->getName() ?? '', 'weight' => 3.0],
                 'content' => ['text' => $q->getContent() ?? '', 'weight' => 1.0],
@@ -220,6 +227,7 @@ class SearchService
 
         return array_map(function (Question $q) use ($scores): array {
             $s = $scores[$q->getId()] ?? ['score' => 0.0, 'extracts' => []];
+
             return [
                 'type' => self::SCOPE_QUESTIONS,
                 'iri' => '/api/questions/' . $q->getId(),
@@ -244,7 +252,7 @@ class SearchService
 
         $documents = [];
         foreach ($items as $a) {
-            /** @var Answer $a */
+            /* @var Answer $a */
             $documents[$a->getId()] = [
                 'comment' => ['text' => $a->getComment() ?? '', 'weight' => 1.0],
             ];
@@ -255,6 +263,7 @@ class SearchService
         return array_map(function (Answer $a) use ($scores): array {
             $s = $scores[$a->getId()] ?? ['score' => 0.0, 'extracts' => []];
             $comment = $a->getComment() ?? '';
+
             return [
                 'type' => self::SCOPE_ANSWERS,
                 'iri' => '/api/answers/' . $a->getId(),

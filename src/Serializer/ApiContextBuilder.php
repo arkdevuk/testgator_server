@@ -1,5 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
 // ApiContextBuilder
+
 namespace App\Serializer;
 
 use ApiPlatform\State\SerializerContextBuilderInterface;
@@ -21,36 +25,34 @@ final readonly class ApiContextBuilder implements SerializerContextBuilderInterf
 
         if (isset($context['groups'])) {
             if ($this->authorizationChecker->isGranted('ROLE_SUPERADMIN') && in_array($currentMethod, $writeMethods, true)) {
-                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                /* @noinspection UnsupportedStringOffsetOperationsInspection */
                 $context['groups'][] = 'admin:write';
             }
 
             if ($this->authorizationChecker->isGranted('ROLE_SUPERADMIN') && !in_array($currentMethod, $writeMethods, true)) {
-                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                /* @noinspection UnsupportedStringOffsetOperationsInspection */
                 $context['groups'][] = 'admin:read';
             }
 
             if ($this->authorizationChecker->isGranted('ROLE_ADMIN') && in_array($currentMethod, $writeMethods, true)) {
-                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                /* @noinspection UnsupportedStringOffsetOperationsInspection */
                 $context['groups'][] = 'team:write';
             }
 
             if ($this->authorizationChecker->isGranted('ROLE_ADMIN') && !in_array($currentMethod, $writeMethods, true)) {
-                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                /* @noinspection UnsupportedStringOffsetOperationsInspection */
                 $context['groups'][] = 'team:read';
             }
 
             if ($this->authorizationChecker->isGranted('ROLE_TESTER') && in_array($currentMethod, $writeMethods, true)) {
-                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                /* @noinspection UnsupportedStringOffsetOperationsInspection */
                 $context['groups'][] = 'tester:write';
             }
 
             if ($this->authorizationChecker->isGranted('ROLE_TESTER') && !in_array($currentMethod, $writeMethods, true)) {
-                /** @noinspection UnsupportedStringOffsetOperationsInspection */
+                /* @noinspection UnsupportedStringOffsetOperationsInspection */
                 $context['groups'][] = 'tester:read';
             }
-
-
         }
 
         return $context;

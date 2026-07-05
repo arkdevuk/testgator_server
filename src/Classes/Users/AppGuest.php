@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Classes\Users;
 
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -7,7 +9,7 @@ use Symfony\Component\Uid\UuidV7 as Uuid;
 
 class AppGuest implements UserInterface
 {
-    private Uuid $uuid;
+    private readonly Uuid $uuid;
 
     public function __construct(private readonly int $tpId, ?string $uuid = null)
     {

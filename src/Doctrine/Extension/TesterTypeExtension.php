@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Doctrine\Extension;
 
 use ApiPlatform\Doctrine\Orm\Extension\QueryCollectionExtensionInterface;
@@ -14,7 +16,7 @@ use Doctrine\ORM\QueryBuilder;
  * Scopes User queries to the correct type depending on which API resource
  * triggered the query:
  *  - shortName "Tester" (/api/testers) → type = TESTER
- *  - shortName "User"   (/api/users)   → type = USER
+ *  - shortName "User"   (/api/users)   → type = USER.
  *
  * Without this, both resources would share the same unfiltered query and
  * expose the wrong account type.

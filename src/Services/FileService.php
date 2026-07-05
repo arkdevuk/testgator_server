@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
-use Exception;
 use App\Entity\File;
 use App\Services\Authentification\JWTService;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Cache\CacheInterface;
 
@@ -15,10 +17,10 @@ class FileService
     protected ?S3Client $s3Client;
 
     public function __construct(
-        protected CacheInterface         $cache,
-        protected JWTService             $jwtService,
+        protected CacheInterface $cache,
+        protected JWTService     $jwtService,
         protected EntityManagerInterface $em,
-        protected RequestStack           $requestStack,
+        protected RequestStack   $requestStack,
     )
     {
         // constructor body
@@ -45,7 +47,7 @@ class FileService
 
     /**
      * Use this function once you have authenticated the user
-     * WARNING : this function does not check for authentication and authorization
+     * WARNING : this function does not check for authentication and authorization.
      *
      * @return string : JWT token
      */
@@ -67,7 +69,7 @@ class FileService
     public function storeFile(
         string $filepath,
         string $mime,
-        File   $file
+        File $file
     ): array
     {
         $data = $this->s3Client->putObject([
@@ -83,6 +85,7 @@ class FileService
         $file->setBucketUrl($_ENV['PUBLIC_URL_BUCKET']);
         $this->em->persist($file);
         $this->em->flush();
+
         return [
             'id' => $file->getId()?->toString(),
             'url' => $this->generateSignedUrl($file),
@@ -110,7 +113,7 @@ class FileService
     }
 
     /**
-     * Return the maximum upload file size in bytes allowed by the server
+     * Return the maximum upload file size in bytes allowed by the server.
      */
     public function getMaxUploadFileSize(): int
     {
@@ -118,6 +121,7 @@ class FileService
         $size = trim($size);
         $unit = strtolower($size[strlen($size) - 1]);
         $value = (int)$size;
+
         return match ($unit) {
             'g' => $value * 1024 * 1024 * 1024,
             'm' => $value * 1024 * 1024,
@@ -136,6 +140,5 @@ class FileService
         $key = 'Screenshot 2025-01-24 at 20.41.57.png';
 
         dd($this->s3Client->getObjectUrl($bucket, $key));
-
     }
 }

@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Entities;
 
-use DateTime;
-use Throwable;
-use Exception;
-use DateTimeInterface;
 use App\Entity\User;
 use App\Enum\UserType;
 use App\Services\Communication\MailingService;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 /**
  * Handles tester-specific workflows (OTP login, welcome email) for
@@ -34,12 +36,10 @@ class TesterManager
         $this->em->flush();
         // send mail
 
-
         try {
             $content = $this->mailingService->render('send-code.email.twig', [
-                'auth_code' => $code
+                'auth_code' => $code,
             ]);
-
 
             $subject = $this->translator->trans('email.auth_code.subject');
 
@@ -52,10 +52,8 @@ class TesterManager
             // ignore
         }
 
-
         return $code;
     }
-
 
     public function handlePostCreation(User $tester): void
     {

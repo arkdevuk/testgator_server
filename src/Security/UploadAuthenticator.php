@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Security;
 
-use Exception;
 use App\Entity\User;
 use App\Services\Authentification\JWTService;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +20,6 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class UploadAuthenticator extends AbstractAuthenticator
 {
-
     public function __construct(protected JWTService $JWTService, protected EntityManagerInterface $em)
     {
     }
@@ -71,14 +72,13 @@ class UploadAuthenticator extends AbstractAuthenticator
 
         // 'user' and 'tester' are now both User entities (differentiated by type)
         $self = &$this;
+
         return new SelfValidatingPassport(
             new UserBadge($u->getId(),
                 static fn($userIdentifier): ?object => $self->em->getRepository(User::class)
                     ->findOneBy(['id' => $userIdentifier])
             ), []
         );
-
-
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response

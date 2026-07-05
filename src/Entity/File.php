@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
+use App\Repository\FileRepository;
 use App\State\FileStateProcessor;
 use App\State\FileStateProvider;
-use App\Repository\FileRepository;
 use App\Traits\Entity\TimeStampable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -65,6 +67,7 @@ class File
     public function setSignedUrl(string $url): static
     {
         $this->signedUrl = $url;
+
         return $this;
     }
 

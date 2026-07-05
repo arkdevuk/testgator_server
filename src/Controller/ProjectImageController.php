@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use InvalidArgumentException;
-use RuntimeException;
 use App\Repository\ProjectRepository;
 use App\Services\ProfilePictureService;
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,9 +34,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ProjectImageController extends AbstractController
 {
     public function __construct(
-        private readonly ProjectRepository      $projectRepository,
+        private readonly ProjectRepository     $projectRepository,
         private readonly EntityManagerInterface $em,
-        private readonly ProfilePictureService  $profilePictureService,
+        private readonly ProfilePictureService $profilePictureService,
     )
     {
     }

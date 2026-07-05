@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\File;
 use App\Services\FileService;
 use App\Services\SettingsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -15,19 +17,20 @@ final class FileController extends AbstractController
     public function __construct(private readonly FileService $fileService, private readonly SettingsService $settingsService)
     {
     }
+
     #[Route('/public/apx/upload', name: 'upload_file')]
     public function upload_file(
-        Request         $request,
+        Request $request,
     ): JsonResponse
     {
         // CORS
-        header("Access-Control-Allow-Headers: Authorization, Content-Type, Accept");
-        header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
-        header("Allow: GET, POST, OPTIONS, PUT, DELETE");
-        if ($_SERVER['REQUEST_METHOD'] === "OPTIONS") {
-            die();
+        header('Access-Control-Allow-Headers: Authorization, Content-Type, Accept');
+        header('Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE');
+        header('Allow: GET, POST, OPTIONS, PUT, DELETE');
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            exit;
         }
-        /** @noinspection ObGetCleanCanBeUsedInspection */
+        /* @noinspection ObGetCleanCanBeUsedInspection */
         ob_get_contents();
         ob_end_clean();
 
@@ -67,17 +70,18 @@ final class FileController extends AbstractController
             ], 400);
         }
 
-        //dd($file,$file->getMimeType());die;
+        // dd($file,$file->getMimeType());die;
 
         $fileType = $mime = $file->getMimeType();
         $fileExt = $file->getClientOriginalExtension();
         $fileExt = strtolower($fileExt);
 
         // check ext
-        if (!in_array($fileExt, $allowedExt)) {
+        if (!in_array($fileExt, $allowedExt, true)) {
             $data['more'] = [$fileExt, $allowedExt];
             $data['error'] = 'File format not allowed';
             $data['message'] = 'file_format_not_allowed';
+
             return $this->json($data, 400);
         }
         $type = array_find_key($allowedMime, fn($v): bool => in_array($fileType, $v, true));
@@ -85,6 +89,7 @@ final class FileController extends AbstractController
         if ($type === null) {
             $data['error'] = 'File type not allowed';
             $data['message'] = 'file_type_not_allowed';
+
             return $this->json($data, 400);
         }
 

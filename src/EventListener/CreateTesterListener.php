@@ -27,5 +27,4 @@ class CreateTesterListener
 
         $this->testerManager->handlePostCreation($entity);
     }
-
 }

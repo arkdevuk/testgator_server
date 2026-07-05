@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\ApiResource;
 
 use ApiPlatform\Metadata\ApiResource;
@@ -44,6 +46,7 @@ class PublicProfile
     public function setId(?Uuid $id): static
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -55,6 +58,7 @@ class PublicProfile
     public function setType(?string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -66,6 +70,7 @@ class PublicProfile
     public function setNickname(string $nickname): static
     {
         $this->nickname = $nickname;
+
         return $this;
     }
 
@@ -77,6 +82,7 @@ class PublicProfile
     public function setProfilePictureUrl(string $profilePictureUrl): static
     {
         $this->profilePictureUrl = $profilePictureUrl;
+
         return $this;
     }
 
@@ -88,6 +94,7 @@ class PublicProfile
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
+
         return $this;
     }
 
@@ -99,6 +106,7 @@ class PublicProfile
     public function setTags(array $tags): static
     {
         $this->tags = $tags;
+
         return $this;
     }
 }

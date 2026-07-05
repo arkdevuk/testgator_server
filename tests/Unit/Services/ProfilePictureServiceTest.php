@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Unit\Services;
 
 use App\Services\ProfilePictureService;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -64,7 +67,7 @@ class ProfilePictureServiceTest extends TestCase
 
     public function testFileOverMaxBytesIsRejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/less than 500 KB/i');
 
         // Build a valid but bloated PNG by injecting padding after the header.
@@ -78,7 +81,7 @@ class ProfilePictureServiceTest extends TestCase
 
     public function testImageExceedingMaxWidthIsRejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/must not exceed/i');
 
         $path = $this->makeTmpImage(ProfilePictureService::MAX_PX + 1, ProfilePictureService::MAX_PX + 1);
@@ -87,7 +90,7 @@ class ProfilePictureServiceTest extends TestCase
 
     public function testNonSquareImageIsRejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/square/i');
 
         $path = $this->makeTmpImage(100, 200);
@@ -98,7 +101,7 @@ class ProfilePictureServiceTest extends TestCase
 
     public function testNonSquareLandscapeIsRejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/square/i');
 
         $path = $this->makeTmpImage(300, 200);
@@ -109,7 +112,7 @@ class ProfilePictureServiceTest extends TestCase
 
     public function testNonImageFileIsRejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $path = tempnam(sys_get_temp_dir(), 'ppic_txt_');
         $this->tmpFiles[] = $path;
@@ -120,11 +123,11 @@ class ProfilePictureServiceTest extends TestCase
 
     public function testGifIsRejected(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/Only PNG and JPEG/i');
 
         // Minimal 1×1 GIF89a
-        $gif = base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
+        $gif = base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', true);
         $path = tempnam(sys_get_temp_dir(), 'ppic_gif_') . '.gif';
         $this->tmpFiles[] = $path;
         file_put_contents($path, $gif);
@@ -157,6 +160,7 @@ class ProfilePictureServiceTest extends TestCase
         $this->tmpFiles[] = $path;
         // Write just over 500 KB of zero bytes (not a valid image — size check fires first)
         file_put_contents($path, str_repeat("\x00", ProfilePictureService::MAX_BYTES + 1));
+
         return $path;
     }
 }

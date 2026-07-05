@@ -23,7 +23,7 @@ class WorkingHours
         #[Groups(['workingHours:read'])]
         private ?string $id,
         #[Groups(['workingHours:read'])]
-        private array   $details
+        private array $details
     )
     {
     }
@@ -37,5 +37,4 @@ class WorkingHours
     {
         return $this->details;
     }
-
 }

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\EventSubscriber;
 
-use function Sentry\init;
 use function Sentry\captureException;
+use function Sentry\init;
+
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;

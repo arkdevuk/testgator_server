@@ -1,14 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use InvalidArgumentException;
-use RuntimeException;
 use App\Entity\User;
 use App\Enum\UserType;
 use App\Repository\UserRepository;
 use App\Services\ProfilePictureService;
 use Doctrine\ORM\EntityManagerInterface;
+
+use const FILTER_VALIDATE_URL;
+
+use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,10 +25,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ProfilePictureController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository         $userRepository,
+        private readonly UserRepository        $userRepository,
         private readonly EntityManagerInterface $em,
-        private readonly ProfilePictureService  $profilePictureService,
-        private readonly Security               $security,
+        private readonly ProfilePictureService $profilePictureService,
+        private readonly Security              $security,
     )
     {
     }

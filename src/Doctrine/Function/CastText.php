@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Doctrine\Function;
 
 use Doctrine\ORM\Query\AST\Functions\FunctionNode;
@@ -9,7 +11,7 @@ use Doctrine\ORM\Query\SqlWalker;
 use Doctrine\ORM\Query\TokenType;
 
 /**
- * DQL function: CAST_TEXT(expr) → CAST(expr AS TEXT)
+ * DQL function: CAST_TEXT(expr) → CAST(expr AS TEXT).
  *
  * Usage in DQL:  LOWER(CAST_TEXT(a.systemInfos)) LIKE :param
  */

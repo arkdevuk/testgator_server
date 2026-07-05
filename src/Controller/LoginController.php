@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Exception;
-use Throwable;
-use RuntimeException;
+use App\Entity\TestPlan;
+use App\Entity\User;
 use App\Services\Authentification\GuestAuthService;
 use App\Services\Authentification\JWTService;
 use App\Services\Authentification\LdapService;
@@ -14,10 +14,14 @@ use App\Services\Entities\TesterManager;
 use App\Services\Entities\TestPlanManager;
 use App\Services\Entities\UserBuiltInDbService;
 use App\Services\LoginRateLimiterService;
+use Exception;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Throwable;
 
 final class LoginController extends AbstractController
 {
@@ -28,7 +32,7 @@ final class LoginController extends AbstractController
 
     #[Route('/api/auth/login', name: 'app_login', methods: ['POST'])]
     public function index(
-        Request                 $request,
+        Request $request,
         #[Autowire(env: 'APP_AUTH_MODE')]
         string $appAuthMode,
     ): JsonResponse
@@ -83,7 +87,6 @@ final class LoginController extends AbstractController
                 }
                 $user = $this->userBuiltInDbService->getUserByEmail($userData['email'])
                     ?? $this->userBuiltInDbService->createUser($userData, 'ldap');
-
             } else {
                 // APP_AUTH_MODE=db — authenticate against the local password hash.
                 // Users with no password set (e.g. created via LDAP sync) are blocked
@@ -95,7 +98,7 @@ final class LoginController extends AbstractController
                 }
             }
 
-            if ($user === null) {
+            if (!$user instanceof User) {
                 return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
             }
 
@@ -113,12 +116,13 @@ final class LoginController extends AbstractController
 
         // ── Tester ────────────────────────────────────────────────────────
         $tester = $this->testerManager->getTesterByEmail($username);
-        if ($tester === null || $tester->isActive() === false) {
+        if (!$tester instanceof User || $tester->isActive() === false) {
             return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
         }
 
         if ($authMode === 'code') {
             $this->testerManager->updateTesterCode($tester);
+
             return $this->json(['logged' => false, 'otp' => true], 200);
         }
 
@@ -129,7 +133,7 @@ final class LoginController extends AbstractController
                 return $this->json(['logged' => false, 'error' => $e->getMessage()], 403);
             }
 
-            if ($tester === null) {
+            if (!$tester instanceof User) {
                 return $this->json(['logged' => false, 'error' => 'Not logged in'], 401);
             }
 
@@ -173,7 +177,7 @@ final class LoginController extends AbstractController
 
     #[Route('/api/auth/login_tester', name: 'app_login_tester', methods: ['POST'])]
     public function loginTester(
-        Request             $request,
+        Request $request,
     ): JsonResponse
     {
         $challenge = $request->getPayload()->get('challenge');
@@ -185,7 +189,7 @@ final class LoginController extends AbstractController
         }
 
         $tp = $this->testPlanManager->getTestPlanById((int)$testPlanId);
-        if ($tp === null) {
+        if (!$tp instanceof TestPlan) {
             return $this->json(['error' => 'Invalid TestPlan'], 404);
         }
 
@@ -205,7 +209,7 @@ final class LoginController extends AbstractController
 
     #[Route('/api/auth/refresh', name: 'app_refresh', methods: ['POST'])]
     public function refresh(
-        Request              $request,
+        Request $request,
     ): JsonResponse
     {
         $rawToken = $request->getPayload()->get('refreshToken');
@@ -228,7 +232,7 @@ final class LoginController extends AbstractController
             }
 
             $tp = $this->testPlanManager->getTestPlanById((int)$tpId);
-            if ($tp === null) {
+            if (!$tp instanceof TestPlan) {
                 return $this->json(['error' => 'TestPlan no longer exists'], 401);
             }
 
@@ -241,7 +245,7 @@ final class LoginController extends AbstractController
         // ── Tester (OTP login) ────────────────────────────────────────────
         if ($result['userType'] === 'tester') {
             $tester = $this->testerManager->getTesterByGuid($result['userGuid']);
-            if ($tester === null || !$tester->isActive()) {
+            if (!$tester instanceof User || !$tester->isActive()) {
                 return $this->json(['error' => 'Tester not found or inactive'], 401);
             }
 
@@ -253,7 +257,7 @@ final class LoginController extends AbstractController
 
         // ── Team user ─────────────────────────────────────────────────────
         $user = $this->userBuiltInDbService->getUserByGuid($result['userGuid']);
-        if ($user === null) {
+        if (!$user instanceof User) {
             return $this->json(['error' => 'User not found'], 401);
         }
 

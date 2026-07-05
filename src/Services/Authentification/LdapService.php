@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Authentification;
 
 use Exception;
 use InvalidArgumentException;
+
+use const LDAP_ESCAPE_FILTER;
+
 use Symfony\Component\Ldap\Ldap;
 
 class LdapService
@@ -64,9 +69,10 @@ class LdapService
         foreach ($groups as $group) {
             $userInfos['groups'][] = $group->getAttributes()['cn'][0];
         }
-        if ($this->mustHaveGroup !== null && !in_array($this->mustHaveGroup, $userInfos['groups'])) {
+        if ($this->mustHaveGroup !== null && !in_array($this->mustHaveGroup, $userInfos['groups'], true)) {
             throw new Exception('User not in required group');
         }
+
         return $userInfos;
     }
 
@@ -108,6 +114,5 @@ class LdapService
             'connection_string' => $_ENV['LDAP_QUERY_STRING'],
             'encryption' => str_contains($_ENV['LDAP_QUERY_STRING'], 'ldaps:') ? 'ssl' : 'none',
         ]);
-
     }
 }

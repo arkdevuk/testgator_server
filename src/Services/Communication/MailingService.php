@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Communication;
 
-use Throwable;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Throwable;
 use Twig\Environment;
 
 class MailingService
@@ -36,5 +38,4 @@ class MailingService
 
         $this->mailer->send($email);
     }
-
 }

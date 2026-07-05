@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Api;
 
 use App\Entity\Project;
 use App\Entity\Release;
-use App\Tests\DataFixtures\TestFixtures;
 
 /**
- * Tests for /api/releases
+ * Tests for /api/releases.
  */
 class ReleaseTest extends AbstractApiTestCase
 {
