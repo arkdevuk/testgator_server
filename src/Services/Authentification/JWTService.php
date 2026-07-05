@@ -46,13 +46,17 @@ class JWTService
      */
     public function generateToken(array $payload = []): string
     {
-        $env = $_ENV['APP_ENV'] === 'prod' ? 'prod' : 'dev';
+        $env = match ($_ENV['APP_ENV'] ?? 'dev') {
+            'prod' => 'prod',
+            'test' => 'test',
+            default => 'dev',
+        };
         // if password is correct, generate JWT
-        $privateKey = file_get_contents("../data/JWT.{$env}/testgator.key");
+        $privateKey = file_get_contents(__DIR__ . '/../../../data/JWT.' . $env . '/testgator.key');
         // $expire is now + 24 hours
         $payload = [
             ...$payload,
-            'ip_hash' => md5($_SERVER['REMOTE_ADDR']), // if ip changes, JWT is invalid
+            'ip_hash' => md5($_SERVER['REMOTE_ADDR'] ?? ''), // if ip changes, JWT is invalid
         ];
 
         return JWT::encode($payload, $privateKey, 'RS256');
@@ -67,9 +71,13 @@ class JWTService
      */
     public function decodeJWT(string $jwt): array
     {
-        $env = $_ENV['APP_ENV'] === 'prod' ? 'prod' : 'dev';
+        $env = match ($_ENV['APP_ENV'] ?? 'dev') {
+            'prod' => 'prod',
+            'test' => 'test',
+            default => 'dev',
+        };
         // if password is correct, generate JWT
-        $privateKey = file_get_contents("../data/JWT.{$env}/testgator.pub");
+        $privateKey = file_get_contents(__DIR__ . '/../../../data/JWT.' . $env . '/testgator.pub');
         // decode JWT
         $content = JWT::decode($jwt, new Key($privateKey, 'RS256'));
         $authData = self::jwtPayloadToArray($content);

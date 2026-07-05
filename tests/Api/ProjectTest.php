@@ -119,7 +119,15 @@ class ProjectTest extends AbstractApiTestCase
         $project = static::$em->getRepository(Project::class)
             ->findOneBy(['name' => 'Beta Project']);
 
-        static::$client->request('DELETE', '/api/projects/' . $project->getId(),
+        self::assertNotNull($project, 'Beta Project was not found — fixtures may not have loaded correctly.');
+        self::assertNotNull($project->getId(), 'Beta Project was persisted but getId() returned null — Doctrine sequence issue?');
+
+        // Capture the id now: Doctrine resets the identifier of a managed entity
+        // to null once it is deleted, so $project->getId() is unusable afterwards
+        // (it would produce "/api/projects/" → a 301 redirect instead of a 404).
+        $projectId = $project->getId();
+
+        static::$client->request('DELETE', '/api/projects/' . $projectId,
             [], [],
             [
                 'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
@@ -129,7 +137,7 @@ class ProjectTest extends AbstractApiTestCase
         $this->assertStatusCode(204);
 
         // Verify gone
-        $this->jsonRequest('GET', '/api/projects/' . $project->getId(), null, $token);
+        $this->jsonRequest('GET', '/api/projects/' . $projectId, null, $token);
         $this->assertStatusCode(404);
     }
 

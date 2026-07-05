@@ -32,6 +32,11 @@ final class QuestionStatsController extends AbstractController
             return $this->json(['error' => 'Access denied'], 403);
         }
 
-        return $this->json($this->questionStatsService->getStats($id));
+        // JSON_PRESERVE_ZERO_FRACTION keeps answer_rate a float in the payload
+        // (100.0 instead of 100), matching the documented response shape.
+        return $this->json(
+            $this->questionStatsService->getStats($id),
+            context: ['json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS | \JSON_PRESERVE_ZERO_FRACTION],
+        );
     }
 }

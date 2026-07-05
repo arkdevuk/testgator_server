@@ -32,3 +32,32 @@ services:
       decorates: 'api_platform.openapi.factory'
       arguments: [ '@App\OpenApi\OpenApiDecorator.inner' ]
       autoconfigure: false
+
+  # ── JSON-LD float serialization ────────────────────────────────────────
+  # Replace API Platform's JSON-LD encoder so float properties keep their
+  # zero fraction (e.g. ReleaseStats::percentage → 200.0, not 200).
+  # ApiJsonEncode = API Platform's default options + JSON_PRESERVE_ZERO_FRACTION.
+    App\Serializer\ApiJsonEncode:
+      autoconfigure: false # don't tag it as an encoder of the main serializer
+
+    app.serializer.jsonld_base_encoder:
+      class: Symfony\Component\Serializer\Encoder\JsonEncoder
+      autoconfigure: false
+      arguments:
+        $encodingImpl: '@App\Serializer\ApiJsonEncode'
+
+    api_platform.jsonld.encoder:
+      class: ApiPlatform\Serializer\JsonEncoder
+      arguments:
+        $format: 'jsonld'
+        $jsonEncoder: '@app.serializer.jsonld_base_encoder'
+
+  # ── Collection totalItems as int ───────────────────────────────────────
+  # Paginator::getTotalItems() returns a float; with JSON_PRESERVE_ZERO_FRACTION
+  # a count of 4 would serialize as 4.0. Cast it back to int without touching
+  # genuine float properties.
+    App\Serializer\CollectionTotalItemsIntNormalizer:
+      decorates: 'api_platform.hydra.normalizer.collection'
+      arguments:
+        $decorated: '@App\Serializer\CollectionTotalItemsIntNormalizer.inner'
+      autoconfigure: false

@@ -225,7 +225,10 @@ class SearchTest extends AbstractApiTestCase
         $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope[]=questions&scope[]=answers', null, $token);
 
         $this->assertStatusCode(200);
+        // array_unique preserves original keys, so the result is not a list;
+        // re-index with sort() so assertEqualsCanonicalizing sorts by value.
         $types = array_unique(array_column($data, 'type'));
+        sort($types);
         self::assertEqualsCanonicalizing(['answers', 'questions'], $types);
     }
 

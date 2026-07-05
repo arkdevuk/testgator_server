@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 #[ORM\Entity(repositoryClass: ReleaseRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['release:read'], 'enable_max_depth' => true],
-    denormalizationContext: ['groups' => ['release:write']],
+    denormalizationContext: ['groups' => ['team:write']],
     forceEager: false,
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'name', 'project'], arguments: ['orderParameterName' => 'order'])]

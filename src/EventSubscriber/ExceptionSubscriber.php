@@ -27,24 +27,24 @@ class ExceptionSubscriber implements EventSubscriberInterface
 
     public function onKernelException(ExceptionEvent $event): void
     {
+        $dsn = $_ENV['SENTRY_DSN'] ?? '';
+
+        // No DSN configured (tests, local dev) → do nothing. Sentry's init()
+        // registers global error/exception handlers that it never restores,
+        // which PHPUnit reports as a risky test ("did not remove its own
+        // error/exception handlers"). Skipping also avoids initializing the
+        // SDK with an empty DSN in production.
+        if ($dsn === '') {
+            return;
+        }
+
         if (!$this->inited) {
-            init([
-                'dsn' => $_ENV['SENTRY_DSN'] ?? '',
-            ]);
+            init(['dsn' => $dsn]);
             $this->inited = true;
         }
 
-        $throwable = $event->getThrowable();
-        // Log to Sentry
-        /*
-        $this->logger->error('Uncaught Exception', [
-            'exception' => $throwable,
-        ]);//*/
-
-        // Or directly if you're using Sentry SDK:
-        captureException($throwable);
-
-        // ⚠ Do NOT call $event->stopPropagation() unless you want to stop Symfony's default error handling
-        // We simply let it continue after logging
+        // ⚠ Do NOT call $event->stopPropagation() — Symfony's default error
+        // handling must still run after we report the exception.
+        captureException($event->getThrowable());
     }
 }

@@ -54,7 +54,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Delete(security: "is_granted('ROLE_USER')"),
     ],
     normalizationContext: ['groups' => ['testPlan:read', 'timestampable:read'], 'enable_max_depth' => true],
-    denormalizationContext: ['groups' => ['testPlan:write'], 'enable_max_depth' => true],
+    denormalizationContext: ['groups' => ['testPlan:write', 'team:write'], 'enable_max_depth' => true],
     forceEager: false,
 )]
 #[ApiFilter(SearchFilter::class, properties: [

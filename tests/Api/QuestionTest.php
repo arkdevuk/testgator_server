@@ -46,7 +46,8 @@ class QuestionTest extends AbstractApiTestCase
         $this->assertStatusCode(200);
         self::assertGreaterThan(0, $data['totalItems']);
         foreach ($data['member'] as $q) {
-            self::assertSame('/api/test_plans/' . $plan->getId(), $q['plan']['@id']);
+            $planIri = is_array($q['plan']) ? $q['plan']['@id'] : $q['plan'];
+            self::assertSame('/api/test_plans/' . $plan->getId(), $planIri);
         }
     }
 
@@ -217,8 +218,19 @@ class QuestionTest extends AbstractApiTestCase
     public function testQuestionStatsEmptyQuestion(): void
     {
         $token = $this->getTeamUserToken();
-        $question = static::$em->getRepository(Question::class)
-            ->findOneBy(['name' => 'Is the dashboard visible?']);
+
+        // Both fixture questions have answers ("Is the dashboard visible?" has a
+        // FAILED and a BLOCKED answer), so create a fresh question with none.
+        $plan = static::$em->getRepository(TestPlan::class)
+            ->findOneBy(['name' => 'Published Plan']);
+
+        $question = new Question();
+        $question->setName('Question without answers')
+            ->setContent('No tester has answered this yet.')
+            ->setPlan($plan)
+            ->setDisplayOrder(99);
+        static::$em->persist($question);
+        static::$em->flush();
 
         $data = $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats', null, $token);
 

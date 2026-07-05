@@ -53,7 +53,4 @@
         </deprecationTrigger>
     </source>
 
-    <extensions>
-        <bootstrap class="Zenstruck\Foundry\PHPUnit\FoundryExtension"/>
-    </extensions>
 </phpunit>

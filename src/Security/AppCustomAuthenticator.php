@@ -34,7 +34,7 @@ class AppCustomAuthenticator extends AbstractAuthenticator
         // DONE : Implement authenticate() method.
         // get JWT from request
         $headerValue = $request->headers->get('Authorization');
-        $jwtString = trim(str_replace('Bearer ', '', $headerValue));
+        $jwtString = trim(str_replace('Bearer ', '', $headerValue ?? ''));
 
         if (in_array($jwtString, ['', null, 'null'], true)) {
             throw new AuthenticationException('Invalid JWT');

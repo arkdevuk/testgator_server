@@ -44,7 +44,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Delete(security: "is_granted('ROLE_USER')"),
     ],
     normalizationContext: ['groups' => ['project:read']],
-    denormalizationContext: ['groups' => ['project:write']],
+    denormalizationContext: ['groups' => ['team:write']],
     forceEager: false,
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'project', 'name'], arguments: ['orderParameterName' => 'order'])]

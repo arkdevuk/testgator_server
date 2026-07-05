@@ -56,6 +56,23 @@ services:
     # comment the following line in production, it allows to have nice human-readable logs in dev
     tty: true
 
+  testgator-db-test:
+    image: postgres:16-alpine
+    container_name: testgator-db-test
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: testgator_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data   # in-RAM storage — fast, ephemeral, no disk writes
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U test -d testgator_test" ]
+      interval: 3s
+      timeout: 5s
+      retries: 15
+
 # Enable the volume in production only, and change the paths above
 #volumes:
 #  database_data:

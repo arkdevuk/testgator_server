@@ -33,7 +33,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Delete(),
     ],
     normalizationContext: ['groups' => ['question:read'], 'enable_max_depth' => true],
-    denormalizationContext: ['groups' => ['question:write'], 'enable_max_depth' => true],
+    denormalizationContext: ['groups' => ['team:write'], 'enable_max_depth' => true],
     forceEager: false,
 )]
 #[ApiFilter(OrderFilter::class, properties: ['displayOrder', 'id', 'plan'], arguments: ['orderParameterName' => 'order'])]

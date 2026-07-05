@@ -60,16 +60,22 @@ final class SearchController extends AbstractController
      */
     private function resolveScopes(Request $request, User $user): ?array
     {
-        // Array style: scope[]=x&scope[]=y
-        $array = $request->query->all('scope');
+        // Use all() without a key — returns the full params dict as-is, never throws.
+        // In Symfony 7, get($key) and all($key) both throw BadRequestHttpException
+        // when the value type doesn't match expectations.
+        $params = $request->query->all();
+        $rawScope = $params['scope'] ?? null;
 
-        if ($array === []) {
-            // Comma-separated style: scope=x,y  or  scope=x
-            $raw = trim($request->query->getString('scope', ''));
-            if ($raw === '') {
-                return $user->isTester() ? SearchService::TESTER_SCOPES : SearchService::ALL_SCOPES;
-            }
-            $array = array_map(trim(...), explode(',', $raw));
+        if ($rawScope === null || $rawScope === '') {
+            return $user->isTester() ? SearchService::TESTER_SCOPES : SearchService::ALL_SCOPES;
+        }
+
+        // scope[]=x&scope[]=y → array
+        if (is_array($rawScope)) {
+            $array = $rawScope;
+        } else {
+            // scope=x,y  or  scope=x
+            $array = array_map(trim(...), explode(',', (string)$rawScope));
         }
 
         $array = array_values(array_unique(array_filter($array)));

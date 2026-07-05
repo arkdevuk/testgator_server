@@ -68,7 +68,7 @@ class Answer
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'tester_id', nullable: true)]
+    #[ORM\JoinColumn(name: 'tester_id', nullable: true, onDelete: 'SET NULL')]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?User $tester = null;
 
@@ -89,7 +89,7 @@ class Answer
     private Collection $files;
 
     #[ORM\ManyToOne(inversedBy: 'answers')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?Question $question = null;
 

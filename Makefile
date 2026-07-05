@@ -13,7 +13,6 @@ help:
 	@echo "Available targets:"
 	@echo "  build      Build dev images"
 	@echo "  up/start   Start containers"
-	@echo "  up-d   	Start containers in background"
 	@echo "  stop       Stop containers"
 	@echo "  down       Stop and remove containers"
 	@echo "  restart    Restart containers"
@@ -21,7 +20,6 @@ help:
 	@echo "  bash/sh    Open shell in app container"
 	@echo "  composer   Run composer in app container (ARGS=...)"
 	@echo "  console    Run Symfony console (CMD=...)"
-	@echo "  ps         List containers"
 	@echo "  clean      Remove containers, networks, volumes"
 	@echo "  db-0      	Reset db and load fixtures"
 	@echo "  qa      	Run rector, cs-fixer, phpstan analyse and test"
@@ -32,11 +30,6 @@ build:
 
 up:
 	$(DOCKER_COMPOSE) up --wait
-
-up-d:
-	$(DOCKER_COMPOSE) up --wait
-	chmod +x hook.sh
-	./hook.sh
 
 start: up
 
@@ -74,9 +67,6 @@ composer:
 console:
 	$(DOCKER_COMPOSE) exec $(SERVICE) php bin/console $(CMD)
 
-ps:
-	$(DOCKER_COMPOSE) ps
-
 clean:
 	$(DOCKER_COMPOSE) down -v
 
@@ -88,7 +78,13 @@ qa:
 	$(EXEC) vendor/bin/deptrac analyse \
 
 test:
-	$(EXEC) vendor/bin/phpunit --display-errors --display-warnings --display-notices
+	@set -e; \
+	$(DOCKER_COMPOSE) up -d --wait testgator-db-test; \
+	trap '$(DOCKER_COMPOSE) stop testgator-db-test' EXIT; \
+	$(EXEC) php bin/console cache:clear --env=test; \
+	$(EXEC) php bin/console doctrine:database:create --if-not-exists --env=test; \
+	$(EXEC) php bin/console doctrine:schema:update --force --env=test; \
+	$(EXEC) vendor/bin/phpunit --display-errors --display-warnings
 
 tests: test
 

@@ -24,13 +24,31 @@ abstract class AbstractApiTestCase extends WebTestCase
 
     protected static bool $fixturesLoaded = false;
 
+    /** Error handler on top of the stack before the test body runs. */
+    private mixed $baselineErrorHandler = null;
+
+    /** Exception handler on top of the stack before the test body runs. */
+    private mixed $baselineExceptionHandler = null;
+
     protected function setUp(): void
     {
+        // Snapshot the current (PHPUnit-owned) error/exception handlers so
+        // tearDown can pop anything the request lifecycle leaves behind.
+        $this->baselineErrorHandler = self::peekErrorHandler();
+        $this->baselineExceptionHandler = self::peekExceptionHandler();
+
         parent::setUp();
 
         static::$client = static::createClient();
         static::$container = static::getContainer();
         static::$em = static::$container->get('doctrine.orm.entity_manager');
+
+        // Login rate-limit counters live in the default cache pool and persist
+        // in the filesystem between runs. Resetting a fixed list of emails misses
+        // ad-hoc usernames used by negative-path tests (nobody@, ghost@, generated
+        // ones), letting their counters accumulate across runs until they trip a
+        // 429. Clear the whole pool so every test starts with a clean window.
+        static::$container->get('cache.app')->clear();
 
         $this->loadFixtures();
     }
@@ -47,6 +65,59 @@ abstract class AbstractApiTestCase extends WebTestCase
             new ORMPurger(static::$em),
         );
         $executor->execute($loader->getFixtures());
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // Some request code paths (e.g. Sentry's init(), certain vendor helpers)
+        // leave an error/exception handler registered. PHPUnit 11+ flags such a
+        // test as risky ("did not remove its own error/exception handlers").
+        // Pop anything added since setUp, down to PHPUnit's baseline. This is a
+        // no-op when nothing leaked and never touches PHPUnit's own handlers.
+        self::popErrorHandlersDownTo($this->baselineErrorHandler);
+        self::popExceptionHandlersDownTo($this->baselineExceptionHandler);
+    }
+
+    /** Returns the current top error handler without altering the stack. */
+    private static function peekErrorHandler(): mixed
+    {
+        $handler = set_error_handler(static fn(): bool => false);
+        restore_error_handler();
+
+        return $handler;
+    }
+
+    /** Returns the current top exception handler without altering the stack. */
+    private static function peekExceptionHandler(): mixed
+    {
+        $handler = set_exception_handler(null);
+        restore_exception_handler();
+
+        return $handler;
+    }
+
+    private static function popErrorHandlersDownTo(mixed $baseline): void
+    {
+        for ($i = 0; $i < 100; ++$i) {
+            $top = self::peekErrorHandler();
+            if ($top === $baseline || $top === null) {
+                return;
+            }
+            restore_error_handler();
+        }
+    }
+
+    private static function popExceptionHandlersDownTo(mixed $baseline): void
+    {
+        for ($i = 0; $i < 100; ++$i) {
+            $top = self::peekExceptionHandler();
+            if ($top === $baseline || $top === null) {
+                return;
+            }
+            restore_exception_handler();
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

@@ -64,7 +64,12 @@ class TestPlanTest extends AbstractApiTestCase
 
         $this->assertStatusCode(200);
         foreach ($data['member'] as $plan) {
-            self::assertSame($projectId, $plan['release']['project']['id']);
+            // Project fields are not in the testPlan:read normalization group, so
+            // API Platform serializes the relation as a plain IRI string (e.g.
+            // "/api/projects/3") rather than an embedded object.
+            $projectRef = $plan['release']['project'];
+            $projectIri = is_array($projectRef) ? ($projectRef['@id'] ?? '') : (string)$projectRef;
+            self::assertSame('/api/projects/' . $projectId, $projectIri);
         }
     }
 

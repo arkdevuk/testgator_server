@@ -1,7 +1,5 @@
 doctrine:
   dbal:
-    # Use the DATABASE_URL from .env.test (SQLite) without the dbname_suffix
     url: '%env(resolve:DATABASE_URL)%'
   orm:
-    # Use in-memory auto_generate_proxy_classes for faster test boots
     auto_generate_proxy_classes: true
