@@ -32,13 +32,13 @@ class AnswerQueryFilter extends AbstractFilter
     }
 
     protected function filterProperty(
-        string     $property,
-                   $value,
+        string $property,
+               $value,
         QueryBuilder $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
-        string     $resourceClass,
+        string $resourceClass,
         ?Operation $operation = null,
-        array      $context = [],
+        array  $context = [],
     ): void
     {
         if ($resourceClass !== Answer::class || $property !== 'query' || !is_string($value) || $value === '') {

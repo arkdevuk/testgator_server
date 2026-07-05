@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Enum\UserType;
-use App\Repository\UserRepository;
-use App\Services\ProfilePictureService;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Services\UserProfileService;
 
 use const FILTER_VALIDATE_URL;
 
@@ -16,6 +13,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,10 +23,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ProfilePictureController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly EntityManagerInterface $em,
-        private readonly ProfilePictureService $profilePictureService,
-        private readonly Security       $security,
+        private readonly UserProfileService $userProfileService,
+        private readonly Security           $security,
     )
     {
     }
@@ -46,9 +42,9 @@ final class ProfilePictureController extends AbstractController
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function setTesterProfilePictureUrl(string $id, Request $request): JsonResponse
     {
-        $tester = $this->userRepository->findOneBy(['id' => $id, 'type' => UserType::TESTER]);
+        $tester = $this->userProfileService->findTester($id);
 
-        if ($tester === null) {
+        if (!$tester instanceof User) {
             return $this->json(['error' => 'Tester not found.'], Response::HTTP_NOT_FOUND);
         }
 
@@ -73,8 +69,7 @@ final class ProfilePictureController extends AbstractController
             return $this->json(['error' => '`url` must be a valid URL.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $tester->setProfilePictureUrl($url);
-        $this->em->flush();
+        $this->userProfileService->setTesterProfilePictureUrl($tester, $url);
 
         return $this->json(['profilePictureUrl' => $tester->getProfilePictureUrl()]);
     }
@@ -91,9 +86,9 @@ final class ProfilePictureController extends AbstractController
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function setTesterNickname(string $id, Request $request): JsonResponse
     {
-        $tester = $this->userRepository->findOneBy(['id' => $id, 'type' => UserType::TESTER]);
+        $tester = $this->userProfileService->findTester($id);
 
-        if ($tester === null) {
+        if (!$tester instanceof User) {
             return $this->json(['error' => 'Tester not found.'], Response::HTTP_NOT_FOUND);
         }
 
@@ -117,8 +112,7 @@ final class ProfilePictureController extends AbstractController
             return $this->json(['error' => '`nickname` must not exceed 128 characters.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $tester->setNickname(trim($nickname));
-        $this->em->flush();
+        $this->userProfileService->setTesterNickname($tester, $nickname);
 
         return $this->json(['nickname' => $tester->getNickname()]);
     }
@@ -137,9 +131,9 @@ final class ProfilePictureController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function uploadUserProfilePicture(string $id, Request $request): JsonResponse
     {
-        $user = $this->userRepository->findOneBy(['id' => $id, 'type' => UserType::USER]);
+        $user = $this->userProfileService->findUser($id);
 
-        if ($user === null) {
+        if (!$user instanceof User) {
             return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
         }
 
@@ -154,6 +148,7 @@ final class ProfilePictureController extends AbstractController
             return $this->json(['error' => 'Access denied.'], Response::HTTP_FORBIDDEN);
         }
 
+        /** @var UploadedFile|null $file */
         $file = $request->files->get('file');
 
         if ($file === null) {
@@ -161,23 +156,12 @@ final class ProfilePictureController extends AbstractController
         }
 
         try {
-            $mime = $this->profilePictureService->validateImage($file->getPathname());
+            $url = $this->userProfileService->uploadUserProfilePicture($user, $file);
         } catch (InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        try {
-            $url = $this->profilePictureService->uploadImage(
-                $file->getPathname(),
-                $mime,
-                (string)$user->getId(),
-            );
         } catch (RuntimeException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $user->setProfilePictureUrl($url);
-        $this->em->flush();
 
         return $this->json(['profilePictureUrl' => $url]);
     }
@@ -193,9 +177,9 @@ final class ProfilePictureController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function deleteUserProfilePicture(string $id): JsonResponse
     {
-        $user = $this->userRepository->findOneBy(['id' => $id, 'type' => UserType::USER]);
+        $user = $this->userProfileService->findUser($id);
 
-        if ($user === null) {
+        if (!$user instanceof User) {
             return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
         }
 
@@ -210,8 +194,7 @@ final class ProfilePictureController extends AbstractController
             return $this->json(['error' => 'Access denied.'], Response::HTTP_FORBIDDEN);
         }
 
-        $user->setProfilePictureUrl('/assets/gator_avatar.png');
-        $this->em->flush();
+        $this->userProfileService->deleteUserProfilePicture($user);
 
         return $this->json(['profilePictureUrl' => $user->getProfilePictureUrl()]);
     }
