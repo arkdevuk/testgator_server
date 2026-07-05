@@ -52,7 +52,7 @@ class TesterManager
             // ignore
         }
 
-        return $code;
+        return (string)$code;
     }
 
     public function handlePostCreation(User $tester): void

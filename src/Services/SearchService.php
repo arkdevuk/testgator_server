@@ -142,7 +142,7 @@ class SearchService
     private function searchTesters(array $terms): array
     {
         $items = $this->fetchLike(
-            "SELECT u FROM App\Entity\User u WHERE u.type = 'TESTER' AND LOWER(u.email) LIKE :p",
+            "SELECT u FROM App\Entity\User u WHERE u.type = 'TESTER' AND (LOWER(u.email) LIKE :p OR LOWER(u.nickname) LIKE :p)",
             $terms
         );
 
@@ -151,6 +151,7 @@ class SearchService
             /* @var User $u */
             $documents[(string)$u->getId()] = [
                 'email' => ['text' => $u->getEmail() ?? '', 'weight' => 3.0],
+                'nickname' => ['text' => $u->getNickname(), 'weight' => 2.0],
             ];
         }
 

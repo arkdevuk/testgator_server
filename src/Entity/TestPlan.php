@@ -89,7 +89,7 @@ class TestPlan
     #[ORM\Column(length: 255)]
     #[Groups(['testPlan:read', 'team:write'])]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
-    private ?string $state = TestPlanState::DRAFT;
+    private string $state = TestPlanState::DRAFT;
 
     #[ORM\ManyToOne(inversedBy: 'plans')]
     #[ORM\JoinColumn(nullable: false)]
@@ -176,7 +176,7 @@ class TestPlan
         return $this;
     }
 
-    public function getState(): ?string
+    public function getState(): string
     {
         return $this->state;
     }

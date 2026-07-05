@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Authentification;
 
+use App\Entity\User;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 class JWTService
 {
-    public function getJWT(UserInterface $user, bool $rememberMe = false, array $more = []): string
+    public function getJWT(User $user, bool $rememberMe = false, array $more = []): string
     {
         $expire = $this->getExpireTime($rememberMe);
 
@@ -27,7 +27,7 @@ class JWTService
         return time() + (60 * 60 * 24);
     }
 
-    private function generateJWT(UserInterface $u, int $expire, array $more = []): string
+    private function generateJWT(User $u, int $expire, array $more = []): string
     {
         $payload = [
             'guid' => $u->getId()?->toString(),

@@ -4,7 +4,7 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-      "php": ">=8.5",
+      "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
       "api-platform/doctrine-orm": "^4.0",
@@ -51,7 +51,10 @@
       "policy": {
         "advisories": {
           "ignore-id": [
-            "PKSA-5r1g-c7b7-y1zg"
+            "PKSA-5r1g-c7b7-y1zg",
+            "PKSA-v5yj-8nmz-sk2q",
+            "PKSA-ft77-7h5f-p3r6",
+            "PKSA-b14r-zh1d-vdrc"
           ]
         }
       },
@@ -104,6 +107,7 @@
     "doctrine/doctrine-fixtures-bundle": "^4.0",
     "friendsofphp/php-cs-fixer": "^3.75",
     "phpstan/phpstan": "^2.2",
+    "phpunit/phpunit": "^12.5",
     "rector/rector": "^2.5",
     "symfony/browser-kit": "7.2.*",
     "symfony/css-selector": "7.2.*",

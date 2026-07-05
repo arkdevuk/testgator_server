@@ -8,6 +8,7 @@ use App\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+/** @phpstan-ignore trait.unused */
 trait OwnerAware
 {
     #[ORM\ManyToOne]

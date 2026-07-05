@@ -930,8 +930,8 @@ MD,
         Paths $paths,
         string $prefix,
         string $defaultRole,
-        array  $methodDescriptions = [],
-        array  $methodRoles = [],
+        array $methodDescriptions = [],
+        array $methodRoles = [],
     ): void
     {
         foreach ($paths->getPaths() as $path => $pathItem) {

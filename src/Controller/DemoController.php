@@ -115,17 +115,9 @@ final class DemoController extends AbstractController
             $question = $questions[array_rand($questions)];
             $comments = self::COMMENTS[$state->value];
 
-            // Random date: question creation → now, falling back to test plan creation
-            $from = null;
-            if (method_exists($question, 'getCreated')) {
-                $from = $question->getCreated();
-            }
-            if ($from === null && method_exists($testPlan, 'getCreated')) {
-                $from = $testPlan->getCreated();
-            }
-            if ($from === null) {
-                $from = (clone $now)->modify('-30 days');
-            }
+            // Random date: test plan creation → now (Question has no timestamps)
+            $from = $testPlan->getCreated()
+                ?? (clone $now)->modify('-30 days');
             $randomTs = random_int($from->getTimestamp(), $now->getTimestamp());
             $randomDate = new DateTime()->setTimestamp($randomTs);
 
@@ -135,9 +127,7 @@ final class DemoController extends AbstractController
             $answer->setQuestion($question);
             $answer->setState($state);
             $answer->setComment($comments[array_rand($comments)]);
-            if (!empty($testers)) {
-                $answer->setTester($testers[array_rand($testers)]);
-            }
+            $answer->setTester($testers[array_rand($testers)]);
             $answer->setSystemInfos([
                 'browser' => ['Chrome', 'Firefox', 'Safari', 'Edge'][array_rand(['Chrome', 'Firefox', 'Safari', 'Edge'])],
                 'os' => ['macOS', 'Windows 11', 'Ubuntu 22', 'iOS'][array_rand(['macOS', 'Windows 11', 'Ubuntu 22', 'iOS'])],

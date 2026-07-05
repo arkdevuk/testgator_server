@@ -7,7 +7,7 @@ DOCKER_COMPOSE := docker compose
 
 EXEC := $(DOCKER_COMPOSE) exec $(SERVICE)
 
-.PHONY: help build up start stop down restart logs bash sh composer console ps clean
+.PHONY: help build up start stop down restart logs bash sh composer console ps clean test tests
 
 help:
 	@echo "Available targets:"
@@ -25,6 +25,7 @@ help:
 	@echo "  clean      Remove containers, networks, volumes"
 	@echo "  db-0      	Reset db and load fixtures"
 	@echo "  qa      	Run rector, cs-fixer, phpstan analyse and test"
+	@echo "  test/tests	Run phpunit tests"
 
 build:
 	$(DOCKER_COMPOSE) build $(SERVICE)
@@ -88,4 +89,6 @@ qa:
 
 test:
 	$(EXEC) vendor/bin/phpunit --display-errors --display-warnings --display-notices
+
+tests: test
 

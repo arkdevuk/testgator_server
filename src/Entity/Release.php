@@ -53,7 +53,7 @@ class Release
 
     #[ORM\Column(type: Types::TEXT, options: ['default' => ''])]
     #[Groups(['release:read', 'team:write', 'testPlan:read'])]
-    private ?string $description = '';
+    private string $description = '';
 
     public function __construct()
     {
@@ -117,7 +117,7 @@ class Release
         return $this;
     }
 
-    public function getDescription(): ?string
+    public function getDescription(): string
     {
         return $this->description;
     }

@@ -76,7 +76,7 @@ class Question
 
     #[ORM\Column(options: ['default' => 0])]
     #[Groups(['question:read', 'team:write'])]
-    private ?int $displayOrder = 0;
+    private int $displayOrder = 0;
 
     public function __construct()
     {
@@ -177,7 +177,7 @@ class Question
         return $this;
     }
 
-    public function getDisplayOrder(): ?int
+    public function getDisplayOrder(): int
     {
         return $this->displayOrder;
     }

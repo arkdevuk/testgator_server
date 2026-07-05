@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Services\Authentification;
 
 use App\Entity\RefreshToken;
+use App\Entity\User;
 use App\Repository\RefreshTokenRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 class RefreshTokenService
 {
@@ -28,7 +28,7 @@ class RefreshTokenService
      * Pass $extra to store arbitrary context (e.g. ['tp_id' => 42] for guest tokens).
      * Returns the raw token (shown once — only the hash is persisted).
      */
-    public function issue(UserInterface $user, string $userType, ?array $extra = null): string
+    public function issue(User $user, string $userType, ?array $extra = null): string
     {
         $raw = $this->generateRaw();
         $hash = $this->hash($raw);

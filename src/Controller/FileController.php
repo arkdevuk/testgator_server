@@ -8,6 +8,7 @@ use App\Entity\File;
 use App\Services\FileService;
 use App\Services\SettingsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -58,9 +59,7 @@ final class FileController extends AbstractController
             ], 400);
         }
 
-        /**
-         * @var $file UploadedFile
-         */
+        /** @var UploadedFile $file */
         $file = $request->files->get('file');
 
         if (empty($file)) {

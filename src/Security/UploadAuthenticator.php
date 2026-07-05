@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use App\Services\Authentification\JWTService;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class UploadAuthenticator extends AbstractAuthenticator
 {
-    public function __construct(protected JWTService $JWTService, protected EntityManagerInterface $em)
+    public function __construct(protected JWTService $JWTService, protected UserRepository $userRepository)
     {
     }
 
@@ -59,8 +59,7 @@ class UploadAuthenticator extends AbstractAuthenticator
 
         // Resolve and validate the user before building the Passport so we can
         // enforce the active flag immediately — not deferred inside the badge loader.
-        $u = $this->em->getRepository(User::class)
-            ->findOneBy(['id' => $authData['user']['id']]);
+        $u = $this->userRepository->findOneBy(['id' => $authData['user']['id']]);
 
         if (!$u instanceof User) {
             throw new AuthenticationException('Invalid JWT');
@@ -71,12 +70,9 @@ class UploadAuthenticator extends AbstractAuthenticator
         }
 
         // 'user' and 'tester' are now both User entities (differentiated by type)
-        $self = &$this;
-
         return new SelfValidatingPassport(
-            new UserBadge($u->getId(),
-                static fn($userIdentifier): ?object => $self->em->getRepository(User::class)
-                    ->findOneBy(['id' => $userIdentifier])
+            new UserBadge((string)$u->getId(),
+                fn($userIdentifier): ?object => $this->userRepository->findOneBy(['id' => $userIdentifier])
             ), []
         );
     }

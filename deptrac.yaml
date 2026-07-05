@@ -2,6 +2,7 @@ deptrac:
   exclude_files:
     - '#.*test.*#'
     - '#/src/Factory/#'
+    - '#/src/Controller/DemoController\.php#'
 
   paths:
     - ./src
@@ -119,7 +120,7 @@ deptrac:
         - type: bool
           must:
             - type: classLike
-              value: ^App\\Service\\.*
+              value: ^App\\Services?\\.*
 
     - name: Validator
       collectors:
@@ -189,8 +190,10 @@ deptrac:
       - StateProcessor
       - StateProvider
       - Symfony
+      - SymfonyUid
 
     Controller:
+      - Entity
       - Security
       - Service
       - Symfony
@@ -303,12 +306,14 @@ deptrac:
       - DuplicateCriteriaNormalizer
       - Entity
       - Enum
+      - Symfony
       - SymfonyUid
 
     Security:
       - Entity
       - Enum
       - Repository
+      - Service
       - Symfony
 
     Service:
@@ -321,6 +326,7 @@ deptrac:
       - Exception
       - Interface
       - Message
+      - PSR
       - Repository
       - Security
       - Symfony
@@ -350,4 +356,5 @@ deptrac:
     ApiFilter:
       - ApiPlatform
       - Doctrine
+      - Entity
 

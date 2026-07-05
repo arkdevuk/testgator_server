@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use App\Services\Authentification\JWTService;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 
 class AppCustomAuthenticator extends AbstractAuthenticator
 {
-    public function __construct(protected EntityManagerInterface $em, protected JWTService $jwtService)
+    public function __construct(protected UserRepository $userRepository, protected JWTService $jwtService)
     {
     }
 
@@ -53,12 +53,12 @@ class AppCustomAuthenticator extends AbstractAuthenticator
 
         // Users and testers are now the same entity (User with a type field),
         // so a single lookup by guid covers both token kinds.
-        $u = $this->em->getRepository(User::class)->findOneBy(['id' => $authData['guid']]);
+        $u = $this->userRepository->findOneBy(['id' => $authData['guid']]);
 
         // fallback for tokens issued before the User/Tester merge (tester
         // accounts may have been re-created under a new id on email collision)
         if (!$u && isset($authData['email'])) {
-            $u = $this->em->getRepository(User::class)->findOneBy(['email' => $authData['email']]);
+            $u = $this->userRepository->findOneBy(['email' => $authData['email']]);
         }
 
         // if user not found, error
@@ -73,12 +73,9 @@ class AppCustomAuthenticator extends AbstractAuthenticator
         }
 
         // if user found, return Passport
-        $self = &$this;
-
         return new SelfValidatingPassport(
-            new UserBadge($u->getId(),
-                static fn($userIdentifier): ?object => $self->em->getRepository(User::class)
-                    ->findOneBy(['id' => $userIdentifier])
+            new UserBadge((string)$u->getId(),
+                fn($userIdentifier): ?object => $this->userRepository->findOneBy(['id' => $userIdentifier])
             ), []
         );
     }

@@ -25,10 +25,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ProfilePictureController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository        $userRepository,
+        private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $em,
         private readonly ProfilePictureService $profilePictureService,
-        private readonly Security              $security,
+        private readonly Security       $security,
     )
     {
     }

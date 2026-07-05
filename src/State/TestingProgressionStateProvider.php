@@ -21,7 +21,7 @@ class TestingProgressionStateProvider implements ProviderInterface
     public function __construct(
         private readonly TestPlanRepository $testPlanRepository,
         private readonly EntityManagerInterface $em,
-        private readonly Security           $security,
+        private readonly Security $security,
     )
     {
     }

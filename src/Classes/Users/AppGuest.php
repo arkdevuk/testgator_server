@@ -27,7 +27,7 @@ class AppGuest implements UserInterface
 
     public function getUserIdentifier(): string
     {
-        return $this->uuid?->toString() ?? '';
+        return $this->uuid->toString();
     }
 
     public function getTpId(): int

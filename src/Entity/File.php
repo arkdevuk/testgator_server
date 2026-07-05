@@ -36,7 +36,7 @@ class File
     private ?string $key = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    private ?string $bucket = 'none';
+    private string $bucket = 'none';
 
     #[ORM\Column(length: 255)]
     private ?string $extension = null;

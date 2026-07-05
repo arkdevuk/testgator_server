@@ -18,9 +18,9 @@ class FileService
 
     public function __construct(
         protected CacheInterface $cache,
-        protected JWTService     $jwtService,
+        protected JWTService   $jwtService,
         protected EntityManagerInterface $em,
-        protected RequestStack   $requestStack,
+        protected RequestStack $requestStack,
     )
     {
         // constructor body

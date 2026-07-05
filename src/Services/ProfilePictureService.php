@@ -70,7 +70,7 @@ class ProfilePictureService
             throw new InvalidArgumentException('File is not a valid image.');
         }
 
-        $mime = $info['mime'] ?? '';
+        $mime = $info['mime'];
         if (!array_key_exists($mime, self::ALLOWED_MIMES)) {
             throw new InvalidArgumentException('Only PNG and JPEG images are accepted.');
         }
@@ -112,7 +112,7 @@ class ProfilePictureService
             throw new InvalidArgumentException('File is not a valid image.');
         }
 
-        $mime = $info['mime'] ?? '';
+        $mime = $info['mime'];
         if (!array_key_exists($mime, self::BANNER_ALLOWED_MIMES)) {
             throw new InvalidArgumentException('Only PNG images are accepted for banners.');
         }

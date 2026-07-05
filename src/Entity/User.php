@@ -132,7 +132,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => true])]
     #[Groups(['testers:read', 'team:write', 'users:read', 'users:write'])]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
-    private ?bool $active = true;
+    private bool $active = true;
 
     /**
      * @var Collection<int, Project>
@@ -147,7 +147,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(options: ['default' => 0])]
     #[Groups(['none:read'])]
-    private ?int $otpTry = 0;
+    private int $otpTry = 0;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['none:read'])]
@@ -334,7 +334,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isActive(): ?bool
+    public function isActive(): bool
     {
         return $this->active;
     }
@@ -391,7 +391,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getOtpTry(): ?int
+    public function getOtpTry(): int
     {
         return $this->otpTry;
     }

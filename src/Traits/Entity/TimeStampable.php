@@ -13,12 +13,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 trait TimeStampable
 {
-    #[ApiProperty(readable: true, writable: false, iris: 'https://schema.org/DateTime')]
+    #[ApiProperty(readable: true, writable: false, iris: ['https://schema.org/DateTime'])]
     #[ORM\Column(name: 'created', type: Types::DATETIME_MUTABLE)]
     #[Groups(['timestampable:read'])]
     protected ?DateTimeInterface $created = null;
 
-    #[ApiProperty(readable: true, writable: false, iris: 'https://schema.org/DateTime')]
+    #[ApiProperty(readable: true, writable: false, iris: ['https://schema.org/DateTime'])]
     #[ORM\Column(name: 'updated', type: Types::DATETIME_MUTABLE)]
     #[Groups(['timestampable:read'])]
     protected ?DateTimeInterface $updated = null;
