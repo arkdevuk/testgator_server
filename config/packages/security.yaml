@@ -18,11 +18,14 @@ security:
       pattern: ^/api$
       security: false
     uploads:
+      # Same authentication as the rest of the app: a standard app JWT
+      # (validated by AppCustomAuthenticator). Kept as its own firewall so the
+      # path does not fall through to the unauthenticated `publicapi` firewall.
       pattern: ^/public/apx/upload$
       stateless: true
       provider: app_users
       custom_authenticator:
-        - App\Security\UploadAuthenticator
+        - App\Security\AppCustomAuthenticator
     publicapi:
       pattern: ^/(public|docs)/
       security: false

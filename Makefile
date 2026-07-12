@@ -84,7 +84,7 @@ test:
 	$(EXEC) php bin/console cache:clear --env=test; \
 	$(EXEC) php bin/console doctrine:database:create --if-not-exists --env=test; \
 	$(EXEC) php bin/console doctrine:schema:update --force --env=test; \
-	$(EXEC) vendor/bin/phpunit --display-errors --display-warnings
+	$(EXEC) vendor/bin/phpunit --display-all-issues
 
 tests: test
 

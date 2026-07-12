@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Services;
 
 use App\Services\LoginRateLimiterService;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -17,7 +16,7 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class LoginRateLimiterServiceTest extends TestCase
 {
-    private CacheItemPoolInterface&MockObject $cache;
+    private CacheItemPoolInterface $cache;
     private LoginRateLimiterService $service;
 
     public function testFirstAttemptIsAllowed(): void
@@ -34,9 +33,9 @@ class LoginRateLimiterServiceTest extends TestCase
 
     // ── attempt() ────────────────────────────────────────────────────────────
 
-    private function makeItem(bool $isHit, array $data = []): CacheItemInterface&MockObject
+    private function makeItem(bool $isHit, array $data = []): CacheItemInterface
     {
-        $item = $this->createMock(CacheItemInterface::class);
+        $item = $this->createStub(CacheItemInterface::class);
         $item->method('isHit')->willReturn($isHit);
 
         if ($isHit) {
@@ -128,22 +127,27 @@ class LoginRateLimiterServiceTest extends TestCase
     public function testBlockedRequestDoesNotSaveToCache(): void
     {
         $item = $this->makeItem(isHit: true, data: ['count' => 5, 'reset_at' => time() + 600]);
-        $this->cache->method('getItem')->willReturn($item);
-        // save() must NOT be called when the request is rejected
-        $this->cache->expects(self::never())->method('save');
 
-        $this->service->attempt('127.0.0.1', 'user@test.com');
+        $cache = $this->createMock(CacheItemPoolInterface::class);
+        $cache->method('getItem')->willReturn($item);
+        // save() must NOT be called when the request is rejected
+        $cache->expects(self::never())->method('save');
+
+        $service = new LoginRateLimiterService($cache);
+        $service->attempt('127.0.0.1', 'user@test.com');
     }
 
     // ── reset() ──────────────────────────────────────────────────────────────
 
     public function testResetDeletesCacheItem(): void
     {
-        $this->cache->expects(self::once())
+        $cache = $this->createMock(CacheItemPoolInterface::class);
+        $cache->expects(self::once())
             ->method('deleteItem')
             ->with(self::stringStartsWith('login_rate_'));
 
-        $this->service->reset('127.0.0.1', 'user@test.com');
+        $service = new LoginRateLimiterService($cache);
+        $service->reset('127.0.0.1', 'user@test.com');
     }
 
     public function testResetKeyDependsOnIpAndUsername(): void
@@ -168,7 +172,9 @@ class LoginRateLimiterServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->cache = $this->createMock(CacheItemPoolInterface::class);
+        // Most tests use the pool purely as a stub (canned return values). The two
+        // tests that assert on calls (save / deleteItem) build their own mock.
+        $this->cache = $this->createStub(CacheItemPoolInterface::class);
         $this->service = new LoginRateLimiterService($this->cache);
     }
 }

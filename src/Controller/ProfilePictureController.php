@@ -24,7 +24,7 @@ final class ProfilePictureController extends AbstractController
 {
     public function __construct(
         private readonly UserProfileService $userProfileService,
-        private readonly Security           $security,
+        private readonly Security $security,
     )
     {
     }

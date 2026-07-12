@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\File;
+use App\Entity\User;
 use App\Services\FileService;
 use App\Services\SettingsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,23 +25,14 @@ final class FileController extends AbstractController
         Request $request,
     ): JsonResponse
     {
-        // CORS
-        header('Access-Control-Allow-Headers: Authorization, Content-Type, Accept');
-        header('Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE');
-        header('Allow: GET, POST, OPTIONS, PUT, DELETE');
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            exit;
-        }
-        /* @noinspection ObGetCleanCanBeUsedInspection */
-        ob_get_contents();
-        ob_end_clean();
+        // CORS (including OPTIONS preflight) is handled globally by NelmioCORSBundle.
 
         // Check whether uploads are enabled (setting: general.allow_upload, default: true)
         if ($this->settingsService->getSettingValue('allow_upload', 'general', 'true') === 'false') {
             return $this->json(['error' => 'Uploads are disabled', 'message' => 'uploads_disabled'], 403);
         }
 
-        // max size in Mb : 9Mb
+        // max upload size in bytes (FILE_MAX_SIZE_MB, default 10 MB)
         $maxSize = (int)($_ENV['FILE_MAX_SIZE_MB'] ?? '10') * 1024 * 1024;
         // valid formats : jpg, jpeg, png, gif, pdf
         $allowedExt = ['jpeg', 'jpg', 'png', 'gif', 'pdf', 'txt', 'mov', 'mp4', 'avi', 'doc', 'docx', 'xls', 'xlsx', 'csv'];
@@ -50,26 +42,35 @@ final class FileController extends AbstractController
             'video' => ['video/quicktime', 'video/mp4', 'video/x-msvideo'],
         ];
 
-        $size = (int)$_SERVER['CONTENT_LENGTH'];
-
-        if ($size > $maxSize) {
-            return $this->json([
-                'error' => 'File too big',
-                'message' => 'file_too_big',
-            ], 400);
-        }
-
-        /** @var UploadedFile $file */
+        /** @var UploadedFile|null $file */
         $file = $request->files->get('file');
 
-        if (empty($file)) {
+        if (!$file instanceof UploadedFile) {
+            // A body larger than PHP's post_max_size arrives with an empty $_FILES,
+            // so an oversized POST looks like "no file". Since the pre-flight size
+            // check (/api/uploads/request) has been removed, surface the same
+            // "file too big" error here instead of a misleading "no file".
+            if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > $maxSize) {
+                return $this->json([
+                    'error' => 'File too big',
+                    'message' => 'file_too_big',
+                ], 400);
+            }
+
             return $this->json([
                 'error' => 'No file uploaded',
                 'message' => 'no_file_uploaded',
             ], 400);
         }
 
-        // dd($file,$file->getMimeType());die;
+        // Enforce the size limit from the actual uploaded file, not the
+        // client-supplied Content-Length header (which can be spoofed).
+        if ($file->getSize() > $maxSize) {
+            return $this->json([
+                'error' => 'File too big',
+                'message' => 'file_too_big',
+            ], 400);
+        }
 
         $fileType = $mime = $file->getMimeType();
         $fileExt = $file->getClientOriginalExtension();
@@ -94,6 +95,15 @@ final class FileController extends AbstractController
 
         $fileEntity = new File($file->getBasename());
         $fileEntity->setExtension($fileExt);
+
+        // Optional "public" flag sent alongside the file (form field). Defaults to false.
+        $fileEntity->setPublic($request->request->getBoolean('public'));
+
+        // Record the authenticated user who uploaded the file.
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User) {
+            $fileEntity->setUploadedBy($currentUser);
+        }
 
         // get temps path using php native
         $newPath = tempnam(sys_get_temp_dir(), 'upload');

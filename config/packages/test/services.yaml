@@ -10,3 +10,13 @@ services:
   # Expose internal services needed by AbstractApiTestCase
   App\Services\Authentification\JWTService: ~
   App\Services\Authentification\GuestAuthService: ~
+
+  # Keep the PHPUnit console readable: negative-path tests intentionally hit
+  # 404/403/401 routes, and the built-in logger prints each one as an
+  # "[error] Uncaught PHP Exception ..." line. Raise the log floor to CRITICAL
+  # for tests so those expected HTTP exceptions are silenced while genuine
+  # server errors (logged at CRITICAL) still surface.
+  logger:
+    class: Symfony\Component\HttpKernel\Log\Logger
+    arguments:
+      $minLevel: !php/const Psr\Log\LogLevel::CRITICAL

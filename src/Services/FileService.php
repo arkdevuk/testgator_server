@@ -5,22 +5,17 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Entity\File;
-use App\Services\Authentification\JWTService;
 use Aws\S3\S3Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Contracts\Cache\CacheInterface;
+use RuntimeException;
 
 class FileService
 {
-    protected ?S3Client $s3Client;
+    protected ?S3Client $s3Client = null;
 
     public function __construct(
-        protected CacheInterface $cache,
-        protected JWTService $jwtService,
         protected EntityManagerInterface $em,
-        protected RequestStack $requestStack,
     )
     {
         // constructor body
@@ -45,53 +40,69 @@ class FileService
         }
     }
 
-    /**
-     * Use this function once you have authenticated the user
-     * WARNING : this function does not check for authentication and authorization.
-     *
-     * @return string : JWT token
-     */
-    public function getUploadRequest(array $moreData = []): string
-    {
-        // get timestamp now + 10 minutes
-        $expire = time() + 60 * 10;
-
-        $payload = [
-            'scope' => ['web/app/upload', 'web/api/upload'],
-            'exp' => $expire,
-            'ip' => $this->requestStack->getCurrentRequest()?->getClientIp(),
-            ...$moreData,
-        ];
-
-        return $this->jwtService->generateToken($payload);
-    }
-
     public function storeFile(
         string $filepath,
         string $mime,
         File $file
     ): array
     {
-        $data = $this->s3Client->putObject([
-            'Bucket' => $_ENV['AWS_BUCKET'],
+        // Public files go to the public bucket (public by policy, so no ACL header
+        // is sent — same convention as ProfilePictureService); everything else
+        // stays in the private bucket and is only reachable through a signed URL.
+        $isPublic = $file->isPublic();
+        $bucket = $isPublic ? $_ENV['AWS_PUBLIC_BUCKET'] : $_ENV['AWS_BUCKET'];
+        $bucketUrl = $isPublic ? $_ENV['PUBLIC_URL_PUBLIC_BUCKET'] : $_ENV['PUBLIC_URL_BUCKET'];
+
+        $params = [
+            'Bucket' => $bucket,
             'ContentType' => $mime,
             'Key' => $file->getKey() . '.' . $file->getExtension(),
             'Body' => fopen($filepath, 'r+'),
-            'ACL' => 'private',
-        ]);
+        ];
 
-        $file->setBucket($_ENV['AWS_BUCKET']);
+        if (!$isPublic) {
+            $params['ACL'] = 'private';
+        }
+
+        $data = $this->s3Client->putObject($params);
+
+        $file->setBucket($bucket);
         $file->setS3uuid($data['ETag'] ?? '');
-        $file->setBucketUrl($_ENV['PUBLIC_URL_BUCKET']);
+        $file->setBucketUrl($bucketUrl);
         $this->em->persist($file);
         $this->em->flush();
 
         return [
             'id' => $file->getId()?->toString(),
-            'url' => $this->generateSignedUrl($file),
+            'url' => $this->generateUrl($file),
             'filename' => $file->getId() . '.' . $file->getExtension(),
             '@id' => '/api/files/' . $file->getId()?->toString(),
         ];
+    }
+
+    /**
+     * Store a file in the public bucket under an explicit key and return its
+     * public URL. The bucket is public by policy, so no ACL header is sent.
+     *
+     * Used for deterministic-key public assets (avatars, project images/banners)
+     * that overwrite in place and are not tracked as File entities.
+     *
+     * @throws RuntimeException when S3 is not configured (FILE_STORAGE_MODE=local)
+     */
+    public function putPublicObject(string $tmpPath, string $mime, string $key): string
+    {
+        if (!$this->s3Client instanceof S3Client) {
+            throw new RuntimeException('S3 storage is not configured (FILE_STORAGE_MODE=local).');
+        }
+
+        $this->s3Client->putObject([
+            'Bucket' => $_ENV['AWS_PUBLIC_BUCKET'],
+            'Key' => $key,
+            'Body' => fopen($tmpPath, 'r'),
+            'ContentType' => $mime,
+        ]);
+
+        return rtrim($_ENV['PUBLIC_URL_PUBLIC_BUCKET'] ?? '', '/') . '/' . $key;
     }
 
     public function deleteFile(File $file): void
@@ -102,6 +113,20 @@ class FileService
         ]);
     }
 
+    /**
+     * Public files are served directly from the public bucket URL; private
+     * files get a short-lived signed URL.
+     */
+    public function generateUrl(File $file): string
+    {
+        if ($file->isPublic()) {
+            return rtrim((string)$file->getBucketUrl(), '/')
+                . '/' . $file->getKey() . '.' . $file->getExtension();
+        }
+
+        return $this->generateSignedUrl($file);
+    }
+
     public function generateSignedUrl(File $file): string
     {
         $cmd = $this->s3Client->getCommand('GetObject', [
@@ -110,24 +135,6 @@ class FileService
         ]);
 
         return (string)$this->s3Client->createPresignedRequest($cmd, '+24 hours')->getUri();
-    }
-
-    /**
-     * Return the maximum upload file size in bytes allowed by the server.
-     */
-    public function getMaxUploadFileSize(): int
-    {
-        $size = ini_get('upload_max_filesize');
-        $size = trim($size);
-        $unit = strtolower($size[strlen($size) - 1]);
-        $value = (int)$size;
-
-        return match ($unit) {
-            'g' => $value * 1024 * 1024 * 1024,
-            'm' => $value * 1024 * 1024,
-            'k' => $value * 1024,
-            default => $value,
-        };
     }
 
     public function test(): void

@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Serializer;
 
+use ArrayObject;
+
+use function is_array;
+use function is_float;
+
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -34,7 +39,7 @@ final class CollectionTotalItemsIntNormalizer implements NormalizerInterface, No
      * decorator takes over the tagged service id, the serializer injects
      * itself here — forward it so the decorated normalizer gets it too.
      */
-    public function setNormalizer(\Symfony\Component\Serializer\Normalizer\NormalizerInterface $normalizer): void
+    public function setNormalizer(NormalizerInterface $normalizer): void
     {
         $this->normalizer = $normalizer;
 
@@ -43,15 +48,15 @@ final class CollectionTotalItemsIntNormalizer implements NormalizerInterface, No
         }
     }
 
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
+    public function normalize(mixed $object, ?string $format = null, array $context = []): array|string|int|float|bool|ArrayObject|null
     {
         $data = $this->decorated->normalize($object, $format, $context);
 
-        if (\is_array($data)) {
+        if (is_array($data)) {
             // Handles both the prefixed ("hydra:totalItems") and unprefixed
             // ("totalItems") key variants across API Platform versions.
             foreach (['totalItems', 'hydra:totalItems'] as $key) {
-                if (isset($data[$key]) && \is_float($data[$key])) {
+                if (isset($data[$key]) && is_float($data[$key])) {
                     $data[$key] = (int)$data[$key];
                 }
             }

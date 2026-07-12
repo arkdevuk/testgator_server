@@ -7,6 +7,9 @@ namespace App\Controller;
 use App\Entity\Question;
 use App\Entity\User;
 use App\Services\QuestionStatsService;
+
+use const JSON_PRESERVE_ZERO_FRACTION;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -36,7 +39,7 @@ final class QuestionStatsController extends AbstractController
         // (100.0 instead of 100), matching the documented response shape.
         return $this->json(
             $this->questionStatsService->getStats($id),
-            context: ['json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS | \JSON_PRESERVE_ZERO_FRACTION],
+            context: ['json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS | JSON_PRESERVE_ZERO_FRACTION],
         );
     }
 }

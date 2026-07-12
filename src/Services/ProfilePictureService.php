@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use Aws\S3\S3Client;
 use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Validates and stores project/user images in the public S3 bucket.
+ * Validates project/user images and stores them via FileService.
  *
  * User profile picture rules (validateImage):
  *   - ≤ 500 KB, ≤ 800 × 800 px, must be square, PNG or JPEG
@@ -17,7 +16,8 @@ use RuntimeException;
  * Project banner rules (validateBannerImage):
  *   - < 1 MB, ≤ 1024 × 1024 px, PNG only, non-square allowed
  *
- * All uploads go to AWS_PUBLIC_BUCKET with no ACL header (bucket is public by policy).
+ * The actual S3 write is delegated to FileService::putPublicObject (public
+ * bucket, no ACL header — the bucket is public by policy).
  */
 class ProfilePictureService
 {
@@ -29,23 +29,10 @@ class ProfilePictureService
     public const BANNER_MAX_PX = 1024;            // project banner max dimension
     public const BANNER_ALLOWED_MIMES = ['image/png' => 'png'];
 
-    private ?S3Client $s3Client = null;
-
-    public function __construct()
+    public function __construct(
+        private readonly FileService $fileService,
+    )
     {
-        if (($_ENV['FILE_STORAGE_MODE'] ?? 's3') !== 'local') {
-            $this->s3Client = new S3Client([
-                'version' => 'latest',
-                'region' => $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1',
-                'endpoint' => $_ENV['AWS_ENDPOINT'] ?? 'http://localhost:4566',
-                'use_path_style_endpoint' => ($_ENV['AWS_USE_PATH_STYLE_ENDPOINT'] ?? 'true') === 'true',
-                'credentials' => [
-                    'key' => $_ENV['AWS_ACCESS_KEY_ID'] ?? 'none',
-                    'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'] ?? 'none',
-                ],
-                'http' => ['connect_timeout' => 5, 'timeout' => 15],
-            ]);
-        }
     }
 
     /**
@@ -127,10 +114,10 @@ class ProfilePictureService
     }
 
     /**
-     * Uploads the validated image to the public S3 bucket and returns its URL.
+     * Uploads the validated image to the public bucket and returns its URL.
      *
-     * Uses AWS_PUBLIC_BUCKET / PUBLIC_URL_PUBLIC_BUCKET — the bucket is public
-     * by policy so no ACL header is sent.
+     * Delegates to FileService::putPublicObject (AWS_PUBLIC_BUCKET /
+     * PUBLIC_URL_PUBLIC_BUCKET, no ACL header — bucket is public by policy).
      *
      * @param string $tmpPath Absolute path to the temporary file
      * @param string $mime MIME type returned by validateImage() / validateBannerImage()
@@ -142,18 +129,7 @@ class ProfilePictureService
      */
     public function uploadPublicImage(string $tmpPath, string $mime, string $key): string
     {
-        if (!$this->s3Client instanceof S3Client) {
-            throw new RuntimeException('S3 storage is not configured (FILE_STORAGE_MODE=local).');
-        }
-
-        $this->s3Client->putObject([
-            'Bucket' => $_ENV['AWS_PUBLIC_BUCKET'],
-            'Key' => $key,
-            'Body' => fopen($tmpPath, 'r'),
-            'ContentType' => $mime,
-        ]);
-
-        return rtrim($_ENV['PUBLIC_URL_PUBLIC_BUCKET'] ?? '', '/') . '/' . $key;
+        return $this->fileService->putPublicObject($tmpPath, $mime, $key);
     }
 
     /**

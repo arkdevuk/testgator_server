@@ -25,9 +25,9 @@ class PasswordService
 {
     public function __construct(
         private readonly UserPasswordHasherInterface $hasher,
-        private readonly EntityManagerInterface   $em,
+        private readonly EntityManagerInterface $em,
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly UserRepository           $userRepository,
+        private readonly UserRepository         $userRepository,
     )
     {
     }

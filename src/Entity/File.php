@@ -47,8 +47,12 @@ class File
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $bucketUrl = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $uploadedBy = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'uploaded_by_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?User $uploadedBy = null;
+
+    #[ORM\Column(name: 'is_public', options: ['default' => false])]
+    private bool $public = false;
 
     private ?string $signedUrl = null;
 
@@ -136,14 +140,26 @@ class File
         return $this;
     }
 
-    public function getUploadedBy(): ?string
+    public function getUploadedBy(): ?User
     {
         return $this->uploadedBy;
     }
 
-    public function setUploadedBy(?string $uploadedBy): static
+    public function setUploadedBy(?User $uploadedBy): static
     {
         $this->uploadedBy = $uploadedBy;
+
+        return $this;
+    }
+
+    public function isPublic(): bool
+    {
+        return $this->public;
+    }
+
+    public function setPublic(bool $public): static
+    {
+        $this->public = $public;
 
         return $this;
     }

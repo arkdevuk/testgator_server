@@ -15,9 +15,9 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class UserProfileService
 {
     public function __construct(
-        private readonly UserRepository         $userRepository,
+        private readonly UserRepository        $userRepository,
         private readonly EntityManagerInterface $em,
-        private readonly ProfilePictureService  $profilePictureService,
+        private readonly ProfilePictureService $profilePictureService,
     )
     {
     }

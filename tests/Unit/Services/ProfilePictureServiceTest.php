@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Services;
 
+use App\Services\FileService;
 use App\Services\ProfilePictureService;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit tests for ProfilePictureService::validateImage().
+ * Unit tests for ProfilePictureService.
  *
- * All tests use temporary image files generated via GD — no I/O to S3 or DB.
+ * Validation tests use temporary image files generated via GD — no I/O to S3
+ * or DB. Upload tests assert that storage is delegated to FileService.
  */
 class ProfilePictureServiceTest extends TestCase
 {
@@ -137,7 +139,46 @@ class ProfilePictureServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new ProfilePictureService();
+        // Validation tests do no S3 I/O, so a stub FileService is enough here.
+        // The delegation tests below build their own mock with expectations.
+        $this->service = new ProfilePictureService($this->createStub(FileService::class));
+    }
+
+    // ── Upload delegation ─────────────────────────────────────────────────────
+
+    public function testUploadPublicImageDelegatesToFileService(): void
+    {
+        $fileService = $this->createMock(FileService::class);
+        $fileService
+            ->expects(self::once())
+            ->method('putPublicObject')
+            ->with('/tmp/source.png', 'image/png', 'project-banners/42.png')
+            ->willReturn('https://cdn.example/project-banners/42.png');
+
+        $service = new ProfilePictureService($fileService);
+
+        $url = $service->uploadPublicImage('/tmp/source.png', 'image/png', 'project-banners/42.png');
+
+        self::assertSame('https://cdn.example/project-banners/42.png', $url);
+    }
+
+    public function testUploadImageBuildsProfilePictureKeyAndDelegates(): void
+    {
+        $uuid = '019e0000-0000-7000-8000-000000000000';
+        $expectedKey = 'profile-pictures/' . $uuid . '.jpg';
+
+        $fileService = $this->createMock(FileService::class);
+        $fileService
+            ->expects(self::once())
+            ->method('putPublicObject')
+            ->with('/tmp/avatar.jpg', 'image/jpeg', $expectedKey)
+            ->willReturn('https://cdn.example/' . $expectedKey);
+
+        $service = new ProfilePictureService($fileService);
+
+        $url = $service->uploadImage('/tmp/avatar.jpg', 'image/jpeg', $uuid);
+
+        self::assertSame('https://cdn.example/' . $expectedKey, $url);
     }
 
     // ── MIME violations ───────────────────────────────────────────────────────
