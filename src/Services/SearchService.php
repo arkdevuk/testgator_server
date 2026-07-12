@@ -43,10 +43,11 @@ class SearchService
 
     /**
      * @param string[] $scopes
+     * @param int|null $projectId when given, restrict results to items belonging to that project
      *
      * @return array<int, array{type: string, iri: string, score: float, name: string, extracts: string[]}>
      */
-    public function search(string $query, array $scopes, ?User $user): array
+    public function search(string $query, array $scopes, ?User $user, ?int $projectId = null): array
     {
         if (trim($query) === '') {
             return [];
@@ -67,11 +68,11 @@ class SearchService
 
         foreach ($scopes as $scope) {
             $rows = match ($scope) {
-                self::SCOPE_PROJECTS => $this->searchProjects($terms),
-                self::SCOPE_TESTERS => $this->searchTesters($terms),
-                self::SCOPE_TEST_PLAN => $this->searchTestPlans($terms, $isTester ? $user : null),
-                self::SCOPE_QUESTIONS => $this->searchQuestions($terms, $isTester ? $user : null),
-                self::SCOPE_ANSWERS => $this->searchAnswers($terms, $isTester ? $user : null),
+                self::SCOPE_PROJECTS => $this->searchProjects($terms, $projectId),
+                self::SCOPE_TESTERS => $this->searchTesters($terms, $projectId),
+                self::SCOPE_TEST_PLAN => $this->searchTestPlans($terms, $isTester ? $user : null, $projectId),
+                self::SCOPE_QUESTIONS => $this->searchQuestions($terms, $isTester ? $user : null, $projectId),
+                self::SCOPE_ANSWERS => $this->searchAnswers($terms, $isTester ? $user : null, $projectId),
                 default => [],
             };
 
@@ -90,12 +91,14 @@ class SearchService
     // ──────────────────────────────────────────────────────────────────────────
 
     /** @param string[] $terms */
-    private function searchProjects(array $terms): array
+    private function searchProjects(array $terms, ?int $projectId = null): array
     {
-        $items = $this->fetchLike(
-            'SELECT p FROM App\Entity\Project p WHERE LOWER(p.name) LIKE :p OR LOWER(p.description) LIKE :p',
-            $terms
-        );
+        $dql = 'SELECT p FROM App\Entity\Project p WHERE (LOWER(p.name) LIKE :p OR LOWER(p.description) LIKE :p)';
+        if ($projectId !== null) {
+            $dql .= ' AND p.id = :project';
+        }
+
+        $items = $this->fetchLike($dql, $terms, null, $projectId);
 
         $documents = [];
         foreach ($items as $p) {
@@ -122,29 +125,39 @@ class SearchService
     }
 
     /**
-     * Run a DQL query with a LIKE :p parameter (and optional :user tester).
-     * The LIKE pattern covers any document containing all query terms in order.
+     * Run a DQL query with a LIKE :p parameter (and optional :user tester and
+     * :project filter). The LIKE pattern covers any document containing all
+     * query terms in order.
      *
      * @param string[] $terms
      */
-    private function fetchLike(string $dql, array $terms, ?User $tester = null): array
+    private function fetchLike(string $dql, array $terms, ?User $tester = null, ?int $projectId = null): array
     {
         $pattern = '%' . implode('%', $terms) . '%';
         $q = $this->em->createQuery($dql)->setParameter('p', $pattern);
         if ($tester instanceof User) {
             $q->setParameter('user', $tester);
         }
+        if ($projectId !== null) {
+            $q->setParameter('project', $projectId);
+        }
 
         return $q->getResult();
     }
 
     /** @param string[] $terms */
-    private function searchTesters(array $terms): array
+    private function searchTesters(array $terms, ?int $projectId = null): array
     {
-        $items = $this->fetchLike(
-            "SELECT u FROM App\Entity\User u WHERE u.type = 'TESTER' AND (LOWER(u.email) LIKE :p OR LOWER(u.nickname) LIKE :p)",
-            $terms
-        );
+        $dql = 'SELECT u FROM App\Entity\User u';
+        if ($projectId !== null) {
+            $dql .= ' JOIN u.projects proj';
+        }
+        $dql .= " WHERE u.type = 'TESTER' AND (LOWER(u.email) LIKE :p OR LOWER(u.nickname) LIKE :p)";
+        if ($projectId !== null) {
+            $dql .= ' AND proj.id = :project';
+        }
+
+        $items = $this->fetchLike($dql, $terms, null, $projectId);
 
         $documents = [];
         foreach ($items as $u) {
@@ -171,14 +184,27 @@ class SearchService
     }
 
     /** @param string[] $terms */
-    private function searchTestPlans(array $terms, ?User $tester): array
+    private function searchTestPlans(array $terms, ?User $tester, ?int $projectId = null): array
     {
         $dql = 'SELECT tp FROM App\Entity\TestPlan tp';
-        $dql .= $tester instanceof User
-            ? ' JOIN tp.testersEnrolled te WHERE te = :user AND (LOWER(tp.name) LIKE :p OR LOWER(tp.description) LIKE :p OR LOWER(tp.content) LIKE :p)'
-            : ' WHERE LOWER(tp.name) LIKE :p OR LOWER(tp.description) LIKE :p OR LOWER(tp.content) LIKE :p';
+        if ($tester instanceof User) {
+            $dql .= ' JOIN tp.testersEnrolled te';
+        }
+        if ($projectId !== null) {
+            $dql .= ' JOIN tp.release r';
+        }
 
-        $items = $this->fetchLike($dql, $terms, $tester);
+        $conds = [];
+        if ($tester instanceof User) {
+            $conds[] = 'te = :user';
+        }
+        if ($projectId !== null) {
+            $conds[] = 'r.project = :project';
+        }
+        $conds[] = '(LOWER(tp.name) LIKE :p OR LOWER(tp.description) LIKE :p OR LOWER(tp.content) LIKE :p)';
+        $dql .= ' WHERE ' . implode(' AND ', $conds);
+
+        $items = $this->fetchLike($dql, $terms, $tester, $projectId);
 
         $documents = [];
         foreach ($items as $tp) {
@@ -206,14 +232,31 @@ class SearchService
     }
 
     /** @param string[] $terms */
-    private function searchQuestions(array $terms, ?User $tester): array
+    private function searchQuestions(array $terms, ?User $tester, ?int $projectId = null): array
     {
         $dql = 'SELECT q FROM App\Entity\Question q';
-        $dql .= $tester instanceof User
-            ? ' JOIN q.plan tp JOIN tp.testersEnrolled te WHERE te = :user AND (LOWER(q.name) LIKE :p OR LOWER(q.content) LIKE :p)'
-            : ' WHERE LOWER(q.name) LIKE :p OR LOWER(q.content) LIKE :p';
+        // The plan join is needed for tester enrolment and/or the project filter.
+        if ($tester instanceof User || $projectId !== null) {
+            $dql .= ' JOIN q.plan tp';
+        }
+        if ($tester instanceof User) {
+            $dql .= ' JOIN tp.testersEnrolled te';
+        }
+        if ($projectId !== null) {
+            $dql .= ' JOIN tp.release r';
+        }
 
-        $items = $this->fetchLike($dql, $terms, $tester);
+        $conds = [];
+        if ($tester instanceof User) {
+            $conds[] = 'te = :user';
+        }
+        if ($projectId !== null) {
+            $conds[] = 'r.project = :project';
+        }
+        $conds[] = '(LOWER(q.name) LIKE :p OR LOWER(q.content) LIKE :p)';
+        $dql .= ' WHERE ' . implode(' AND ', $conds);
+
+        $items = $this->fetchLike($dql, $terms, $tester, $projectId);
 
         $documents = [];
         foreach ($items as $q) {
@@ -242,14 +285,23 @@ class SearchService
     // ──────────────────────────────────────────────────────────────────────────
 
     /** @param string[] $terms */
-    private function searchAnswers(array $terms, ?User $tester): array
+    private function searchAnswers(array $terms, ?User $tester, ?int $projectId = null): array
     {
-        $dql = 'SELECT a FROM App\Entity\Answer a WHERE LOWER(a.comment) LIKE :p';
-        if ($tester instanceof User) {
-            $dql .= ' AND a.tester = :user';
+        $dql = 'SELECT a FROM App\Entity\Answer a';
+        if ($projectId !== null) {
+            $dql .= ' JOIN a.question q JOIN q.plan tp JOIN tp.release r';
         }
 
-        $items = $this->fetchLike($dql, $terms, $tester);
+        $conds = ['LOWER(a.comment) LIKE :p'];
+        if ($tester instanceof User) {
+            $conds[] = 'a.tester = :user';
+        }
+        if ($projectId !== null) {
+            $conds[] = 'r.project = :project';
+        }
+        $dql .= ' WHERE ' . implode(' AND ', $conds);
+
+        $items = $this->fetchLike($dql, $terms, $tester, $projectId);
 
         $documents = [];
         foreach ($items as $a) {

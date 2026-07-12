@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class ProjectImageService
 {
     public function __construct(
-        private readonly ProjectRepository     $projectRepository,
+        private readonly ProjectRepository $projectRepository,
         private readonly EntityManagerInterface $em,
         private readonly ProfilePictureService $profilePictureService,
     )

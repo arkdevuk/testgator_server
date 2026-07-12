@@ -34,12 +34,13 @@ final class FileController extends AbstractController
 
         // max upload size in bytes (FILE_MAX_SIZE_MB, default 10 MB)
         $maxSize = (int)($_ENV['FILE_MAX_SIZE_MB'] ?? '10') * 1024 * 1024;
-        // valid formats : jpg, jpeg, png, gif, pdf
-        $allowedExt = ['jpeg', 'jpg', 'png', 'gif', 'pdf', 'txt', 'mov', 'mp4', 'avi', 'doc', 'docx', 'xls', 'xlsx', 'csv'];
+        // valid formats : jpg, jpeg, png, gif, pdf, archives (zip, rar, 7z)
+        $allowedExt = ['jpeg', 'jpg', 'png', 'gif', 'pdf', 'txt', 'mov', 'mp4', 'avi', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'zip', 'rar', '7z'];
         $allowedMime = [
             'media' => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'],
             'document' => ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'],
             'video' => ['video/quicktime', 'video/mp4', 'video/x-msvideo'],
+            'archive' => ['application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed', 'application/vnd.rar', 'application/x-rar', 'application/x-7z-compressed'],
         ];
 
         /** @var UploadedFile|null $file */

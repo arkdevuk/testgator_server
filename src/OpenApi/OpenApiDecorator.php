@@ -431,6 +431,13 @@ MD,
                             'example' => 'questions,answers',
                         ],
                     ),
+                    new Parameter(
+                        name: 'projectId',
+                        in: 'query',
+                        description: 'Optional. Restrict results to items belonging to this project (the project itself, its testers, test plans, questions and answers).',
+                        required: false,
+                        schema: ['type' => 'integer', 'example' => 42],
+                    ),
                 ],
             ),
         ));

@@ -29,7 +29,8 @@ build:
 	$(DOCKER_COMPOSE) build $(SERVICE)
 
 up:
-	$(DOCKER_COMPOSE) up --wait
+	# Start only the app service — the test DB is started on demand by `make test`.
+	$(DOCKER_COMPOSE) up --wait $(SERVICE)
 
 start: up
 

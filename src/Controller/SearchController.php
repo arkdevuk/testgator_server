@@ -33,6 +33,15 @@ final class SearchController extends AbstractController
             return $this->json(['error' => 'Missing required parameter: query'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Optional: restrict the search to a single project's items.
+        $projectId = null;
+        if ($request->query->has('projectId')) {
+            $projectId = $request->query->getInt('projectId');
+            if ($projectId <= 0) {
+                return $this->json(['error' => 'Invalid projectId'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
         $scopes = $this->resolveScopes($request, $user);
 
         if ($scopes === null) {
@@ -42,7 +51,7 @@ final class SearchController extends AbstractController
             );
         }
 
-        $results = $this->searchService->search($query, $scopes, $user);
+        $results = $this->searchService->search($query, $scopes, $user, $projectId);
 
         return $this->json($results);
     }
