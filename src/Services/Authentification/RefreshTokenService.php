@@ -19,8 +19,7 @@ class RefreshTokenService
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly RefreshTokenRepository $repo,
-    )
-    {
+    ) {
     }
 
     /**
@@ -37,7 +36,7 @@ class RefreshTokenService
             tokenHash: $hash,
             userGuid: $user->getId()?->toString() ?? '',
             userType: $userType,
-            expiresAt: new DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
+            expiresAt: new DateTimeImmutable('+'.self::TTL_DAYS.' days'),
             extra: $extra,
         );
 
@@ -60,7 +59,7 @@ class RefreshTokenService
             tokenHash: $hash,
             userGuid: $challenge,
             userType: 'guest',
-            expiresAt: new DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
+            expiresAt: new DateTimeImmutable('+'.self::TTL_DAYS.' days'),
             extra: $extra,
         );
 
@@ -106,7 +105,7 @@ class RefreshTokenService
             tokenHash: $newHash,
             userGuid: $record->getUserGuid(),
             userType: $record->getUserType(),
-            expiresAt: new DateTimeImmutable('+' . self::TTL_DAYS . ' days'),
+            expiresAt: new DateTimeImmutable('+'.self::TTL_DAYS.' days'),
             extra: $record->getExtra(),
         );
 

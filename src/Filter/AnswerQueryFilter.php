@@ -39,8 +39,7 @@ class AnswerQueryFilter extends AbstractFilter
         string $resourceClass,
         ?Operation $operation = null,
         array $context = [],
-    ): void
-    {
+    ): void {
         if ($resourceClass !== Answer::class || $property !== 'query' || !is_string($value) || $value === '') {
             return;
         }
@@ -52,6 +51,6 @@ class AnswerQueryFilter extends AbstractFilter
             ->andWhere(
                 "LOWER({$alias}.comment) LIKE :{$param} OR LOWER(CAST_TEXT({$alias}.systemInfos)) LIKE :{$param}"
             )
-            ->setParameter($param, '%' . strtolower($value) . '%');
+            ->setParameter($param, '%'.strtolower($value).'%');
     }
 }

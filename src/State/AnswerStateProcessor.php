@@ -28,8 +28,7 @@ final readonly class AnswerStateProcessor implements ProcessorInterface
         private ProcessorInterface $persistProcessor,
         private Security $security,
         private EventDispatcherInterface $dispatcher,
-    )
-    {
+    ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed

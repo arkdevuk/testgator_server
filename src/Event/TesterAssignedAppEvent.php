@@ -13,7 +13,6 @@ final class TesterAssignedAppEvent extends Event
     public function __construct(
         public readonly TestPlan $testPlan,
         public readonly User $tester,
-    )
-    {
+    ) {
     }
 }

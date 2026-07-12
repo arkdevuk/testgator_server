@@ -34,7 +34,7 @@ class SearchTest extends AbstractApiTestCase
 
     public function testRequiresAuth(): void
     {
-        $this->jsonRequest('GET', self::BASE . '?query=login');
+        $this->jsonRequest('GET', self::BASE.'?query=login');
         $this->assertStatusCode(401);
     }
 
@@ -48,21 +48,21 @@ class SearchTest extends AbstractApiTestCase
     public function testEmptyQueryParam(): void
     {
         $token = $this->getTeamUserToken();
-        $this->jsonRequest('GET', self::BASE . '?query=', null, $token);
+        $this->jsonRequest('GET', self::BASE.'?query=', null, $token);
         $this->assertStatusCode(400);
     }
 
     public function testInvalidScopeReturns400(): void
     {
         $token = $this->getTeamUserToken();
-        $this->jsonRequest('GET', self::BASE . '?query=login&scope=invalid_scope', null, $token);
+        $this->jsonRequest('GET', self::BASE.'?query=login&scope=invalid_scope', null, $token);
         $this->assertStatusCode(400);
     }
 
     public function testOneInvalidScopeInMultiReturns400(): void
     {
         $token = $this->getTeamUserToken();
-        $this->jsonRequest('GET', self::BASE . '?query=login&scope=questions,not_a_scope', null, $token);
+        $this->jsonRequest('GET', self::BASE.'?query=login&scope=questions,not_a_scope', null, $token);
         $this->assertStatusCode(400);
     }
 
@@ -71,7 +71,7 @@ class SearchTest extends AbstractApiTestCase
     public function testResultShape(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope=questions', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope=questions', null, $token);
 
         $this->assertStatusCode(200);
         self::assertIsArray($data);
@@ -89,18 +89,18 @@ class SearchTest extends AbstractApiTestCase
     public function testExtractsContainMatchedTerm(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope=questions', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope=questions', null, $token);
 
         $this->assertStatusCode(200);
         $allExtracts = array_merge(...array_column($data, 'extracts'));
-        $found = array_filter($allExtracts, fn(string $e) => str_contains(strtolower($e), 'login'));
+        $found = array_filter($allExtracts, fn (string $e) => str_contains(strtolower($e), 'login'));
         self::assertNotEmpty($found, 'At least one extract should contain the search term');
     }
 
     public function testResultsSortedByScoreDescending(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login', null, $token);
 
         $this->assertStatusCode(200);
         $scores = array_column($data, 'score');
@@ -112,7 +112,7 @@ class SearchTest extends AbstractApiTestCase
     public function testNoResultsForUnknownQuery(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=xyzzy_no_match_42', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=xyzzy_no_match_42', null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame([], $data);
@@ -123,7 +123,7 @@ class SearchTest extends AbstractApiTestCase
     public function testSearchProjects(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=alpha&scope=projects', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=alpha&scope=projects', null, $token);
 
         $this->assertStatusCode(200);
         $names = array_column($data, 'name');
@@ -135,11 +135,11 @@ class SearchTest extends AbstractApiTestCase
     public function testSearchProjectsIriFormat(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=alpha&scope=projects', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=alpha&scope=projects', null, $token);
         $project = static::$em->getRepository(Project::class)->findOneBy(['name' => 'Alpha Project']);
 
         $iris = array_column($data, 'iri');
-        self::assertContains('/api/projects/' . $project->getId(), $iris);
+        self::assertContains('/api/projects/'.$project->getId(), $iris);
     }
 
     // ── Scope: testers ────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ class SearchTest extends AbstractApiTestCase
     public function testSearchTesters(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=tester1&scope=testers', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=tester1&scope=testers', null, $token);
 
         $this->assertStatusCode(200);
         $names = array_column($data, 'name');
@@ -159,7 +159,7 @@ class SearchTest extends AbstractApiTestCase
     public function testSearchTestPlans(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=published&scope=test_plan', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=published&scope=test_plan', null, $token);
 
         $this->assertStatusCode(200);
         $names = array_column($data, 'name');
@@ -173,7 +173,7 @@ class SearchTest extends AbstractApiTestCase
     public function testSearchQuestions(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope=questions', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope=questions', null, $token);
 
         $this->assertStatusCode(200);
         $names = array_column($data, 'name');
@@ -183,7 +183,7 @@ class SearchTest extends AbstractApiTestCase
     public function testSearchQuestionsHigherScoreForTitleMatch(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope=questions', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope=questions', null, $token);
 
         // "Does the login work?" has "login" in the name → should outscore
         // "Is the dashboard visible?" which only mentions login in content
@@ -198,7 +198,7 @@ class SearchTest extends AbstractApiTestCase
     public function testSearchAnswers(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope=answers', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope=answers', null, $token);
 
         $this->assertStatusCode(200);
         self::assertNotEmpty($data);
@@ -211,7 +211,7 @@ class SearchTest extends AbstractApiTestCase
     public function testMultipleScopesCommaSeparated(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope=questions,answers', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope=questions,answers', null, $token);
 
         $this->assertStatusCode(200);
         $types = array_unique(array_column($data, 'type'));
@@ -222,7 +222,7 @@ class SearchTest extends AbstractApiTestCase
     public function testMultipleScopesArrayStyle(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope[]=questions&scope[]=answers', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope[]=questions&scope[]=answers', null, $token);
 
         $this->assertStatusCode(200);
         // array_unique preserves original keys, so the result is not a list;
@@ -235,7 +235,7 @@ class SearchTest extends AbstractApiTestCase
     public function testNoScopeSearchesAllTypes(): void
     {
         $token = $this->getTeamUserToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login', null, $token);
 
         $this->assertStatusCode(200);
         $types = array_unique(array_column($data, 'type'));
@@ -249,7 +249,7 @@ class SearchTest extends AbstractApiTestCase
     public function testTesterCannotSearchProjects(): void
     {
         $token = $this->getTesterToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=alpha&scope=projects', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=alpha&scope=projects', null, $token);
 
         // Scope is silently downgraded to tester-allowed scopes → no results
         $this->assertStatusCode(200);
@@ -260,7 +260,7 @@ class SearchTest extends AbstractApiTestCase
     public function testTesterCannotSearchOtherTesters(): void
     {
         $token = $this->getTesterToken();
-        $data = $this->jsonRequest('GET', self::BASE . '?query=tester2&scope=testers', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=tester2&scope=testers', null, $token);
 
         $this->assertStatusCode(200);
         $types = array_column($data, 'type');
@@ -271,7 +271,7 @@ class SearchTest extends AbstractApiTestCase
     {
         // tester2 searches for "login" — should only see their own answers
         $token = $this->getTesterToken(TestFixtures::TESTER_EMAIL_2);
-        $data = $this->jsonRequest('GET', self::BASE . '?query=login&scope=answers', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=login&scope=answers', null, $token);
 
         $this->assertStatusCode(200);
 
@@ -285,7 +285,7 @@ class SearchTest extends AbstractApiTestCase
 
         // tester2's answer comment: "Login succeeds but the browser console..."
         $names = array_column($data, 'name');
-        $found = array_filter($names, fn(string $n) => str_contains(strtolower($n), 'login succeeds'));
+        $found = array_filter($names, fn (string $n) => str_contains(strtolower($n), 'login succeeds'));
         self::assertNotEmpty($found, 'Tester2 should see their own login answer');
     }
 
@@ -293,7 +293,7 @@ class SearchTest extends AbstractApiTestCase
     {
         // tester1 is enrolled in "Published Plan" only (Draft Plan has no enrolled testers)
         $token = $this->getTesterToken(TestFixtures::TESTER_EMAIL);
-        $data = $this->jsonRequest('GET', self::BASE . '?query=plan&scope=test_plan', null, $token);
+        $data = $this->jsonRequest('GET', self::BASE.'?query=plan&scope=test_plan', null, $token);
 
         $this->assertStatusCode(200);
         $names = array_column($data, 'name');

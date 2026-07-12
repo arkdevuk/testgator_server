@@ -18,8 +18,7 @@ class UserProfileService
         private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $em,
         private readonly ProfilePictureService $profilePictureService,
-    )
-    {
+    ) {
     }
 
     public function findTester(string $id): ?User
@@ -65,7 +64,7 @@ class UserProfileService
         $url = $this->profilePictureService->uploadImage(
             $file->getPathname(),
             $mime,
-            (string)$user->getId(),
+            (string) $user->getId(),
         );
 
         $user->setProfilePictureUrl($url);

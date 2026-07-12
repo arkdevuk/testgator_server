@@ -45,8 +45,7 @@ class Me
         #[ApiProperty(identifier: false)]
         #[Groups(['userSelf:read'])]
         private ?Uuid $id = null
-    )
-    {
+    ) {
     }
 
     public function getUser(): UserInterface

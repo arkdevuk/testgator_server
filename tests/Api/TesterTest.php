@@ -36,7 +36,7 @@ class TesterTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $data = $this->jsonRequest(
             'GET',
-            '/api/testers?email=' . urlencode('tester1'),
+            '/api/testers?email='.urlencode('tester1'),
             null,
             $token
         );
@@ -72,7 +72,7 @@ class TesterTest extends AbstractApiTestCase
         $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
-        $data = $this->jsonRequest('GET', '/api/testers/' . $tester->getId(), null, $token);
+        $data = $this->jsonRequest('GET', '/api/testers/'.$tester->getId(), null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame(TestFixtures::TESTER_EMAIL, $data['email']);
@@ -112,12 +112,12 @@ class TesterTest extends AbstractApiTestCase
         $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL_2]);
 
-        static::$client->request('PATCH', '/api/testers/' . $tester->getId(),
+        static::$client->request('PATCH', '/api/testers/'.$tester->getId(),
             [], [],
             [
                 'HTTP_ACCEPT' => 'application/ld+json',
                 'CONTENT_TYPE' => 'application/merge-patch+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ],
             json_encode(['active' => false])
         );
@@ -135,9 +135,9 @@ class TesterTest extends AbstractApiTestCase
         $tester = static::$em->getRepository(User::class)
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL_2]);
 
-        static::$client->request('DELETE', '/api/testers/' . $tester->getId(),
+        static::$client->request('DELETE', '/api/testers/'.$tester->getId(),
             [], [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]
+            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
         );
 
         $this->assertStatusCode(204);
@@ -152,12 +152,12 @@ class TesterTest extends AbstractApiTestCase
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL_2]);
 
         // Deactivate
-        static::$client->request('PATCH', '/api/testers/' . $tester->getId(),
+        static::$client->request('PATCH', '/api/testers/'.$tester->getId(),
             [], [],
             [
                 'HTTP_ACCEPT' => 'application/ld+json',
                 'CONTENT_TYPE' => 'application/merge-patch+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ],
             json_encode(['active' => false])
         );

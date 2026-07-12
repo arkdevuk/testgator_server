@@ -11,7 +11,6 @@ final class UserPasswordChangedAppEvent extends Event
 {
     public function __construct(
         public readonly User $user,
-    )
-    {
+    ) {
     }
 }

@@ -16,8 +16,7 @@ final class SearchController extends AbstractController
 {
     public function __construct(
         private readonly SearchService $searchService,
-    )
-    {
+    ) {
     }
 
     #[Route('/api/search/query', name: 'search_query', methods: ['GET'])]
@@ -46,7 +45,7 @@ final class SearchController extends AbstractController
 
         if ($scopes === null) {
             return $this->json(
-                ['error' => 'Invalid scope value(s). Allowed: ' . implode(', ', SearchService::ALL_SCOPES)],
+                ['error' => 'Invalid scope value(s). Allowed: '.implode(', ', SearchService::ALL_SCOPES)],
                 Response::HTTP_BAD_REQUEST,
             );
         }
@@ -84,7 +83,7 @@ final class SearchController extends AbstractController
             $array = $rawScope;
         } else {
             // scope=x,y  or  scope=x
-            $array = array_map(trim(...), explode(',', (string)$rawScope));
+            $array = array_map(trim(...), explode(',', (string) $rawScope));
         }
 
         $array = array_values(array_unique(array_filter($array)));

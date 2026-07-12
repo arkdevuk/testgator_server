@@ -46,8 +46,7 @@ final readonly class OpenApiDecorator implements OpenApiFactoryInterface
 {
     public function __construct(
         private OpenApiFactoryInterface $inner,
-    )
-    {
+    ) {
     }
 
     public function __invoke(array $context = []): OpenApi
@@ -931,7 +930,7 @@ MD,
      * whose URI starts with $prefix.
      *
      * @param array<string, string> $methodDescriptions HTTP method (uppercase) → extra description line
-     * @param array<string, string> $methodRoles HTTP method (uppercase) → role override (falls back to $defaultRole)
+     * @param array<string, string> $methodRoles        HTTP method (uppercase) → role override (falls back to $defaultRole)
      */
     private function annotatePathsWithRole(
         Paths $paths,
@@ -939,8 +938,7 @@ MD,
         string $defaultRole,
         array $methodDescriptions = [],
         array $methodRoles = [],
-    ): void
-    {
+    ): void {
         foreach ($paths->getPaths() as $path => $pathItem) {
             if (!str_starts_with($path, $prefix)) {
                 continue;

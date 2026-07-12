@@ -28,8 +28,7 @@ class MailingService
         string $to,
         string $subject,
         string $body
-    ): void
-    {
+    ): void {
         $email = new Email()
             ->from($_ENV['MAILER_SENDER_ADDRESS'])
             ->to($to)

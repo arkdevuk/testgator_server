@@ -11,7 +11,6 @@ final class TestPlanPublishedAppEvent extends Event
 {
     public function __construct(
         public readonly TestPlan $testPlan,
-    )
-    {
+    ) {
     }
 }

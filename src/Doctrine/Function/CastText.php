@@ -29,6 +29,6 @@ class CastText extends FunctionNode
 
     public function getSql(SqlWalker $sqlWalker): string
     {
-        return 'CAST(' . $this->expression->dispatch($sqlWalker) . ' AS TEXT)';
+        return 'CAST('.$this->expression->dispatch($sqlWalker).' AS TEXT)';
     }
 }

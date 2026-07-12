@@ -60,12 +60,12 @@ class File
     {
         $this->setNow();
         // set key using time and md5 hash of name
-        $this->key = time() . md5($name);
+        $this->key = time().md5($name);
     }
 
     public function getUrl(): string
     {
-        return $this->signedUrl ?? $_ENV['PUBLIC_URL_BUCKET'] . '/' . $this->getKey() . '.' . $this->getExtension();
+        return $this->signedUrl ?? $_ENV['PUBLIC_URL_BUCKET'].'/'.$this->getKey().'.'.$this->getExtension();
     }
 
     public function setSignedUrl(string $url): static

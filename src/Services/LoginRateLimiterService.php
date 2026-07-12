@@ -21,8 +21,7 @@ class LoginRateLimiterService
 
     public function __construct(
         private readonly CacheItemPoolInterface $cache,
-    )
-    {
+    ) {
     }
 
     /**
@@ -61,7 +60,7 @@ class LoginRateLimiterService
     {
         // hash keeps the key safe for any cache backend and prevents
         // cache-key injection via a crafted username
-        return 'login_rate_' . hash('sha256', $ip . ':' . strtolower(trim($username)));
+        return 'login_rate_'.hash('sha256', $ip.':'.strtolower(trim($username)));
     }
 
     /**

@@ -11,7 +11,6 @@ final class NewProjectAppEvent extends Event
 {
     public function __construct(
         public readonly Project $project,
-    )
-    {
+    ) {
     }
 }

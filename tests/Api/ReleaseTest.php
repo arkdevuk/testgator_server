@@ -38,7 +38,7 @@ class ReleaseTest extends AbstractApiTestCase
 
         $data = $this->jsonRequest(
             'GET',
-            '/api/releases?project=' . $project->getId(),
+            '/api/releases?project='.$project->getId(),
             null,
             $token
         );
@@ -57,7 +57,7 @@ class ReleaseTest extends AbstractApiTestCase
         $release = static::$em->getRepository(Release::class)
             ->findOneBy(['name' => '1.0.0']);
 
-        $data = $this->jsonRequest('GET', '/api/releases/' . $release->getId(), null, $token);
+        $data = $this->jsonRequest('GET', '/api/releases/'.$release->getId(), null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame('1.0.0', $data['name']);
@@ -80,7 +80,7 @@ class ReleaseTest extends AbstractApiTestCase
         $release = static::$em->getRepository(Release::class)
             ->findOneBy(['name' => '1.0.0']);
 
-        $data = $this->jsonRequest('GET', '/api/release_stats/' . $release->getId(), null, $token);
+        $data = $this->jsonRequest('GET', '/api/release_stats/'.$release->getId(), null, $token);
 
         $this->assertStatusCode(200);
         $this->assertJsonKey('totalPlans', $data);
@@ -101,7 +101,7 @@ class ReleaseTest extends AbstractApiTestCase
         $data = $this->jsonRequest('POST', '/api/releases', [
             'name' => '3.0.0',
             'description' => 'Third major release',
-            'project' => '/api/projects/' . $project->getId(),
+            'project' => '/api/projects/'.$project->getId(),
         ], $token);
 
         $this->assertStatusCode(201);
@@ -126,12 +126,12 @@ class ReleaseTest extends AbstractApiTestCase
         $release = static::$em->getRepository(Release::class)
             ->findOneBy(['name' => '1.0.0']);
 
-        static::$client->request('PATCH', '/api/releases/' . $release->getId(),
+        static::$client->request('PATCH', '/api/releases/'.$release->getId(),
             [], [],
             [
                 'HTTP_ACCEPT' => 'application/ld+json',
                 'CONTENT_TYPE' => 'application/merge-patch+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ],
             json_encode(['name' => '1.0.1'])
         );
@@ -149,9 +149,9 @@ class ReleaseTest extends AbstractApiTestCase
         $release = static::$em->getRepository(Release::class)
             ->findOneBy(['name' => '2.0.0']);
 
-        static::$client->request('DELETE', '/api/releases/' . $release->getId(),
+        static::$client->request('DELETE', '/api/releases/'.$release->getId(),
             [], [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]
+            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
         );
 
         $this->assertStatusCode(204);

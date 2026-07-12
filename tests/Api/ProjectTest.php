@@ -49,7 +49,7 @@ class ProjectTest extends AbstractApiTestCase
         $project = static::$em->getRepository(Project::class)
             ->findOneBy(['name' => 'Alpha Project']);
 
-        $data = $this->jsonRequest('GET', '/api/projects/' . $project->getId(), null, $token);
+        $data = $this->jsonRequest('GET', '/api/projects/'.$project->getId(), null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame('Alpha Project', $data['name']);
@@ -96,12 +96,12 @@ class ProjectTest extends AbstractApiTestCase
         $project = static::$em->getRepository(Project::class)
             ->findOneBy(['name' => 'Alpha Project']);
 
-        static::$client->request('PATCH', '/api/projects/' . $project->getId(),
+        static::$client->request('PATCH', '/api/projects/'.$project->getId(),
             [], [],
             [
                 'HTTP_ACCEPT' => 'application/ld+json',
                 'CONTENT_TYPE' => 'application/merge-patch+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ],
             json_encode(['name' => 'Alpha Project Updated'])
         );
@@ -127,17 +127,17 @@ class ProjectTest extends AbstractApiTestCase
         // (it would produce "/api/projects/" → a 301 redirect instead of a 404).
         $projectId = $project->getId();
 
-        static::$client->request('DELETE', '/api/projects/' . $projectId,
+        static::$client->request('DELETE', '/api/projects/'.$projectId,
             [], [],
             [
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ]
         );
 
         $this->assertStatusCode(204);
 
         // Verify gone
-        $this->jsonRequest('GET', '/api/projects/' . $projectId, null, $token);
+        $this->jsonRequest('GET', '/api/projects/'.$projectId, null, $token);
         $this->assertStatusCode(404);
     }
 
@@ -146,7 +146,7 @@ class ProjectTest extends AbstractApiTestCase
         $project = static::$em->getRepository(Project::class)
             ->findOneBy(['name' => 'Alpha Project']);
 
-        static::$client->request('DELETE', '/api/projects/' . $project->getId());
+        static::$client->request('DELETE', '/api/projects/'.$project->getId());
         $this->assertStatusCode(401);
     }
 
@@ -157,7 +157,7 @@ class ProjectTest extends AbstractApiTestCase
         $project = static::$em->getRepository(Project::class)
             ->findOneBy(['name' => 'Alpha Project']);
 
-        $this->jsonRequest('GET', '/api/projects/' . $project->getId() . '/stats');
+        $this->jsonRequest('GET', '/api/projects/'.$project->getId().'/stats');
         $this->assertStatusCode(401);
     }
 
@@ -174,7 +174,7 @@ class ProjectTest extends AbstractApiTestCase
         $project = static::$em->getRepository(Project::class)
             ->findOneBy(['name' => 'Alpha Project']);
 
-        $data = $this->jsonRequest('GET', '/api/projects/' . $project->getId() . '/stats', null, $token);
+        $data = $this->jsonRequest('GET', '/api/projects/'.$project->getId().'/stats', null, $token);
 
         $this->assertStatusCode(200);
 
@@ -195,7 +195,7 @@ class ProjectTest extends AbstractApiTestCase
         $project = static::$em->getRepository(Project::class)
             ->findOneBy(['name' => 'Beta Project']);
 
-        $data = $this->jsonRequest('GET', '/api/projects/' . $project->getId() . '/stats', null, $token);
+        $data = $this->jsonRequest('GET', '/api/projects/'.$project->getId().'/stats', null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame(0, $data['releases']);

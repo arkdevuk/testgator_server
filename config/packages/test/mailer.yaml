@@ -1,0 +1,8 @@
+# Force the null mailer transport in tests, regardless of the MAILER_DSN
+# environment variable. The container's env_file loads .env.local (which points
+# MAILER_DSN at a real SMTP/MailHog host) as a real env var, and Symfony's
+# Dotenv does not override real env vars with .env.test — so the DSN must be
+# pinned here to guarantee no mail is ever sent during the test suite.
+framework:
+  mailer:
+    dsn: 'null://null'

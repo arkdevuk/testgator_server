@@ -142,8 +142,8 @@ class DevTeamLoginTest extends AbstractApiTestCase
     {
         // Garbled signature — valid base64 structure but wrong signature
         $tampered = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9'
-            . '.eyJlbWFpbCI6ImZha2VAZXhhbXBsZS5jb20ifQ'
-            . '.invalidsignature';
+            .'.eyJlbWFpbCI6ImZha2VAZXhhbXBsZS5jb20ifQ'
+            .'.invalidsignature';
 
         $this->jsonRequest('GET', '/api/auth/me', null, $tampered);
         $this->assertStatusCode(401);

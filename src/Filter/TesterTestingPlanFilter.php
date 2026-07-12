@@ -28,7 +28,7 @@ class TesterTestingPlanFilter extends AbstractFilter
 
         // if value start with /api/test_plans/ then extract the id
         if (str_starts_with($value, '/api/test_plans/')) {
-            $value = (int)str_replace('/api/test_plans/', '', $value);
+            $value = (int) str_replace('/api/test_plans/', '', $value);
         }
 
         // add the where clause to the query,
@@ -40,10 +40,10 @@ class TesterTestingPlanFilter extends AbstractFilter
         $rootAlias = $queryBuilder->getRootAliases()[0];
         $parameter = $queryNameGenerator->generateParameterName('testingPlan');
         $queryBuilder
-            ->join($rootAlias . '.projects', 'projects')
+            ->join($rootAlias.'.projects', 'projects')
             ->join('projects.releases', 'releases')
             ->join('releases.plans', 'plans')
-            ->andWhere('plans.id = :' . $parameter)
+            ->andWhere('plans.id = :'.$parameter)
             ->setParameter($parameter, $value);
     }
 

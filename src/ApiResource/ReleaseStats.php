@@ -36,8 +36,7 @@ class ReleaseStats
         #[ApiProperty(identifier: true)]
         #[Groups(['releaseStats:read'])]
         private ?int $id
-    )
-    {
+    ) {
     }
 
     public function getId(): ?int

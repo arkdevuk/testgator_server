@@ -30,8 +30,7 @@ final class CollectionTotalItemsIntNormalizer implements NormalizerInterface, No
 
     public function __construct(
         private readonly NormalizerInterface $decorated,
-    )
-    {
+    ) {
     }
 
     /**
@@ -57,7 +56,7 @@ final class CollectionTotalItemsIntNormalizer implements NormalizerInterface, No
             // ("totalItems") key variants across API Platform versions.
             foreach (['totalItems', 'hydra:totalItems'] as $key) {
                 if (isset($data[$key]) && is_float($data[$key])) {
-                    $data[$key] = (int)$data[$key];
+                    $data[$key] = (int) $data[$key];
                 }
             }
         }

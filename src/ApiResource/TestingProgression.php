@@ -11,7 +11,6 @@ class TestingProgression
         public readonly int $questionsAnswered,
         public readonly int $questionsPending,
         public readonly float $progression,
-    )
-    {
+    ) {
     }
 }

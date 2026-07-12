@@ -131,8 +131,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(options: ['default' => true])]
     // 'testers:write' is required so a team member (ROLE_USER) can PATCH
-        // {"active": false} on /api/testers/{id} — 'team:write' is only added
-        // to the context for ROLE_ADMIN (see ApiContextBuilder).
+    // {"active": false} on /api/testers/{id} — 'team:write' is only added
+    // to the context for ROLE_ADMIN (see ApiContextBuilder).
     #[Groups(['testers:read', 'testers:write', 'team:write', 'users:read', 'users:write'])]
     #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private bool $active = true;
@@ -259,7 +259,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string)$this->email;
+        return (string) $this->email;
     }
 
     /**

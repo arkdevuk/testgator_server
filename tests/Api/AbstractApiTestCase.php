@@ -83,7 +83,7 @@ abstract class AbstractApiTestCase extends WebTestCase
     /** Returns the current top error handler without altering the stack. */
     private static function peekErrorHandler(): mixed
     {
-        $handler = set_error_handler(static fn(): bool => false);
+        $handler = set_error_handler(static fn (): bool => false);
         restore_error_handler();
 
         return $handler;
@@ -183,15 +183,14 @@ abstract class AbstractApiTestCase extends WebTestCase
         string $uri,
         ?array $payload = null,
         ?string $token = null,
-    ): array
-    {
+    ): array {
         $headers = [
             'HTTP_ACCEPT' => 'application/ld+json',
             'CONTENT_TYPE' => 'application/ld+json',
         ];
 
         if ($token !== null) {
-            $headers['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
+            $headers['HTTP_AUTHORIZATION'] = 'Bearer '.$token;
         }
 
         static::$client->request(
@@ -219,7 +218,7 @@ abstract class AbstractApiTestCase extends WebTestCase
         self::assertSame(
             $expected,
             $this->getStatusCode(),
-            'Response body: ' . static::$client->getResponse()->getContent(),
+            'Response body: '.static::$client->getResponse()->getContent(),
         );
     }
 

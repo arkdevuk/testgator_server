@@ -16,10 +16,9 @@ class AppConfigService
     // get kernel.project_dir
     public function __construct(
         KernelInterface $kernel,
-    )
-    {
+    ) {
         $projectDir = $kernel->getProjectDir();
-        $this->configPath = $projectDir . '/app_config/config.yaml';
+        $this->configPath = $projectDir.'/app_config/config.yaml';
         $this->active = file_exists($this->configPath);
         // config file is yaml
         try {
@@ -38,8 +37,8 @@ class AppConfigService
      * - 'app.working_days' returns the array of working days.
      * - 'app.working_days.monday' returns Monday's working hours.
      *
-     * @param string $path dot-notated string path to the desired config value
-     * @param mixed $defaultValue value to return if the path is not found in the config
+     * @param string $path         dot-notated string path to the desired config value
+     * @param mixed  $defaultValue value to return if the path is not found in the config
      *
      * @return mixed the value found at the specified path, or the default value if not found
      */

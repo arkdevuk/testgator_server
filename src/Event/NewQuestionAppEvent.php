@@ -11,7 +11,6 @@ final class NewQuestionAppEvent extends Event
 {
     public function __construct(
         public readonly Question $question,
-    )
-    {
+    ) {
     }
 }

@@ -11,7 +11,6 @@ class ProjectStats
         public readonly int $testPlans,
         public readonly int $testers,
         public readonly int $answers,
-    )
-    {
+    ) {
     }
 }

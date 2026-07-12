@@ -35,8 +35,7 @@ final class ProjectImageController extends AbstractController
 {
     public function __construct(
         private readonly ProjectImageService $projectImageService,
-    )
-    {
+    ) {
     }
 
     // ── POST /api/projects/{id}/project-picture ───────────────────────────────

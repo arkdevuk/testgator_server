@@ -20,8 +20,7 @@ class FileStateProvider implements ProviderInterface
         private readonly FileRepository $fileRepository,
         private readonly FileService $fileService,
         private readonly Security $security,
-    )
-    {
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -62,7 +61,7 @@ class FileStateProvider implements ProviderInterface
         $uploader = $file->getUploadedBy();
         if ($user instanceof User
             && $uploader instanceof User
-            && (string)$uploader->getId() === (string)$user->getId()) {
+            && (string) $uploader->getId() === (string) $user->getId()) {
             return;
         }
 

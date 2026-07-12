@@ -15,7 +15,7 @@ trait GuidAware
             try {
                 $hash .= hash('sha512', random_bytes($length));
             } catch (Exception) {
-                $hash .= hash('sha512', (string)random_int(0, $length * 100000));
+                $hash .= hash('sha512', (string) random_int(0, $length * 100000));
             }
         }
 

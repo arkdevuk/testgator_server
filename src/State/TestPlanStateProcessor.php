@@ -24,8 +24,7 @@ final readonly class TestPlanStateProcessor implements ProcessorInterface
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
         private ProcessorInterface $persistProcessor,
         private EventDispatcherInterface $dispatcher,
-    )
-    {
+    ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
@@ -77,7 +76,7 @@ final readonly class TestPlanStateProcessor implements ProcessorInterface
         ) {
             foreach ($result->getTestersEnrolled() as $tester) {
                 /** @var User $tester */
-                if (!in_array((string)$tester->getId(), $previousTesterIds, true)) {
+                if (!in_array((string) $tester->getId(), $previousTesterIds, true)) {
                     $this->dispatcher->dispatch(new TesterAssignedAppEvent($result, $tester));
                 }
             }
@@ -94,7 +93,7 @@ final readonly class TestPlanStateProcessor implements ProcessorInterface
         }
 
         return array_map(
-            static fn(User $u): string => (string)$u->getId(),
+            static fn (User $u): string => (string) $u->getId(),
             $previous->getTestersEnrolled()->toArray(),
         );
     }

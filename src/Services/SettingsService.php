@@ -21,8 +21,7 @@ class SettingsService
 
     public function __construct(
         private readonly SettingsRepository $settingsRepository,
-    )
-    {
+    ) {
         $this->preload();
     }
 
@@ -47,7 +46,7 @@ class SettingsService
      */
     public function getSettingValue(string $name, string $section, mixed $default = null): mixed
     {
-        $key = $section . '.' . $name;
+        $key = $section.'.'.$name;
 
         // 1. Cache hit
         if (isset($this->cache[$key])) {
@@ -72,7 +71,7 @@ class SettingsService
      */
     public function getSetting(string $name, string $section): ?Settings
     {
-        $key = $section . '.' . $name;
+        $key = $section.'.'.$name;
 
         return $this->cache[$key] ?? $this->settingsRepository->find($key);
     }

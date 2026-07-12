@@ -18,8 +18,8 @@ class MeStateProvider implements ProviderInterface
     }
 
     public function provide(Operation $operation,
-                            array $uriVariables = [],
-                            array $context = []): object|array|null
+        array $uriVariables = [],
+        array $context = []): object|array|null
     {
         if ($operation instanceof Get) {
             $u = $this->security->getUser();

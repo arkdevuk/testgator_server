@@ -11,7 +11,6 @@ final class TesterCreatedAppEvent extends Event
 {
     public function __construct(
         public readonly User $tester,
-    )
-    {
+    ) {
     }
 }

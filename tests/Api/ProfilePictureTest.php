@@ -60,7 +60,7 @@ class ProfilePictureTest extends AbstractApiTestCase
             ->findOneBy(['email' => $email, 'type' => UserType::TESTER]);
         self::assertNotNull($tester);
 
-        return (string)$tester->getId();
+        return (string) $tester->getId();
     }
 
     public function testTesterCannotSetAnotherTestersProfilePicture(): void
@@ -161,13 +161,13 @@ class ProfilePictureTest extends AbstractApiTestCase
             ->findOneBy(['email' => $email, 'type' => UserType::USER]);
         self::assertNotNull($user);
 
-        return (string)$user->getId();
+        return (string) $user->getId();
     }
 
     private function makeTmpImage(int $w, int $h, string $format = 'png'): string
     {
         $img = imagecreatetruecolor($w, $h);
-        $path = tempnam(sys_get_temp_dir(), 'ppic_') . '.' . $format;
+        $path = tempnam(sys_get_temp_dir(), 'ppic_').'.'.$format;
         $this->tmpFiles[] = $path;
         if ($format === 'png') {
             imagepng($img, $path);
@@ -188,7 +188,7 @@ class ProfilePictureTest extends AbstractApiTestCase
     {
         $headers = [];
         if ($token !== null) {
-            $headers['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
+            $headers['HTTP_AUTHORIZATION'] = 'Bearer '.$token;
         }
 
         static::$client->request('POST', $uri, [], ['file' => $file], $headers);
@@ -227,7 +227,7 @@ class ProfilePictureTest extends AbstractApiTestCase
     {
         $id = $this->getTeamUserUuid();
 
-        $headers = ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->getAdminToken()];
+        $headers = ['HTTP_AUTHORIZATION' => 'Bearer '.$this->getAdminToken()];
         static::$client->request('POST', "/api/users/{$id}/profile-picture", [], [], $headers);
 
         $this->assertStatusCode(400);
@@ -265,7 +265,7 @@ class ProfilePictureTest extends AbstractApiTestCase
 
         // Minimal valid 1×1 GIF89a
         $gif = base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', true);
-        $path = tempnam(sys_get_temp_dir(), 'ppic_gif_') . '.gif';
+        $path = tempnam(sys_get_temp_dir(), 'ppic_gif_').'.gif';
         $this->tmpFiles[] = $path;
         file_put_contents($path, $gif);
 
@@ -281,7 +281,7 @@ class ProfilePictureTest extends AbstractApiTestCase
     public function testNonImageFileIsRejectedWith422(): void
     {
         $id = $this->getTeamUserUuid();
-        $path = tempnam(sys_get_temp_dir(), 'ppic_txt_') . '.txt';
+        $path = tempnam(sys_get_temp_dir(), 'ppic_txt_').'.txt';
         $this->tmpFiles[] = $path;
         file_put_contents($path, 'this is not an image');
 
@@ -295,7 +295,7 @@ class ProfilePictureTest extends AbstractApiTestCase
     public function testOversizedFileIsRejectedWith422(): void
     {
         $id = $this->getTeamUserUuid();
-        $path = tempnam(sys_get_temp_dir(), 'ppic_big_') . '.bin';
+        $path = tempnam(sys_get_temp_dir(), 'ppic_big_').'.bin';
         $this->tmpFiles[] = $path;
         // Write just over 500 KB — size check fires before image parsing
         file_put_contents($path, str_repeat("\x00", 500 * 1024 + 1));

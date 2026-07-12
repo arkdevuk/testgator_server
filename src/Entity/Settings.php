@@ -104,7 +104,7 @@ class Settings
     private function refreshId(): void
     {
         if ($this->section !== '' && $this->name !== '') {
-            $this->id = $this->section . '.' . $this->name;
+            $this->id = $this->section.'.'.$this->name;
         }
     }
 

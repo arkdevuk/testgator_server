@@ -24,8 +24,7 @@ class WorkingHours
         private ?string $id,
         #[Groups(['workingHours:read'])]
         private array $details
-    )
-    {
+    ) {
     }
 
     public function getId(): ?string

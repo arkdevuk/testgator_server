@@ -28,8 +28,7 @@ class PasswordService
         private readonly EntityManagerInterface $em,
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserRepository $userRepository,
-    )
-    {
+    ) {
     }
 
     /**

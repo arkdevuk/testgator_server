@@ -63,12 +63,11 @@ final class DemoController extends AbstractController
     #[Route('/api/demo/add_demo_answer', name: 'app_demo_add_demo_answer', methods: ['POST'])]
     public function __invoke(
         Request $request,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $body = json_decode($request->getContent(), true) ?? [];
 
         $testingPlanIri = $body['testingPlanIri'] ?? null;
-        $number = (int)($body['number'] ?? 10);
+        $number = (int) ($body['number'] ?? 10);
 
         // ── Validate inputs ───────────────────────────────────────────────────
 
@@ -86,7 +85,7 @@ final class DemoController extends AbstractController
             return $this->json(['error' => 'Invalid testingPlanIri format. Expected e.g. /api/test_plans/12'], Response::HTTP_BAD_REQUEST);
         }
 
-        $testPlan = $this->testPlanRepository->find((int)$m[1]);
+        $testPlan = $this->testPlanRepository->find((int) $m[1]);
 
         if (!$testPlan instanceof TestPlan) {
             return $this->json(['error' => 'TestPlan not found'], Response::HTTP_NOT_FOUND);

@@ -56,7 +56,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $project = $this->findProject('Alpha Project');
 
-        $this->jsonRequest('GET', '/api/projects/' . $project->getId(), null, $token);
+        $this->jsonRequest('GET', '/api/projects/'.$project->getId(), null, $token);
         $this->assertStatusCode(200);
     }
 
@@ -70,7 +70,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $project = $this->findProject('Beta Project');
 
-        $this->jsonRequest('GET', '/api/projects/' . $project->getId(), null, $token);
+        $this->jsonRequest('GET', '/api/projects/'.$project->getId(), null, $token);
         $this->assertStatusCode(404);
     }
 
@@ -90,7 +90,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $project = $this->findProject('Alpha Project');
 
-        $this->patchRequest('/api/projects/' . $project->getId(), ['name' => 'Hacked'], $token);
+        $this->patchRequest('/api/projects/'.$project->getId(), ['name' => 'Hacked'], $token);
         $this->assertStatusCode(403);
     }
 
@@ -103,7 +103,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         static::$client->request('PATCH', $uri, [], [], [
             'HTTP_ACCEPT' => 'application/ld+json',
             'CONTENT_TYPE' => 'application/merge-patch+json',
-            'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+            'HTTP_AUTHORIZATION' => 'Bearer '.$token,
         ], json_encode($payload));
 
         $content = static::$client->getResponse()->getContent();
@@ -116,14 +116,14 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $project = $this->findProject('Alpha Project');
 
-        $this->deleteRequest('/api/projects/' . $project->getId(), $token);
+        $this->deleteRequest('/api/projects/'.$project->getId(), $token);
         $this->assertStatusCode(403);
     }
 
     private function deleteRequest(string $uri, string $token): void
     {
         static::$client->request('DELETE', $uri, [], [], [
-            'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+            'HTTP_AUTHORIZATION' => 'Bearer '.$token,
         ]);
     }
 
@@ -151,7 +151,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $plan = $this->findPlan('Draft Plan');
 
-        $this->jsonRequest('GET', '/api/test_plans/' . $plan->getId(), null, $token);
+        $this->jsonRequest('GET', '/api/test_plans/'.$plan->getId(), null, $token);
         $this->assertStatusCode(404);
     }
 
@@ -180,7 +180,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $plan = $this->findPlan('Published Plan');
 
-        $this->patchRequest('/api/test_plans/' . $plan->getId(), ['name' => 'Hacked'], $token);
+        $this->patchRequest('/api/test_plans/'.$plan->getId(), ['name' => 'Hacked'], $token);
         $this->assertStatusCode(403);
     }
 
@@ -189,7 +189,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $plan = $this->findPlan('Published Plan');
 
-        $this->deleteRequest('/api/test_plans/' . $plan->getId(), $token);
+        $this->deleteRequest('/api/test_plans/'.$plan->getId(), $token);
         $this->assertStatusCode(403);
     }
 
@@ -202,7 +202,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $question = $this->findQuestion('Does the login work?');
 
-        $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats', null, $token);
+        $this->jsonRequest('GET', '/api/questions/'.$question->getId().'/stats', null, $token);
         $this->assertStatusCode(200);
     }
 
@@ -216,7 +216,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken(TestFixtures::TESTER_EMAIL_2);
         $question = $this->findQuestion('Does the login work?');
 
-        $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats', null, $token);
+        $this->jsonRequest('GET', '/api/questions/'.$question->getId().'/stats', null, $token);
         $this->assertStatusCode(403);
     }
 
@@ -230,7 +230,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $release = static::$em->getRepository(Release::class)
             ->findOneBy(['name' => '1.0.0']);
 
-        $this->jsonRequest('GET', '/api/release_stats/' . $release->getId(), null, $token);
+        $this->jsonRequest('GET', '/api/release_stats/'.$release->getId(), null, $token);
         $this->assertStatusCode(403);
     }
 
@@ -244,7 +244,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $release = static::$em->getRepository(Release::class)
             ->findOneBy(['name' => '1.0.0']);
 
-        $this->jsonRequest('GET', '/api/release_stats/' . $release->getId(), null, $token);
+        $this->jsonRequest('GET', '/api/release_stats/'.$release->getId(), null, $token);
         $this->assertStatusCode(200);
     }
 
@@ -264,7 +264,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $other = $this->findTester(TestFixtures::TESTER_EMAIL_2);
 
-        $this->jsonRequest('GET', '/api/testers/' . $other->id, null, $token);
+        $this->jsonRequest('GET', '/api/testers/'.$other->id, null, $token);
         $this->assertStatusCode(403);
     }
 
@@ -302,7 +302,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $this->assertStatusCode(200);
         self::assertSame(2, $data['totalItems']);
         foreach ($data['member'] as $answer) {
-            self::assertStringContainsString((string)$tester->id, $answer['tester']);
+            self::assertStringContainsString((string) $tester->id, $answer['tester']);
         }
     }
 
@@ -315,7 +315,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $otherAnswer = $this->findAnswerOf(TestFixtures::TESTER_EMAIL_2);
 
-        $this->jsonRequest('GET', '/api/answers/' . $otherAnswer->getId(), null, $token);
+        $this->jsonRequest('GET', '/api/answers/'.$otherAnswer->getId(), null, $token);
         $this->assertStatusCode(404);
     }
 
@@ -338,16 +338,16 @@ class TesterPolicyTest extends AbstractApiTestCase
 
         // tester1 tries to post an answer in tester2's name
         $data = $this->jsonRequest('POST', '/api/answers', [
-            'tester' => '/api/testers/' . $other->id,
+            'tester' => '/api/testers/'.$other->id,
             'state' => 'pass',
             'comment' => 'Trying to spoof the author.',
-            'question' => '/api/questions/' . $question->getId(),
+            'question' => '/api/questions/'.$question->getId(),
         ], $token);
 
         $this->assertStatusCode(201);
         // the spoofed tester is ignored: the answer belongs to tester1
-        self::assertStringContainsString((string)$self->id, $data['tester']);
-        self::assertStringNotContainsString((string)$other->id, $data['tester']);
+        self::assertStringContainsString((string) $self->id, $data['tester']);
+        self::assertStringNotContainsString((string) $other->id, $data['tester']);
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -359,7 +359,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $answer = $this->findAnswerOf(TestFixtures::TESTER_EMAIL);
 
-        $data = $this->patchRequest('/api/answers/' . $answer->getId(), [
+        $data = $this->patchRequest('/api/answers/'.$answer->getId(), [
             'state' => 'blocked',
             'comment' => 'Updated by its owner.',
         ], $token);
@@ -378,8 +378,8 @@ class TesterPolicyTest extends AbstractApiTestCase
         $answer = $this->findAnswerOf(TestFixtures::TESTER_EMAIL);
         $other = $this->findTester(TestFixtures::TESTER_EMAIL_2);
 
-        $this->patchRequest('/api/answers/' . $answer->getId(), [
-            'tester' => '/api/testers/' . $other->id,
+        $this->patchRequest('/api/answers/'.$answer->getId(), [
+            'tester' => '/api/testers/'.$other->id,
         ], $token);
 
         $this->assertStatusCode(403);
@@ -395,8 +395,8 @@ class TesterPolicyTest extends AbstractApiTestCase
         $answer = static::$em->getRepository(Answer::class)
             ->findOneBy(['tester' => $tester, 'question' => $question1]);
 
-        $this->patchRequest('/api/answers/' . $answer->getId(), [
-            'question' => '/api/questions/' . $question2->getId(),
+        $this->patchRequest('/api/answers/'.$answer->getId(), [
+            'question' => '/api/questions/'.$question2->getId(),
         ], $token);
 
         $this->assertStatusCode(403);
@@ -407,7 +407,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $otherAnswer = $this->findAnswerOf(TestFixtures::TESTER_EMAIL_2);
 
-        $this->patchRequest('/api/answers/' . $otherAnswer->getId(), [
+        $this->patchRequest('/api/answers/'.$otherAnswer->getId(), [
             'comment' => 'Should never land.',
         ], $token);
 
@@ -419,7 +419,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTesterToken();
         $answer = $this->findAnswerOf(TestFixtures::TESTER_EMAIL);
 
-        $this->deleteRequest('/api/answers/' . $answer->getId(), $token);
+        $this->deleteRequest('/api/answers/'.$answer->getId(), $token);
         $this->assertStatusCode(403);
     }
 
@@ -428,7 +428,7 @@ class TesterPolicyTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $answer = $this->findAnswerOf(TestFixtures::TESTER_EMAIL);
 
-        $this->deleteRequest('/api/answers/' . $answer->getId(), $token);
+        $this->deleteRequest('/api/answers/'.$answer->getId(), $token);
         $this->assertStatusCode(204);
     }
 

@@ -38,16 +38,15 @@ class WebhookService
         private readonly LoggerInterface $logger,
         #[Autowire(env: 'default:app.version.default:APP_VERSION')]
         private readonly string $appVersion = '1.0',
-    )
-    {
+    ) {
     }
 
     /**
      * Dispatch a webhook if enabled and configured.
      *
-     * @param string $eventName e.g. "NewProjectAppEvent"
-     * @param array $entityData serialised representation of the main entity
-     * @param array $projectData serialised representation of the related project
+     * @param string $eventName   e.g. "NewProjectAppEvent"
+     * @param array  $entityData  serialised representation of the main entity
+     * @param array  $projectData serialised representation of the related project
      */
     public function dispatch(string $eventName, array $entityData, array $projectData): void
     {
@@ -109,8 +108,8 @@ class WebhookService
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
                 'Accept: application/json',
-                'User-Agent: TestGator-Webhook-v' . $this->appVersion,
-                'Content-Length: ' . strlen($jsonBody),
+                'User-Agent: TestGator-Webhook-v'.$this->appVersion,
+                'Content-Length: '.strlen($jsonBody),
             ],
         ]);
 

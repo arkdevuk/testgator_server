@@ -11,7 +11,6 @@ final class DevCreatedAppEvent extends Event
 {
     public function __construct(
         public readonly User $user,
-    )
-    {
+    ) {
     }
 }

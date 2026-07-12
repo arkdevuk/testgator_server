@@ -51,8 +51,7 @@ class RefreshToken
         string $userType,
         DateTimeImmutable $expiresAt,
         ?array $extra = null,
-    )
-    {
+    ) {
         $this->tokenHash = $tokenHash;
         $this->userGuid = $userGuid;
         $this->userType = $userType;

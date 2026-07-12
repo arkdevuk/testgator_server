@@ -40,7 +40,7 @@ class AnswerTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $answer = $this->getTestAnswer();
 
-        $data = $this->jsonRequest('GET', '/api/answers/' . $answer->getId(), null, $token);
+        $data = $this->jsonRequest('GET', '/api/answers/'.$answer->getId(), null, $token);
 
         $this->assertStatusCode(200);
         $this->assertJsonKey('tester', $data);
@@ -59,15 +59,15 @@ class AnswerTest extends AbstractApiTestCase
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
         $data = $this->jsonRequest('POST', '/api/answers', [
-            'tester' => '/api/testers/' . $tester->id,
+            'tester' => '/api/testers/'.$tester->id,
             'state' => 'failed',
             'comment' => 'Dashboard shows a blank screen.',
-            'question' => '/api/questions/' . $question->getId(),
+            'question' => '/api/questions/'.$question->getId(),
         ], $token);
 
         $this->assertStatusCode(201);
         self::assertSame('failed', $data['state']);
-        self::assertStringContainsString((string)$tester->id, $data['tester']);
+        self::assertStringContainsString((string) $tester->id, $data['tester']);
     }
 
     public function testDefaultStateIsPending(): void
@@ -79,9 +79,9 @@ class AnswerTest extends AbstractApiTestCase
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
         $data = $this->jsonRequest('POST', '/api/answers', [
-            'tester' => '/api/testers/' . $tester->id,
+            'tester' => '/api/testers/'.$tester->id,
             'comment' => 'No state provided.',
-            'question' => '/api/questions/' . $question->getId(),
+            'question' => '/api/questions/'.$question->getId(),
         ], $token);
 
         $this->assertStatusCode(201);
@@ -95,7 +95,7 @@ class AnswerTest extends AbstractApiTestCase
 
         $this->jsonRequest('POST', '/api/answers', [
             'comment' => 'Should fail',
-            'question' => '/api/questions/' . $question->getId(),
+            'question' => '/api/questions/'.$question->getId(),
         ]);
         $this->assertStatusCode(401);
     }
@@ -107,12 +107,12 @@ class AnswerTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $answer = $this->getTestAnswer();
 
-        static::$client->request('PATCH', '/api/answers/' . $answer->getId(),
+        static::$client->request('PATCH', '/api/answers/'.$answer->getId(),
             [], [],
             [
                 'HTTP_ACCEPT' => 'application/ld+json',
                 'CONTENT_TYPE' => 'application/merge-patch+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ],
             json_encode(['state' => 'blocked', 'comment' => 'Blocked by upstream issue.'])
         );
@@ -134,16 +134,16 @@ class AnswerTest extends AbstractApiTestCase
             ->findOneBy(['email' => TestFixtures::TESTER_EMAIL, 'type' => UserType::TESTER]);
 
         $created = $this->jsonRequest('POST', '/api/answers', [
-            'tester' => '/api/testers/' . $tester->id,
+            'tester' => '/api/testers/'.$tester->id,
             'state' => 'pending',
             'comment' => 'To be deleted',
-            'question' => '/api/questions/' . $question->getId(),
+            'question' => '/api/questions/'.$question->getId(),
         ], $token);
         $this->assertStatusCode(201);
 
-        static::$client->request('DELETE', '/api/answers/' . $created['id'],
+        static::$client->request('DELETE', '/api/answers/'.$created['id'],
             [], [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]
+            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
         );
         $this->assertStatusCode(204);
     }

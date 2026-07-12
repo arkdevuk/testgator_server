@@ -118,7 +118,7 @@ class TesterTag
     {
         // Transliterate non-ASCII, lowercase, replace non-alphanumeric with hyphens.
         $slug = mb_strtolower(trim($text));
-        $slug = (string)preg_replace('/[^a-z0-9]+/', '-', $slug);
+        $slug = (string) preg_replace('/[^a-z0-9]+/', '-', $slug);
 
         return trim($slug, '-');
     }

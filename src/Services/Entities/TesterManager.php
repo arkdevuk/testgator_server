@@ -29,7 +29,7 @@ class TesterManager
         // generate random code of 6 digits
         $code = random_int(100000, 999999);
         // store the code in the user
-        $tester->setOtp((string)$code);
+        $tester->setOtp((string) $code);
         $tester->setOtpTry(0);
         $tester->setOtpDate(new DateTime());
         $this->em->persist($tester);
@@ -52,14 +52,14 @@ class TesterManager
             // ignore
         }
 
-        return (string)$code;
+        return (string) $code;
     }
 
     public function handlePostCreation(User $tester): void
     {
         try {
             $content = $this->mailingService->render('tester-welcome.email.twig', [
-                'signed_url' => $_ENV['APP_URL'] . '/login?mode=tester&email=' . $tester->getEmail(),
+                'signed_url' => $_ENV['APP_URL'].'/login?mode=tester&email='.$tester->getEmail(),
             ]);
 
             $subject = $this->translator->trans('email.welcome_tester.subject');

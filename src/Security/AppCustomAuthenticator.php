@@ -74,8 +74,8 @@ class AppCustomAuthenticator extends AbstractAuthenticator
 
         // if user found, return Passport
         return new SelfValidatingPassport(
-            new UserBadge((string)$u->getId(),
-                fn($userIdentifier): ?object => $this->userRepository->findOneBy(['id' => $userIdentifier])
+            new UserBadge((string) $u->getId(),
+                fn ($userIdentifier): ?object => $this->userRepository->findOneBy(['id' => $userIdentifier])
             ), []
         );
     }

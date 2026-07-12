@@ -37,8 +37,7 @@ class SearchService
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly BM25Scorer $bm25,
-    )
-    {
+    ) {
     }
 
     /**
@@ -61,7 +60,7 @@ class SearchService
 
         $terms = array_values(array_filter(
             array_map(trim(...), preg_split('/\s+/', mb_strtolower($query))),
-            fn(string $t): bool => $t !== ''
+            fn (string $t): bool => $t !== ''
         ));
 
         $results = [];
@@ -83,7 +82,7 @@ class SearchService
             }
         }
 
-        usort($results, fn(array $a, array $b): int => $b['score'] <=> $a['score']);
+        usort($results, fn (array $a, array $b): int => $b['score'] <=> $a['score']);
 
         return $results;
     }
@@ -116,7 +115,7 @@ class SearchService
 
             return [
                 'type' => self::SCOPE_PROJECTS,
-                'iri' => '/api/projects/' . $p->getId(),
+                'iri' => '/api/projects/'.$p->getId(),
                 'score' => $s['score'],
                 'name' => $p->getName() ?? '',
                 'extracts' => $s['extracts'],
@@ -133,7 +132,7 @@ class SearchService
      */
     private function fetchLike(string $dql, array $terms, ?User $tester = null, ?int $projectId = null): array
     {
-        $pattern = '%' . implode('%', $terms) . '%';
+        $pattern = '%'.implode('%', $terms).'%';
         $q = $this->em->createQuery($dql)->setParameter('p', $pattern);
         if ($tester instanceof User) {
             $q->setParameter('user', $tester);
@@ -162,7 +161,7 @@ class SearchService
         $documents = [];
         foreach ($items as $u) {
             /* @var User $u */
-            $documents[(string)$u->getId()] = [
+            $documents[(string) $u->getId()] = [
                 'email' => ['text' => $u->getEmail() ?? '', 'weight' => 3.0],
                 'nickname' => ['text' => $u->getNickname(), 'weight' => 2.0],
             ];
@@ -171,11 +170,11 @@ class SearchService
         $scores = $this->bm25->score($documents, $terms);
 
         return array_map(function (User $u) use ($scores): array {
-            $s = $scores[(string)$u->getId()] ?? ['score' => 0.0, 'extracts' => []];
+            $s = $scores[(string) $u->getId()] ?? ['score' => 0.0, 'extracts' => []];
 
             return [
                 'type' => self::SCOPE_TESTERS,
-                'iri' => '/api/testers/' . $u->getId(),
+                'iri' => '/api/testers/'.$u->getId(),
                 'score' => $s['score'],
                 'name' => $u->getEmail() ?? '',
                 'extracts' => $s['extracts'],
@@ -202,7 +201,7 @@ class SearchService
             $conds[] = 'r.project = :project';
         }
         $conds[] = '(LOWER(tp.name) LIKE :p OR LOWER(tp.description) LIKE :p OR LOWER(tp.content) LIKE :p)';
-        $dql .= ' WHERE ' . implode(' AND ', $conds);
+        $dql .= ' WHERE '.implode(' AND ', $conds);
 
         $items = $this->fetchLike($dql, $terms, $tester, $projectId);
 
@@ -223,7 +222,7 @@ class SearchService
 
             return [
                 'type' => self::SCOPE_TEST_PLAN,
-                'iri' => '/api/test_plans/' . $tp->getId(),
+                'iri' => '/api/test_plans/'.$tp->getId(),
                 'score' => $s['score'],
                 'name' => $tp->getName() ?? '',
                 'extracts' => $s['extracts'],
@@ -254,7 +253,7 @@ class SearchService
             $conds[] = 'r.project = :project';
         }
         $conds[] = '(LOWER(q.name) LIKE :p OR LOWER(q.content) LIKE :p)';
-        $dql .= ' WHERE ' . implode(' AND ', $conds);
+        $dql .= ' WHERE '.implode(' AND ', $conds);
 
         $items = $this->fetchLike($dql, $terms, $tester, $projectId);
 
@@ -274,7 +273,7 @@ class SearchService
 
             return [
                 'type' => self::SCOPE_QUESTIONS,
-                'iri' => '/api/questions/' . $q->getId(),
+                'iri' => '/api/questions/'.$q->getId(),
                 'score' => $s['score'],
                 'name' => $q->getName() ?? '',
                 'extracts' => $s['extracts'],
@@ -299,7 +298,7 @@ class SearchService
         if ($projectId !== null) {
             $conds[] = 'r.project = :project';
         }
-        $dql .= ' WHERE ' . implode(' AND ', $conds);
+        $dql .= ' WHERE '.implode(' AND ', $conds);
 
         $items = $this->fetchLike($dql, $terms, $tester, $projectId);
 
@@ -319,9 +318,9 @@ class SearchService
 
             return [
                 'type' => self::SCOPE_ANSWERS,
-                'iri' => '/api/answers/' . $a->getId(),
+                'iri' => '/api/answers/'.$a->getId(),
                 'score' => $s['score'],
-                'name' => mb_strlen($comment) > 80 ? mb_substr($comment, 0, 80) . '…' : $comment,
+                'name' => mb_strlen($comment) > 80 ? mb_substr($comment, 0, 80).'…' : $comment,
                 'extracts' => $s['extracts'],
             ];
         }, $items);

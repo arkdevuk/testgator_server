@@ -18,8 +18,8 @@ class ReleaseStatsStateProvider implements ProviderInterface
     }
 
     public function provide(Operation $operation,
-                            array $uriVariables = [],
-                            array $context = []): object|array|null
+        array $uriVariables = [],
+        array $context = []): object|array|null
     {
         if ($operation instanceof Get) {
             // todo add symfony/cache to avoid recomputing this data every time | ~10 minutes

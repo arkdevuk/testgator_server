@@ -38,8 +38,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
         string $password,
         string $mode = 'team',
         string $authMode = 'app',
-    ): array
-    {
+    ): array {
         return $this->jsonRequest('POST', '/api/auth/login', [
             'username' => $username,
             'password' => $password,
@@ -111,7 +110,7 @@ class LoginRateLimitTest extends AbstractApiTestCase
         $this->assertStatusCode(429);
         $retryAfter = static::$client->getResponse()->headers->get('Retry-After');
         self::assertNotNull($retryAfter, 'Retry-After header must be present on 429.');
-        self::assertGreaterThan(0, (int)$retryAfter);
+        self::assertGreaterThan(0, (int) $retryAfter);
     }
 
     // ── Reset on success ──────────────────────────────────────────────────────

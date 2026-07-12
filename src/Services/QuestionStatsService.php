@@ -15,8 +15,7 @@ class QuestionStatsService
     public function __construct(
         private readonly QuestionRepository $questionRepository,
         private readonly AnswerRepository $answerRepository,
-    )
-    {
+    ) {
     }
 
     /**

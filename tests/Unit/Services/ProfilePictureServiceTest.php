@@ -35,7 +35,7 @@ class ProfilePictureServiceTest extends TestCase
     private function makeTmpImage(int $w, int $h, string $format = 'png', int $quality = 9): string
     {
         $img = imagecreatetruecolor($w, $h);
-        $path = tempnam(sys_get_temp_dir(), 'ppic_') . '.' . $format;
+        $path = tempnam(sys_get_temp_dir(), 'ppic_').'.'.$format;
         $this->tmpFiles[] = $path;
 
         if ($format === 'png') {
@@ -74,7 +74,7 @@ class ProfilePictureServiceTest extends TestCase
 
         // Build a valid but bloated PNG by injecting padding after the header.
         // Simplest approach: just write a raw file larger than MAX_BYTES.
-        $path = tempnam(sys_get_temp_dir(), 'ppic_big_') . '.bin';
+        $path = tempnam(sys_get_temp_dir(), 'ppic_big_').'.bin';
         $this->tmpFiles[] = $path;
         file_put_contents($path, str_repeat('A', ProfilePictureService::MAX_BYTES + 1));
 
@@ -130,7 +130,7 @@ class ProfilePictureServiceTest extends TestCase
 
         // Minimal 1×1 GIF89a
         $gif = base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', true);
-        $path = tempnam(sys_get_temp_dir(), 'ppic_gif_') . '.gif';
+        $path = tempnam(sys_get_temp_dir(), 'ppic_gif_').'.gif';
         $this->tmpFiles[] = $path;
         file_put_contents($path, $gif);
 
@@ -165,20 +165,20 @@ class ProfilePictureServiceTest extends TestCase
     public function testUploadImageBuildsProfilePictureKeyAndDelegates(): void
     {
         $uuid = '019e0000-0000-7000-8000-000000000000';
-        $expectedKey = 'profile-pictures/' . $uuid . '.jpg';
+        $expectedKey = 'profile-pictures/'.$uuid.'.jpg';
 
         $fileService = $this->createMock(FileService::class);
         $fileService
             ->expects(self::once())
             ->method('putPublicObject')
             ->with('/tmp/avatar.jpg', 'image/jpeg', $expectedKey)
-            ->willReturn('https://cdn.example/' . $expectedKey);
+            ->willReturn('https://cdn.example/'.$expectedKey);
 
         $service = new ProfilePictureService($fileService);
 
         $url = $service->uploadImage('/tmp/avatar.jpg', 'image/jpeg', $uuid);
 
-        self::assertSame('https://cdn.example/' . $expectedKey, $url);
+        self::assertSame('https://cdn.example/'.$expectedKey, $url);
     }
 
     // ── MIME violations ───────────────────────────────────────────────────────

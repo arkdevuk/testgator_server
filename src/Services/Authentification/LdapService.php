@@ -32,8 +32,7 @@ class LdapService
     public function checkUserLogin(
         string $uid,
         string $password
-    ): array
-    {
+    ): array {
         // Validate inputs before touching LDAP
         $this->validatePassword($password);
 
@@ -63,7 +62,7 @@ class LdapService
         // escaped for the filter context (RFC 4515 §4), not the DN context.
         $escapedMemberDn = $this->escapeForFilter($result[0]->getDn());
         $query = $ldap->query($this->baseDn,
-            '(&(objectClass=groupOfNames)(member=' . $escapedMemberDn . '))'
+            '(&(objectClass=groupOfNames)(member='.$escapedMemberDn.'))'
         );
         $groups = $query->execute()->toArray();
         foreach ($groups as $group) {

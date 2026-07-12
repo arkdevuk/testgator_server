@@ -35,8 +35,7 @@ final class LoginController extends AbstractController
         Request $request,
         #[Autowire(env: 'APP_AUTH_MODE')]
         string $appAuthMode,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $username = $request->getPayload()->get('username');
         $password = $request->getPayload()->get('password');
         $authMode = $request->getPayload()->get('authMode', 'app');
@@ -66,7 +65,7 @@ final class LoginController extends AbstractController
                 return $this->json(
                     ['logged' => false, 'error' => 'Too many login attempts. Try again later.'],
                     429,
-                    ['Retry-After' => (string)$limit['retryAfter']],
+                    ['Retry-After' => (string) $limit['retryAfter']],
                 );
             }
         }
@@ -164,8 +163,7 @@ final class LoginController extends AbstractController
     public function authMode(
         #[Autowire(env: 'APP_AUTH_MODE')]
         string $appAuthMode,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         return $this->json([
             'mode' => $appAuthMode,
             // In db mode the login identifier is always the user's e-mail address.
@@ -178,8 +176,7 @@ final class LoginController extends AbstractController
     #[Route('/api/auth/login_tester', name: 'app_login_tester', methods: ['POST'])]
     public function loginTester(
         Request $request,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $challenge = $request->getPayload()->get('challenge');
         $hash = $request->getPayload()->get('hash');
         $testPlanId = $request->getPayload()->get('tp');
@@ -188,7 +185,7 @@ final class LoginController extends AbstractController
             return $this->json(['logged' => false, 'error' => 'Invalid request'], 400);
         }
 
-        $tp = $this->testPlanManager->getTestPlanById((int)$testPlanId);
+        $tp = $this->testPlanManager->getTestPlanById((int) $testPlanId);
         if (!$tp instanceof TestPlan) {
             return $this->json(['error' => 'Invalid TestPlan'], 404);
         }
@@ -210,8 +207,7 @@ final class LoginController extends AbstractController
     #[Route('/api/auth/refresh', name: 'app_refresh', methods: ['POST'])]
     public function refresh(
         Request $request,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $rawToken = $request->getPayload()->get('refreshToken');
 
         if ($rawToken === null || $rawToken === '') {
@@ -231,7 +227,7 @@ final class LoginController extends AbstractController
                 return $this->json(['error' => 'Invalid guest token context'], 401);
             }
 
-            $tp = $this->testPlanManager->getTestPlanById((int)$tpId);
+            $tp = $this->testPlanManager->getTestPlanById((int) $tpId);
             if (!$tp instanceof TestPlan) {
                 return $this->json(['error' => 'TestPlan no longer exists'], 401);
             }
@@ -273,13 +269,13 @@ final class LoginController extends AbstractController
     {
         return [
             'authMode' => 'Tester',
-            'tp' => ['id' => $tpId, '@id' => '/api/test_plans/' . $tpId],
+            'tp' => ['id' => $tpId, '@id' => '/api/test_plans/'.$tpId],
             'exp' => time() + 3 * 60 * 60,
             'scope' => [
                 'web/app/guest',
                 'web/api/guest',
-                'web/app/tp/' . $tpId,
-                'web/api/tp/' . $tpId,
+                'web/app/tp/'.$tpId,
+                'web/api/tp/'.$tpId,
             ],
         ];
     }

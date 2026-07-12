@@ -17,13 +17,13 @@ class WorkingHoursStateProvider implements ProviderInterface
     }
 
     public function provide(Operation $operation,
-                            array $uriVariables = [],
-                            array $context = []): array
+        array $uriVariables = [],
+        array $context = []): array
     {
         if ($operation instanceof GetCollection) {
             $dayOfTheWeeks = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
             if (
-                ((int)$this->appConfigService->getValue('app.settings.start_of_week', '0'))
+                ((int) $this->appConfigService->getValue('app.settings.start_of_week', '0'))
                 === 1
             ) {
                 $dayOfTheWeeks = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];

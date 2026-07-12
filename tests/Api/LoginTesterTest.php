@@ -114,7 +114,7 @@ class LoginTesterTest extends AbstractApiTestCase
             '/public/apx/upload',
             [],
             ['file' => $file],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->getTesterToken()],
+            ['HTTP_AUTHORIZATION' => 'Bearer '.$this->getTesterToken()],
         );
 
         self::assertContains($this->getStatusCode(), [200, 500]);
@@ -129,7 +129,7 @@ class LoginTesterTest extends AbstractApiTestCase
     private function makeTmpPng(): string
     {
         $img = imagecreatetruecolor(100, 100);
-        $path = tempnam(sys_get_temp_dir(), 'upl_') . '.png';
+        $path = tempnam(sys_get_temp_dir(), 'upl_').'.png';
         $this->tmpFiles[] = $path;
         imagepng($img, $path);
         imagedestroy($img);

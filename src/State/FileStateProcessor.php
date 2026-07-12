@@ -20,8 +20,7 @@ class FileStateProcessor implements ProcessorInterface
         private readonly FileService $fileService,
         private readonly EntityManagerInterface $em,
         private readonly Security $security,
-    )
-    {
+    ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
@@ -54,7 +53,7 @@ class FileStateProcessor implements ProcessorInterface
         $uploader = $file->getUploadedBy();
         if ($user instanceof User
             && $uploader instanceof User
-            && (string)$uploader->getId() === (string)$user->getId()) {
+            && (string) $uploader->getId() === (string) $user->getId()) {
             return;
         }
 

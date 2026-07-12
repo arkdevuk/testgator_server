@@ -22,8 +22,7 @@ class TestingProgressionStateProvider implements ProviderInterface
         private readonly TestPlanRepository $testPlanRepository,
         private readonly EntityManagerInterface $em,
         private readonly Security $security,
-    )
-    {
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -40,7 +39,7 @@ class TestingProgressionStateProvider implements ProviderInterface
 
         // Check the current user is enrolled in this test plan
         $enrolled = $testPlan->getTestersEnrolled()->exists(
-            fn(int $_, User $tester): bool => $tester->getId() === $user->getId()
+            fn (int $_, User $tester): bool => $tester->getId() === $user->getId()
         );
         if (!$enrolled) {
             throw new AccessDeniedHttpException();

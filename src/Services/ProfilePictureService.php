@@ -31,8 +31,7 @@ class ProfilePictureService
 
     public function __construct(
         private readonly FileService $fileService,
-    )
-    {
+    ) {
     }
 
     /**
@@ -120,8 +119,8 @@ class ProfilePictureService
      * PUBLIC_URL_PUBLIC_BUCKET, no ACL header — bucket is public by policy).
      *
      * @param string $tmpPath Absolute path to the temporary file
-     * @param string $mime MIME type returned by validateImage() / validateBannerImage()
-     * @param string $key Full S3 object key (e.g. 'profile-pictures/uuid.png')
+     * @param string $mime    MIME type returned by validateImage() / validateBannerImage()
+     * @param string $key     Full S3 object key (e.g. 'profile-pictures/uuid.png')
      *
      * @return string Public URL of the stored image
      *
@@ -139,8 +138,8 @@ class ProfilePictureService
      * by policy so no ACL header is sent.
      *
      * @param string $tmpPath Absolute path to the temporary file
-     * @param string $mime MIME type returned by validateImage()
-     * @param string $uuid User UUID — used as the S3 object key
+     * @param string $mime    MIME type returned by validateImage()
+     * @param string $uuid    User UUID — used as the S3 object key
      *
      * @return string Public URL of the stored image
      *
@@ -150,7 +149,7 @@ class ProfilePictureService
     {
         $allMimes = array_merge(self::ALLOWED_MIMES, self::BANNER_ALLOWED_MIMES);
         $ext = $allMimes[$mime];
-        $key = 'profile-pictures/' . $uuid . '.' . $ext;
+        $key = 'profile-pictures/'.$uuid.'.'.$ext;
 
         return $this->uploadPublicImage($tmpPath, $mime, $key);
     }

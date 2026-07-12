@@ -12,23 +12,23 @@ use Rector\ValueObject\PhpVersion;
 return RectorConfig::configure()
     // including paths
     ->withPaths([
-        __DIR__ . '/src',
+        __DIR__.'/src',
     ])
     // excluding paths
     ->withSkip([
-        __DIR__ . '/migrations',
-        __DIR__ . '/src/Kernel.php',
-        __DIR__ . '/vendor',
-        __DIR__ . '/var',
-        __DIR__ . '/tests',
-        __DIR__ . '/public/index.php',
-        __DIR__ . '/config/bundles.php',
-        __DIR__ . '/config/reference.php',
-        __DIR__ . '/config/preload.php',
+        __DIR__.'/migrations',
+        __DIR__.'/src/Kernel.php',
+        __DIR__.'/vendor',
+        __DIR__.'/var',
+        __DIR__.'/tests',
+        __DIR__.'/public/index.php',
+        __DIR__.'/config/bundles.php',
+        __DIR__.'/config/reference.php',
+        __DIR__.'/config/preload.php',
         NullToStrictStringFuncCallArgRector::class,
         // Bad fit for Doctrine entities (Properties inside __construct)
         ClassPropertyAssignToConstructorPromotionRector::class => [
-            __DIR__ . '/src/Entity/*',
+            __DIR__.'/src/Entity/*',
         ],
     ])
     ->withPhpVersion(PhpVersion::PHP_85)

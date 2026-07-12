@@ -38,7 +38,7 @@ class QuestionTest extends AbstractApiTestCase
 
         $data = $this->jsonRequest(
             'GET',
-            '/api/questions?plan=' . $plan->getId(),
+            '/api/questions?plan='.$plan->getId(),
             null,
             $token
         );
@@ -47,7 +47,7 @@ class QuestionTest extends AbstractApiTestCase
         self::assertGreaterThan(0, $data['totalItems']);
         foreach ($data['member'] as $q) {
             $planIri = is_array($q['plan']) ? $q['plan']['@id'] : $q['plan'];
-            self::assertSame('/api/test_plans/' . $plan->getId(), $planIri);
+            self::assertSame('/api/test_plans/'.$plan->getId(), $planIri);
         }
     }
 
@@ -75,7 +75,7 @@ class QuestionTest extends AbstractApiTestCase
 
         $data = $this->jsonRequest(
             'GET',
-            '/api/questions?plan=' . $plan->getId() . '&order[displayOrder]=asc',
+            '/api/questions?plan='.$plan->getId().'&order[displayOrder]=asc',
             null,
             $token
         );
@@ -95,7 +95,7 @@ class QuestionTest extends AbstractApiTestCase
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Does the login work?']);
 
-        $data = $this->jsonRequest('GET', '/api/questions/' . $question->getId(), null, $token);
+        $data = $this->jsonRequest('GET', '/api/questions/'.$question->getId(), null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame('Does the login work?', $data['name']);
@@ -115,7 +115,7 @@ class QuestionTest extends AbstractApiTestCase
         $data = $this->jsonRequest('POST', '/api/questions', [
             'name' => 'Is the footer visible?',
             'content' => 'Scroll down and verify the footer is rendered.',
-            'plan' => '/api/test_plans/' . $plan->getId(),
+            'plan' => '/api/test_plans/'.$plan->getId(),
             'displayOrder' => 3,
         ], $token);
 
@@ -132,12 +132,12 @@ class QuestionTest extends AbstractApiTestCase
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Does the login work?']);
 
-        static::$client->request('PATCH', '/api/questions/' . $question->getId(),
+        static::$client->request('PATCH', '/api/questions/'.$question->getId(),
             [], [],
             [
                 'HTTP_ACCEPT' => 'application/ld+json',
                 'CONTENT_TYPE' => 'application/merge-patch+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ],
             json_encode(['name' => 'Does the login page load correctly?'])
         );
@@ -155,9 +155,9 @@ class QuestionTest extends AbstractApiTestCase
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Is the dashboard visible?']);
 
-        static::$client->request('DELETE', '/api/questions/' . $question->getId(),
+        static::$client->request('DELETE', '/api/questions/'.$question->getId(),
             [], [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]
+            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
         );
 
         $this->assertStatusCode(204);
@@ -170,7 +170,7 @@ class QuestionTest extends AbstractApiTestCase
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Does the login work?']);
 
-        $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats');
+        $this->jsonRequest('GET', '/api/questions/'.$question->getId().'/stats');
         $this->assertStatusCode(401);
     }
 
@@ -180,7 +180,7 @@ class QuestionTest extends AbstractApiTestCase
         $question = static::$em->getRepository(Question::class)
             ->findOneBy(['name' => 'Does the login work?']);
 
-        $data = $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats', null, $token);
+        $data = $this->jsonRequest('GET', '/api/questions/'.$question->getId().'/stats', null, $token);
 
         $this->assertStatusCode(200);
 
@@ -232,7 +232,7 @@ class QuestionTest extends AbstractApiTestCase
         static::$em->persist($question);
         static::$em->flush();
 
-        $data = $this->jsonRequest('GET', '/api/questions/' . $question->getId() . '/stats', null, $token);
+        $data = $this->jsonRequest('GET', '/api/questions/'.$question->getId().'/stats', null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame(0, $data['test_all_count']);

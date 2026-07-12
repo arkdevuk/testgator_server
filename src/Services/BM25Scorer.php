@@ -32,14 +32,14 @@ class BM25Scorer
      * Returns array<docKey, array{score: float, extracts: string[]}>
      *
      * @param array<string|int, array<string, array{text: string, weight: float}>> $documents
-     * @param string[] $terms (already lowercased)
+     * @param string[]                                                             $terms     (already lowercased)
      *
      * @return array<string|int, array{score: float, extracts: string[]}>
      */
     public function score(array $documents, array $terms): array
     {
         if ($documents === [] || $terms === []) {
-            return array_map(fn(): array => ['score' => 0.0, 'extracts' => []], $documents);
+            return array_map(fn (): array => ['score' => 0.0, 'extracts' => []], $documents);
         }
 
         $fieldNames = array_keys(reset($documents));
@@ -145,8 +145,8 @@ class BM25Scorer
             $start = max(0, $pos - self::EXTRACT_WINDOW);
             $end = min(mb_strlen($text), $pos + $termLen + self::EXTRACT_WINDOW);
 
-            $snippet = ($start > 0 ? '…' : '') .
-                mb_substr($text, $start, $end - $start) .
+            $snippet = ($start > 0 ? '…' : '').
+                mb_substr($text, $start, $end - $start).
                 ($end < mb_strlen($text) ? '…' : '');
 
             $snippets[] = $snippet;

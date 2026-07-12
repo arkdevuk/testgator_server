@@ -17,8 +17,7 @@ class ProjectImageService
         private readonly ProjectRepository $projectRepository,
         private readonly EntityManagerInterface $em,
         private readonly ProfilePictureService $profilePictureService,
-    )
-    {
+    ) {
     }
 
     public function findProject(int $id): ?Project
@@ -40,7 +39,7 @@ class ProjectImageService
 
         $allMimes = array_merge(ProfilePictureService::ALLOWED_MIMES, ProfilePictureService::BANNER_ALLOWED_MIMES);
         $ext = $allMimes[$mime];
-        $key = 'project-pictures/' . $project->getId() . '.' . $ext;
+        $key = 'project-pictures/'.$project->getId().'.'.$ext;
         $url = $this->profilePictureService->uploadPublicImage($file->getPathname(), $mime, $key);
 
         $project->setProjectPictureUrl($url);
@@ -70,7 +69,7 @@ class ProjectImageService
     {
         $mime = $this->profilePictureService->validateBannerImage($file->getPathname());
 
-        $key = 'project-banners/' . $project->getId() . '.png';
+        $key = 'project-banners/'.$project->getId().'.png';
         $url = $this->profilePictureService->uploadPublicImage($file->getPathname(), $mime, $key);
 
         $project->setProjectBannerUrl($url);

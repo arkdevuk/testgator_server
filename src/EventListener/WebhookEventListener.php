@@ -44,32 +44,30 @@ final readonly class WebhookEventListener
 {
     public function __construct(
         private WebhookService $webhookService,
-    )
-    {
+    ) {
     }
 
     // ── Project ───────────────────────────────────────────────────────────────
 
     public function __invoke(
         NewProjectAppEvent|ProjectUpdatedAppEvent|NewTestingPlanAppEvent|TestingPlanUpdatedAppEvent|TestPlanPublishedAppEvent|TestPlanClosedAppEvent|TesterAssignedAppEvent|NewQuestionAppEvent|QuestionUpdatedAppEvent|NewAnswerAppEvent|AnswerUpdatedAppEvent|UserPasswordChangedAppEvent|DevCreatedAppEvent|TesterCreatedAppEvent $event,
-    ): void
-    {
+    ): void {
         [$entityData, $projectData] = match (true) {
             $event instanceof NewProjectAppEvent,
-                $event instanceof ProjectUpdatedAppEvent => $this->fromProject($event->project),
+            $event instanceof ProjectUpdatedAppEvent => $this->fromProject($event->project),
 
             $event instanceof NewTestingPlanAppEvent,
-                $event instanceof TestingPlanUpdatedAppEvent,
-                $event instanceof TestPlanPublishedAppEvent,
-                $event instanceof TestPlanClosedAppEvent => $this->fromTestPlan($event->testPlan),
+            $event instanceof TestingPlanUpdatedAppEvent,
+            $event instanceof TestPlanPublishedAppEvent,
+            $event instanceof TestPlanClosedAppEvent => $this->fromTestPlan($event->testPlan),
 
             $event instanceof TesterAssignedAppEvent => $this->fromTesterAssigned($event),
 
             $event instanceof NewQuestionAppEvent,
-                $event instanceof QuestionUpdatedAppEvent => $this->fromQuestion($event->question),
+            $event instanceof QuestionUpdatedAppEvent => $this->fromQuestion($event->question),
 
             $event instanceof NewAnswerAppEvent,
-                $event instanceof AnswerUpdatedAppEvent => $this->fromAnswer($event->answer),
+            $event instanceof AnswerUpdatedAppEvent => $this->fromAnswer($event->answer),
 
             $event instanceof UserPasswordChangedAppEvent => $this->fromUserPasswordChanged($event->user),
 
@@ -141,7 +139,7 @@ final readonly class WebhookEventListener
     private function serializeTester(User $tester): array
     {
         return [
-            'id' => (string)$tester->getId(),
+            'id' => (string) $tester->getId(),
             'email' => $tester->getEmail(),
         ];
     }
@@ -196,7 +194,7 @@ final readonly class WebhookEventListener
     private function fromUserPasswordChanged(User $user): array
     {
         $entityData = [
-            'id' => (string)$user->getId(),
+            'id' => (string) $user->getId(),
             'email' => $user->getEmail(),
             'type' => $user->getType()->value,
         ];
@@ -208,7 +206,7 @@ final readonly class WebhookEventListener
     private function fromTesterCreated(User $tester): array
     {
         $entityData = [
-            'id' => (string)$tester->getId(),
+            'id' => (string) $tester->getId(),
             'email' => $tester->getEmail(),
             'type' => $tester->getType()->value,
         ];

@@ -17,8 +17,7 @@ class ProjectStatsStateProvider implements ProviderInterface
     public function __construct(
         private readonly ProjectRepository $projectRepository,
         private readonly EntityManagerInterface $em,
-    )
-    {
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -46,10 +45,10 @@ class ProjectStatsStateProvider implements ProviderInterface
             ->getSingleResult();
 
         return new ProjectStats(
-            releases: (int)$result['releases'],
-            testPlans: (int)$result['testPlans'],
-            testers: (int)$result['testers'],
-            answers: (int)$result['answers'],
+            releases: (int) $result['releases'],
+            testPlans: (int) $result['testPlans'],
+            testers: (int) $result['testers'],
+            answers: (int) $result['answers'],
         );
     }
 }

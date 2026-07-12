@@ -26,8 +26,7 @@ final readonly class TesterStateProcessor implements ProcessorInterface
         #[Autowire(service: 'api_platform.doctrine.orm.state.remove_processor')]
         private ProcessorInterface $removeProcessor,
         private EventDispatcherInterface $dispatcher,
-    )
-    {
+    ) {
     }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed

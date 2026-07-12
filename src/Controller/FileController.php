@@ -23,8 +23,7 @@ final class FileController extends AbstractController
     #[Route('/public/apx/upload', name: 'upload_file')]
     public function upload_file(
         Request $request,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         // CORS (including OPTIONS preflight) is handled globally by NelmioCORSBundle.
 
         // Check whether uploads are enabled (setting: general.allow_upload, default: true)
@@ -33,7 +32,7 @@ final class FileController extends AbstractController
         }
 
         // max upload size in bytes (FILE_MAX_SIZE_MB, default 10 MB)
-        $maxSize = (int)($_ENV['FILE_MAX_SIZE_MB'] ?? '10') * 1024 * 1024;
+        $maxSize = (int) ($_ENV['FILE_MAX_SIZE_MB'] ?? '10') * 1024 * 1024;
         // valid formats : jpg, jpeg, png, gif, pdf, archives (zip, rar, 7z)
         $allowedExt = ['jpeg', 'jpg', 'png', 'gif', 'pdf', 'txt', 'mov', 'mp4', 'avi', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'zip', 'rar', '7z'];
         $allowedMime = [
@@ -51,7 +50,7 @@ final class FileController extends AbstractController
             // so an oversized POST looks like "no file". Since the pre-flight size
             // check (/api/uploads/request) has been removed, surface the same
             // "file too big" error here instead of a misleading "no file".
-            if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > $maxSize) {
+            if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > $maxSize) {
                 return $this->json([
                     'error' => 'File too big',
                     'message' => 'file_too_big',
@@ -85,7 +84,7 @@ final class FileController extends AbstractController
 
             return $this->json($data, 400);
         }
-        $type = array_find_key($allowedMime, fn($v): bool => in_array($fileType, $v, true));
+        $type = array_find_key($allowedMime, fn ($v): bool => in_array($fileType, $v, true));
 
         if ($type === null) {
             $data['error'] = 'File type not allowed';

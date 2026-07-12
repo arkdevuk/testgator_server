@@ -25,9 +25,8 @@ class GuestAuthService
     public function getHash(
         string $challenge,
         string $privateKey,
-    ): string
-    {
-        return hash_hmac('sha256', $challenge . $privateKey, $privateKey);
+    ): string {
+        return hash_hmac('sha256', $challenge.$privateKey, $privateKey);
     }
 
     /**
@@ -38,8 +37,7 @@ class GuestAuthService
         string $challenge,
         string $hash,
         string $privateKey,
-    ): bool
-    {
+    ): bool {
         return hash_equals($hash, $this->getHash($challenge, $privateKey));
     }
 }

@@ -16,8 +16,7 @@ class FileService
 
     public function __construct(
         protected EntityManagerInterface $em,
-    )
-    {
+    ) {
         // constructor body
         $mode = $_ENV['FILE_STORAGE_MODE'] ?? 'local';
         if ($mode === 'local') {
@@ -44,8 +43,7 @@ class FileService
         string $filepath,
         string $mime,
         File $file
-    ): array
-    {
+    ): array {
         // Public files go to the public bucket (public by policy, so no ACL header
         // is sent — same convention as ProfilePictureService); everything else
         // stays in the private bucket and is only reachable through a signed URL.
@@ -56,7 +54,7 @@ class FileService
         $params = [
             'Bucket' => $bucket,
             'ContentType' => $mime,
-            'Key' => $file->getKey() . '.' . $file->getExtension(),
+            'Key' => $file->getKey().'.'.$file->getExtension(),
             'Body' => fopen($filepath, 'r+'),
         ];
 
@@ -75,8 +73,8 @@ class FileService
         return [
             'id' => $file->getId()?->toString(),
             'url' => $this->generateUrl($file),
-            'filename' => $file->getId() . '.' . $file->getExtension(),
-            '@id' => '/api/files/' . $file->getId()?->toString(),
+            'filename' => $file->getId().'.'.$file->getExtension(),
+            '@id' => '/api/files/'.$file->getId()?->toString(),
         ];
     }
 
@@ -102,14 +100,14 @@ class FileService
             'ContentType' => $mime,
         ]);
 
-        return rtrim($_ENV['PUBLIC_URL_PUBLIC_BUCKET'] ?? '', '/') . '/' . $key;
+        return rtrim($_ENV['PUBLIC_URL_PUBLIC_BUCKET'] ?? '', '/').'/'.$key;
     }
 
     public function deleteFile(File $file): void
     {
         $this->s3Client->deleteObject([
             'Bucket' => $file->getBucket(),
-            'Key' => $file->getKey() . '.' . $file->getExtension(),
+            'Key' => $file->getKey().'.'.$file->getExtension(),
         ]);
     }
 
@@ -120,8 +118,8 @@ class FileService
     public function generateUrl(File $file): string
     {
         if ($file->isPublic()) {
-            return rtrim((string)$file->getBucketUrl(), '/')
-                . '/' . $file->getKey() . '.' . $file->getExtension();
+            return rtrim((string) $file->getBucketUrl(), '/')
+                .'/'.$file->getKey().'.'.$file->getExtension();
         }
 
         return $this->generateSignedUrl($file);
@@ -131,10 +129,10 @@ class FileService
     {
         $cmd = $this->s3Client->getCommand('GetObject', [
             'Bucket' => $file->getBucket(),
-            'Key' => $file->getKey() . '.' . $file->getExtension(),
+            'Key' => $file->getKey().'.'.$file->getExtension(),
         ]);
 
-        return (string)$this->s3Client->createPresignedRequest($cmd, '+24 hours')->getUri();
+        return (string) $this->s3Client->createPresignedRequest($cmd, '+24 hours')->getUri();
     }
 
     public function test(): void

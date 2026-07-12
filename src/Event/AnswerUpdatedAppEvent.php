@@ -11,7 +11,6 @@ final class AnswerUpdatedAppEvent extends Event
 {
     public function __construct(
         public readonly Answer $answer,
-    )
-    {
+    ) {
     }
 }

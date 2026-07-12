@@ -37,7 +37,7 @@ class TestPlanTest extends AbstractApiTestCase
         $token = $this->getTeamUserToken();
         $data = $this->jsonRequest(
             'GET',
-            '/api/test_plans?state=' . TestPlanState::PUBLISHED,
+            '/api/test_plans?state='.TestPlanState::PUBLISHED,
             null,
             $token
         );
@@ -57,7 +57,7 @@ class TestPlanTest extends AbstractApiTestCase
 
         $data = $this->jsonRequest(
             'GET',
-            '/api/test_plans?release.project=' . $projectId,
+            '/api/test_plans?release.project='.$projectId,
             null,
             $token
         );
@@ -68,8 +68,8 @@ class TestPlanTest extends AbstractApiTestCase
             // API Platform serializes the relation as a plain IRI string (e.g.
             // "/api/projects/3") rather than an embedded object.
             $projectRef = $plan['release']['project'];
-            $projectIri = is_array($projectRef) ? ($projectRef['@id'] ?? '') : (string)$projectRef;
-            self::assertSame('/api/projects/' . $projectId, $projectIri);
+            $projectIri = is_array($projectRef) ? ($projectRef['@id'] ?? '') : (string) $projectRef;
+            self::assertSame('/api/projects/'.$projectId, $projectIri);
         }
     }
 
@@ -98,7 +98,7 @@ class TestPlanTest extends AbstractApiTestCase
         $plan = static::$em->getRepository(TestPlan::class)
             ->findOneBy(['name' => 'Published Plan']);
 
-        $data = $this->jsonRequest('GET', '/api/test_plans/' . $plan->getId(), null, $token);
+        $data = $this->jsonRequest('GET', '/api/test_plans/'.$plan->getId(), null, $token);
 
         $this->assertStatusCode(200);
         self::assertSame('Published Plan', $data['name']);
@@ -126,7 +126,7 @@ class TestPlanTest extends AbstractApiTestCase
         $data = $this->jsonRequest('POST', '/api/test_plans', [
             'name' => 'New Regression Plan',
             'description' => 'Full regression for 1.0.0',
-            'release' => '/api/releases/' . $release->getId(),
+            'release' => '/api/releases/'.$release->getId(),
             'dueDate' => (new DateTime('+14 days'))->format(DateTime::ATOM),
             'state' => TestPlanState::DRAFT,
         ], $token);
@@ -155,12 +155,12 @@ class TestPlanTest extends AbstractApiTestCase
         $plan = static::$em->getRepository(TestPlan::class)
             ->findOneBy(['name' => 'Draft Plan']);
 
-        static::$client->request('PATCH', '/api/test_plans/' . $plan->getId(),
+        static::$client->request('PATCH', '/api/test_plans/'.$plan->getId(),
             [], [],
             [
                 'HTTP_ACCEPT' => 'application/ld+json',
                 'CONTENT_TYPE' => 'application/merge-patch+json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+                'HTTP_AUTHORIZATION' => 'Bearer '.$token,
             ],
             json_encode(['state' => TestPlanState::PUBLISHED])
         );
@@ -178,9 +178,9 @@ class TestPlanTest extends AbstractApiTestCase
         $plan = static::$em->getRepository(TestPlan::class)
             ->findOneBy(['name' => 'Draft Plan']);
 
-        static::$client->request('DELETE', '/api/test_plans/' . $plan->getId(),
+        static::$client->request('DELETE', '/api/test_plans/'.$plan->getId(),
             [], [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $token]
+            ['HTTP_AUTHORIZATION' => 'Bearer '.$token]
         );
 
         $this->assertStatusCode(204);

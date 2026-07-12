@@ -25,8 +25,7 @@ final class ProfilePictureController extends AbstractController
     public function __construct(
         private readonly UserProfileService $userProfileService,
         private readonly Security $security,
-    )
-    {
+    ) {
     }
 
     // ── POST /api/testers/{id}/profile-picture ────────────────────────────────
@@ -52,7 +51,7 @@ final class ProfilePictureController extends AbstractController
         $currentUser = $this->security->getUser();
 
         $isSelf = $currentUser instanceof User
-            && (string)$currentUser->getId() === (string)$tester->getId();
+            && (string) $currentUser->getId() === (string) $tester->getId();
         $isAdmin = $this->security->isGranted('ROLE_ADMIN');
 
         if (!$isSelf && !$isAdmin) {
@@ -96,7 +95,7 @@ final class ProfilePictureController extends AbstractController
         $currentUser = $this->security->getUser();
 
         $isSelf = $currentUser instanceof User
-            && (string)$currentUser->getId() === (string)$tester->getId();
+            && (string) $currentUser->getId() === (string) $tester->getId();
 
         if (!$isSelf) {
             return $this->json(['error' => 'Access denied.'], Response::HTTP_FORBIDDEN);
@@ -141,7 +140,7 @@ final class ProfilePictureController extends AbstractController
         $currentUser = $this->security->getUser();
 
         $isSelf = $currentUser instanceof User
-            && (string)$currentUser->getId() === (string)$user->getId();
+            && (string) $currentUser->getId() === (string) $user->getId();
         $isAdmin = $this->security->isGranted('ROLE_ADMIN');
 
         if (!$isSelf && !$isAdmin) {
@@ -187,7 +186,7 @@ final class ProfilePictureController extends AbstractController
         $currentUser = $this->security->getUser();
 
         $isSelf = $currentUser instanceof User
-            && (string)$currentUser->getId() === (string)$user->getId();
+            && (string) $currentUser->getId() === (string) $user->getId();
         $isAdmin = $this->security->isGranted('ROLE_ADMIN');
 
         if (!$isSelf && !$isAdmin) {
