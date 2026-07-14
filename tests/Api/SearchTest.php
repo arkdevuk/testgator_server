@@ -93,7 +93,7 @@ class SearchTest extends AbstractApiTestCase
 
         $this->assertStatusCode(200);
         $allExtracts = array_merge(...array_column($data, 'extracts'));
-        $found = array_filter($allExtracts, fn (string $e) => str_contains(strtolower($e), 'login'));
+        $found = array_filter($allExtracts, static fn (string $e) => str_contains(strtolower($e), 'login'));
         self::assertNotEmpty($found, 'At least one extract should contain the search term');
     }
 
@@ -285,7 +285,7 @@ class SearchTest extends AbstractApiTestCase
 
         // tester2's answer comment: "Login succeeds but the browser console..."
         $names = array_column($data, 'name');
-        $found = array_filter($names, fn (string $n) => str_contains(strtolower($n), 'login succeeds'));
+        $found = array_filter($names, static fn (string $n) => str_contains(strtolower($n), 'login succeeds'));
         self::assertNotEmpty($found, 'Tester2 should see their own login answer');
     }
 
@@ -299,5 +299,84 @@ class SearchTest extends AbstractApiTestCase
         $names = array_column($data, 'name');
         self::assertContains('Published Plan', $names, 'Tester1 should see their enrolled plan');
         self::assertNotContains('Draft Plan', $names, 'Tester1 should not see plans they are not enrolled in');
+    }
+
+    // ── projectId filter ──────────────────────────────────────────────────────
+    // Fixture reminder: "Alpha Project" owns tester1, both releases, both test
+    // plans, all questions and all answers. "Beta Project" is empty.
+
+    public function testProjectIdRestrictsProjectsScopeToThatProject(): void
+    {
+        $token = $this->getTeamUserToken();
+        $alphaId = $this->projectIdByName('Alpha Project');
+        $betaId = $this->projectIdByName('Beta Project');
+
+        // Sanity: without a filter, "project" matches both Alpha and Beta.
+        $all = $this->jsonRequest('GET', self::BASE.'?query=project&scope=projects', null, $token);
+        $allIris = array_column($all, 'iri');
+        self::assertContains('/api/projects/'.$alphaId, $allIris);
+        self::assertContains('/api/projects/'.$betaId, $allIris);
+
+        // With projectId=Alpha, only Alpha remains.
+        $data = $this->jsonRequest('GET', self::BASE."?query=project&scope=projects&projectId={$alphaId}", null, $token);
+        $this->assertStatusCode(200);
+        $iris = array_column($data, 'iri');
+        self::assertContains('/api/projects/'.$alphaId, $iris);
+        self::assertNotContains('/api/projects/'.$betaId, $iris, 'projectId must exclude other projects');
+    }
+
+    public function testProjectIdExcludesItemsFromOtherProjects(): void
+    {
+        $token = $this->getTeamUserToken();
+        $alphaId = $this->projectIdByName('Alpha Project');
+        $betaId = $this->projectIdByName('Beta Project');
+
+        // The login question belongs to Alpha's published plan.
+        $alpha = $this->jsonRequest('GET', self::BASE."?query=login&scope=questions&projectId={$alphaId}", null, $token);
+        $this->assertStatusCode(200);
+        self::assertContains('Does the login work?', array_column($alpha, 'name'));
+
+        // Beta has no plans/questions, so the same search returns nothing.
+        $beta = $this->jsonRequest('GET', self::BASE."?query=login&scope=questions&projectId={$betaId}", null, $token);
+        $this->assertStatusCode(200);
+        self::assertSame([], $beta, 'Beta project has no questions');
+    }
+
+    public function testProjectIdRestrictsTestersToProjectMembers(): void
+    {
+        $token = $this->getTeamUserToken();
+        $alphaId = $this->projectIdByName('Alpha Project');
+
+        // Sanity: both testers match "tester" without a filter.
+        $all = $this->jsonRequest('GET', self::BASE.'?query=tester&scope=testers', null, $token);
+        $allNames = array_column($all, 'name');
+        self::assertContains(TestFixtures::TESTER_EMAIL, $allNames);
+        self::assertContains(TestFixtures::TESTER_EMAIL_2, $allNames);
+
+        // Only tester1 belongs to Alpha.
+        $data = $this->jsonRequest('GET', self::BASE."?query=tester&scope=testers&projectId={$alphaId}", null, $token);
+        $this->assertStatusCode(200);
+        $names = array_column($data, 'name');
+        self::assertContains(TestFixtures::TESTER_EMAIL, $names);
+        self::assertNotContains(TestFixtures::TESTER_EMAIL_2, $names, 'tester2 is not a member of Alpha');
+    }
+
+    public function testInvalidProjectIdReturns400(): void
+    {
+        $token = $this->getTeamUserToken();
+
+        $this->jsonRequest('GET', self::BASE.'?query=login&projectId=0', null, $token);
+        $this->assertStatusCode(400);
+
+        $this->jsonRequest('GET', self::BASE.'?query=login&projectId=-5', null, $token);
+        $this->assertStatusCode(400);
+    }
+
+    private function projectIdByName(string $name): int
+    {
+        $project = static::$em->getRepository(Project::class)->findOneBy(['name' => $name]);
+        self::assertNotNull($project, "Fixture project '{$name}' not found");
+
+        return $project->getId();
     }
 }

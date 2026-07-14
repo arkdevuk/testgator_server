@@ -53,7 +53,7 @@ final readonly class AnswerStateProcessor implements ProcessorInterface
             // `ignored` can only be set on an existing answer by ROLE_USER (dev team).
             // On POST (no previous data) always reset to false.
             // On PATCH/PUT by a tester, restore the previous value.
-            if (!($previous instanceof Answer)) {
+            if (!$previous instanceof Answer) {
                 $data->setIgnored(false);
             } elseif ($user instanceof User && $user->isTester()) {
                 $data->setIgnored($previous->isIgnored());

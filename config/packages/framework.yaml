@@ -3,6 +3,11 @@ framework:
   trusted_headers: [ 'REMOTE_ADDR', 'X-Forwarded-For', 'X-Forwarded-Proto', 'X-Forwarded-Host' ]
   secret: '%env(APP_SECRET)%'
 
+  # Must be set explicitly since Symfony 7.3 (the default flips to true in 8.0).
+  # Kept at false to preserve the current 7.x behavior during this upgrade.
+  property_info:
+    with_constructor_extractor: false
+
   # Note that the session will be started ONLY if you read or write from it.
   session: true
 

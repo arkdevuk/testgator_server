@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Classes\Users;
 
+use Deprecated;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Uid\UuidV7 as Uuid;
 
@@ -21,6 +22,7 @@ class AppGuest implements UserInterface
         return ['ROLE_USER', 'ROLE_GUEST'];
     }
 
+    #[Deprecated]
     public function eraseCredentials(): void
     {
     }

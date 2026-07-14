@@ -93,7 +93,7 @@ class LoginRateLimiterServiceTest extends TestCase
 
         $callCount = 0;
         $this->cache->method('getItem')
-            ->willReturnCallback(function () use (&$callCount, $blockedItem, $freshItem) {
+            ->willReturnCallback(static function () use (&$callCount, $blockedItem, $freshItem) {
                 return $callCount++ === 0 ? $blockedItem : $freshItem;
             });
         $this->cache->method('save')->willReturn(true);
@@ -112,7 +112,7 @@ class LoginRateLimiterServiceTest extends TestCase
 
         $callCount = 0;
         $this->cache->method('getItem')
-            ->willReturnCallback(function () use (&$callCount, $blockedItem, $freshItem) {
+            ->willReturnCallback(static function () use (&$callCount, $blockedItem, $freshItem) {
                 return $callCount++ === 0 ? $blockedItem : $freshItem;
             });
         $this->cache->method('save')->willReturn(true);
@@ -154,7 +154,7 @@ class LoginRateLimiterServiceTest extends TestCase
     {
         $capturedKeys = [];
         $this->cache->method('deleteItem')
-            ->willReturnCallback(function (string $key) use (&$capturedKeys) {
+            ->willReturnCallback(static function (string $key) use (&$capturedKeys) {
                 $capturedKeys[] = $key;
 
                 return true;

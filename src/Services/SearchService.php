@@ -60,7 +60,7 @@ class SearchService
 
         $terms = array_values(array_filter(
             array_map(trim(...), preg_split('/\s+/', mb_strtolower($query))),
-            fn (string $t): bool => $t !== ''
+            static fn (string $t): bool => $t !== ''
         ));
 
         $results = [];
@@ -82,7 +82,7 @@ class SearchService
             }
         }
 
-        usort($results, fn (array $a, array $b): int => $b['score'] <=> $a['score']);
+        usort($results, static fn (array $a, array $b): int => $b['score'] <=> $a['score']);
 
         return $results;
     }
@@ -110,7 +110,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (Project $p) use ($scores): array {
+        return array_map(static function (Project $p) use ($scores): array {
             $s = $scores[$p->getId()] ?? ['score' => 0.0, 'extracts' => []];
 
             return [
@@ -169,7 +169,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (User $u) use ($scores): array {
+        return array_map(static function (User $u) use ($scores): array {
             $s = $scores[(string) $u->getId()] ?? ['score' => 0.0, 'extracts' => []];
 
             return [
@@ -217,7 +217,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (TestPlan $tp) use ($scores): array {
+        return array_map(static function (TestPlan $tp) use ($scores): array {
             $s = $scores[$tp->getId()] ?? ['score' => 0.0, 'extracts' => []];
 
             return [
@@ -268,7 +268,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (Question $q) use ($scores): array {
+        return array_map(static function (Question $q) use ($scores): array {
             $s = $scores[$q->getId()] ?? ['score' => 0.0, 'extracts' => []];
 
             return [
@@ -312,7 +312,7 @@ class SearchService
 
         $scores = $this->bm25->score($documents, $terms);
 
-        return array_map(function (Answer $a) use ($scores): array {
+        return array_map(static function (Answer $a) use ($scores): array {
             $s = $scores[$a->getId()] ?? ['score' => 0.0, 'extracts' => []];
             $comment = $a->getComment() ?? '';
 

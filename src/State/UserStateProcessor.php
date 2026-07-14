@@ -46,7 +46,8 @@ final readonly class UserStateProcessor implements ProcessorInterface
 
         if ($plain !== null && $plain !== '') {
             $data->setPassword($this->hasher->hashPassword($data, $plain));
-            $data->eraseCredentials();
+            // Clear the transient plain password (eraseCredentials() is deprecated since Symfony 7.3).
+            $data->setPlainPassword(null);
         }
 
         $result = $this->persistProcessor->process($data, $operation, $uriVariables, $context);

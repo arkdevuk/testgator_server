@@ -39,7 +39,7 @@ class BM25Scorer
     public function score(array $documents, array $terms): array
     {
         if ($documents === [] || $terms === []) {
-            return array_map(fn (): array => ['score' => 0.0, 'extracts' => []], $documents);
+            return array_map(static fn (): array => ['score' => 0.0, 'extracts' => []], $documents);
         }
 
         $fieldNames = array_keys(reset($documents));

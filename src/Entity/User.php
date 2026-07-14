@@ -22,6 +22,7 @@ use App\State\UserStateProcessor;
 use App\Traits\Entity\TimeStampable;
 use DateTime;
 use DateTimeInterface;
+use Deprecated;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -308,6 +309,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
+    #[Deprecated(message: 'since Symfony 7.3 — clear the transient password via setPlainPassword(null) instead.')]
     public function eraseCredentials(): void
     {
         $this->plainPassword = null;

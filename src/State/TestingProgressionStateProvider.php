@@ -39,7 +39,7 @@ class TestingProgressionStateProvider implements ProviderInterface
 
         // Check the current user is enrolled in this test plan
         $enrolled = $testPlan->getTestersEnrolled()->exists(
-            fn (int $_, User $tester): bool => $tester->getId() === $user->getId()
+            static fn (int $_, User $tester): bool => $tester->getId() === $user->getId()
         );
         if (!$enrolled) {
             throw new AccessDeniedHttpException();

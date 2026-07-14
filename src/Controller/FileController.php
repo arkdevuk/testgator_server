@@ -84,7 +84,7 @@ final class FileController extends AbstractController
 
             return $this->json($data, 400);
         }
-        $type = array_find_key($allowedMime, fn ($v): bool => in_array($fileType, $v, true));
+        $type = array_find_key($allowedMime, static fn ($v): bool => in_array($fileType, $v, true));
 
         if ($type === null) {
             $data['error'] = 'File type not allowed';
