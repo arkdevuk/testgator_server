@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Repository\SettingsRepository;
 use App\Traits\Entity\TimeStampable;
+use App\Validator\Constraints\SafeUrl;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -71,6 +72,14 @@ class Settings
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['settings:read', 'settings:write'])]
+    // webhook.webhook_url is user-controlled and fetched server-side by
+    // WebhookService — reject it up front if it's an SSRF risk (private /
+    // loopback / link-local IP, or a non-http(s) scheme) instead of letting
+    // it fail silently at dispatch time. Other settings are untouched.
+    #[Assert\When(
+        expression: "this.getId() === 'webhook.webhook_url'",
+        constraints: [new SafeUrl()],
+    )]
     private ?string $value = null;
 
     #[ORM\Column]

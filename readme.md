@@ -33,7 +33,7 @@ TestGator ships as two independently deployed applications:
 | **Client** | `testgator_client` | React 19 + Vite, served as a static build via Nginx |
 | **Server** | `testgator_server` | Symfony 7.2 + API Platform 4 (PHP ≥8.4), running on FrankenPHP/Caddy |
 
-The server also expects a PostgreSQL database and, for file uploads, an S3-compatible bucket. Team/dev logins can run against the server's own internal user database (default) or against an LDAP server — LDAP is optional, not required. A Mercure hub (bundled into the FrankenPHP image) handles realtime updates.
+The server also expects a PostgreSQL database and, for file uploads, an S3-compatible bucket. Team/dev logins can run against the server's own internal user database (default) or against an LDAP server — LDAP is optional, not required. A Mercure hub is bundled into the FrankenPHP image for future realtime updates, but it's currently disabled (commented out in `docker/frankenphp/Caddyfile`) — nothing publishes or subscribes to it yet.
 
 ## Repository layout
 
@@ -119,7 +119,7 @@ Practically: set `VITE_API_URL` on the `client` service in your stack file (see 
 | `TRUSTED_PROXIES` | recommended | CIDR ranges of your reverse proxy/ingress |
 | `TRUSTED_HOSTS` | recommended | Regex matching your public hostname |
 | `CORS_ALLOW_ORIGIN` | yes | Regex matching the client's origin |
-| `MERCURE_PUBLISHER_JWT_KEY` / `MERCURE_SUBSCRIBER_JWT_KEY` | yes | Set your own — **do not** leave the `compose.yml` default (`!ChangeThisMercureHubJWTSecretKey!`); it's a known placeholder |
+| `MERCURE_PUBLISHER_JWT_KEY` / `MERCURE_SUBSCRIBER_JWT_KEY` | no (disabled) | Mercure is currently disabled — the hub block is commented out in `docker/frankenphp/Caddyfile` since nothing in the app publishes/subscribes to it yet. If you re-enable it, set your own key — **do not** leave the `compose.yml` default (`!ChangeThisMercureHubJWTSecretKey!`); it's a known placeholder |
 | `APP_AUTH_MODE` | yes | `db` (local accounts) or `ldap` |
 | `LDAP_*` | if `APP_AUTH_MODE=ldap` | `LDAP_QUERY_STRING` (use `ldaps://` in prod), `LDAP_BASE_DN`, `LDAP_ADMIN_UID`, `LDAP_ADMIN_PASSWORD`, `LDAP_MUST_HAVE_GROUP` |
 | `FILE_STORAGE_MODE` | yes | Set to `bucket`. `local` mode exists as a value but file storage for it is currently a stub in the codebase (`FileService` has a `// todo : implement local file storage` with no actual write path) — it will not persist uploads. Bucket mode is effectively required for a working deployment, swarm or not |
@@ -152,8 +152,9 @@ services:
       TRUSTED_PROXIES: 0.0.0.0/0
       TRUSTED_HOSTS: '^api\.example\.com$$'
       CORS_ALLOW_ORIGIN: '^https://app\.example\.com$$'
-      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
+      # Mercure is disabled by default (see the notes above); uncomment if re-enabled:
+      # MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
+      # MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
       APP_AUTH_MODE: db
       FILE_STORAGE_MODE: bucket
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
@@ -219,3 +220,4 @@ docker stack deploy -c stack.yml testgator
 
 - **Worker mode is off.** The server doesn't run FrankenPHP in worker mode — the LDAP extension breaks long-lived worker processes ([dunglas/frankenphp#457](https://github.com/dunglas/frankenphp/issues/457)). Performance is still reasonable for typical usage, but don't expect worker-mode throughput.
 - **`FILE_STORAGE_MODE=local` doesn't actually store files** in the current codebase — use `bucket` mode.
+- **Mercure (realtime updates) is disabled.** The hub is bundled in the FrankenPHP image but commented out in `docker/frankenphp/Caddyfile` — no realtime push happens yet. Re-enable it (and set a real `CADDY_MERCURE_JWT_SECRET`) once a feature actually uses it.
