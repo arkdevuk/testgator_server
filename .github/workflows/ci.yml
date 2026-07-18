@@ -47,28 +47,6 @@ jobs:
       - name: Pre-install composer dependencies
         run: docker compose -f compose.yml run --rm testgator-server composer install --prefer-dist --no-progress --no-interaction
 
-      # The migrations/ directory doesn't contain a full schema history: the
-      # earliest migration only creates refresh_token, and several tables
-      # (answer, project, tester, ...) have no CREATE TABLE migration at all
-      # — they were originally bootstrapped via `doctrine:schema:update
-      # --force` (the same command `make db-0` still uses today) and
-      # migrations only ever tracked incremental deltas on top of that.
-      # Running `doctrine:migrations:migrate` from a genuinely empty
-      # database — which is what testgator-db-test always is — fails partway
-      # through as a result. Bootstrap the schema the same way `make db-0`
-      # does, then mark every existing migration as already applied (the
-      # standard Doctrine pattern for adopting migrations on a schema that
-      # already exists), so the entrypoint's own `migrations:migrate` call
-      # during `make up` finds nothing pending and succeeds trivially. This
-      # doesn't touch the entrypoint itself, so production behavior is
-      # unaffected — but the same failure would hit a real from-scratch
-      # production deploy; fixing that properly means adding a real baseline
-      # migration, tracked separately.
-      - name: Bootstrap schema for the fresh test database
-        run: |
-          docker compose -f compose.yml run --rm testgator-server php bin/console doctrine:schema:update --force --no-interaction
-          docker compose -f compose.yml run --rm testgator-server php bin/console doctrine:migrations:version --add --all --no-interaction
-
       - name: Start the app container
         run: make up
 
