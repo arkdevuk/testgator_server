@@ -91,7 +91,19 @@ qa:
 	$(EXEC) vendor/bin/phpstan analyse --memory-limit=1G; \
 	$(EXEC) vendor/bin/deptrac analyse \
 
-test:
+# JWTService (src/Services/Authentification/JWTService.php) reads an RS256
+# keypair from data/JWT.test/ at runtime. Like data/JWT.prod, it's not
+# committed (see .gitignore's /data/JWT.*) — but unlike prod's key, the
+# test one protects nothing real (it only ever signs tokens inside an
+# ephemeral phpunit run), so there's no reason to make every contributor or
+# CI run generate it by hand. This rule only fires when the file doesn't
+# already exist, so it's a no-op on repeat runs.
+data/JWT.test/testgator.key:
+	mkdir -p data/JWT.test
+	openssl genrsa -out data/JWT.test/testgator.key 4096
+	openssl rsa -in data/JWT.test/testgator.key -pubout -out data/JWT.test/testgator.pub
+
+test: data/JWT.test/testgator.key
 	@set -e; \
 	$(DOCKER_COMPOSE) up -d --wait testgator-db-test testgator-s3-test; \
 	trap '$(DOCKER_COMPOSE) stop testgator-db-test testgator-s3-test' EXIT; \
