@@ -16,6 +16,21 @@ services:
       target: frankenphp_dev
     image: ${IMAGES_PREFIX:-}testgator-server
     restart: unless-stopped
+    # docker/Dockerfile's own HEALTHCHECK uses start-period=60s, tuned for the
+    # prod image where vendor/ is already baked in at build time. This dev
+    # target bind-mounts an empty ./vendor on a fresh checkout, so the
+    # entrypoint runs a full `composer install` before FrankenPHP even
+    # starts — comfortably longer than 60s on a cold CI runner, which made
+    # `docker compose up --wait` report the container "unhealthy" before the
+    # entrypoint had even finished. Override with a longer grace period here
+    # (dev/CI only — this compose file isn't used for production, see the
+    # README's Swarm deployment section for that).
+    healthcheck:
+      test: [ "CMD", "php", "-r", 'exit(false === @file_get_contents("http://localhost:2019/metrics", context: stream_context_create(["http" => ["timeout" => 5]])) ? 1 : 0);' ]
+      start_period: 300s
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       SERVER_NAME: ${SERVER_NAME:-http://localhost}, testgator-server:80
       # Mercure is disabled for now (see docker/frankenphp/Caddyfile) — nothing

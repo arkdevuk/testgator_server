@@ -37,8 +37,22 @@ jobs:
       - name: Build dev image
         run: make build
 
+      # ./vendor is bind-mounted (empty on a fresh checkout — vendor/ isn't
+      # committed), so without this, the entrypoint itself would run a cold
+      # `composer install` in the critical path of `make up`'s healthcheck
+      # wait, on top of the DB-wait and migrations that already run there.
+      # Pre-populating it here (bypasses the entrypoint's frankenphp-specific
+      # logic entirely, since the overridden command isn't 'frankenphp') keeps
+      # that window well inside the healthcheck's start_period.
+      - name: Pre-install composer dependencies
+        run: docker compose -f compose.yml run --rm testgator-server composer install --prefer-dist --no-progress --no-interaction
+
       - name: Start the app container
         run: make up
+
+      - name: Dump app container logs
+        if: failure()
+        run: docker compose -f compose.yml logs testgator-server
 
       - name: Run QA (rector, php-cs-fixer, phpstan, deptrac)
         run: make qa

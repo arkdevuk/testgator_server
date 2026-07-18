@@ -31,7 +31,6 @@ RUN <<-EOF
         intl \
         opcache \
         zip \
-        pdo_mysql \
         pdo_pgsql \
         gd \
         yaml
