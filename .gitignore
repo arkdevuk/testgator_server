@@ -2,7 +2,6 @@
 /.vscode
 ###> symfony/framework-bundle ###
 /data/JWT.*
-/.env.*
 /.env.dev
 /.env.local
 /.env.local.php
