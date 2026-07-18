@@ -77,6 +77,31 @@ services:
       timeout: 5s
       retries: 15
 
+  # S3-compatible storage for tests (FILE_STORAGE_MODE=bucket in .env.test).
+  # `server -s3` runs master + volume + filer + the S3 gateway in one
+  # process; the gateway listens on 8333, the master's status API (used for
+  # the healthcheck below) on 9333. Without -s3.config, recent SeaweedFS
+  # versions reject writes with a 403 AccessDenied (behavior has shifted
+  # across versions — see https://github.com/seaweedfs/seaweedfs/issues/7205
+  # — so don't rely on it being "open by default"). s3_config.json grants
+  # the test/test credentials from .env.test full access explicitly.
+  testgator-s3-test:
+    image: chrislusf/seaweedfs:latest
+    container_name: testgator-s3-test
+    command: [ "server", "-s3", "-dir=/data", "-ip.bind=0.0.0.0", "-s3.config=/etc/seaweedfs/s3_config.json" ]
+    volumes:
+      - ./docker/seaweedfs/s3_config.json:/etc/seaweedfs/s3_config.json:ro
+    ports:
+      - "8333:8333"
+    tmpfs:
+      - /data   # in-RAM storage — fast, ephemeral, no disk writes
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9333/cluster/status" ]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
 # Enable the volume in production only, and change the paths above
 #volumes:
 #  database_data:

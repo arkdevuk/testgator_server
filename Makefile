@@ -1,11 +1,24 @@
 # Makefile
 
-COMPOSE_FILE := compose.yaml
+COMPOSE_FILE := compose.yml
 SERVICE      := testgator-server
 
-DOCKER_COMPOSE := docker compose
+DOCKER_COMPOSE := docker compose -f $(COMPOSE_FILE)
 
 EXEC := $(DOCKER_COMPOSE) exec $(SERVICE)
+
+# compose.yml's env_file loads .env.local into the container's REAL process
+# environment at container-start time (Caddy needs some of those as real env
+# vars). Symfony's Dotenv (see Dotenv::populate()) will never override a var
+# that's already really set — `-e APP_ENV=test` only fixes APP_ENV itself;
+# every other key your .env.local also defines (DATABASE_URL, AWS_*, ...)
+# keeps winning over .env.test regardless. `--env=test` on bin/console does
+# nothing either — Symfony dropped that console shortcut years ago.
+# The only reliable fix: source .env.test's values as real shell env vars
+# *inside* the exec'd process itself, which overwrites whatever the
+# container inherited, no Dotenv precedence rules involved. `docker compose
+# exec` has no --env-file flag, so this goes through `sh -c`.
+LOAD_TEST_ENV := set -a; . /app/.env.test; set +a;
 
 .PHONY: help build up start stop down restart logs bash sh composer console ps clean test tests
 
@@ -80,12 +93,15 @@ qa:
 
 test:
 	@set -e; \
-	$(DOCKER_COMPOSE) up -d --wait testgator-db-test; \
-	trap '$(DOCKER_COMPOSE) stop testgator-db-test' EXIT; \
-	$(EXEC) php bin/console cache:clear --env=test; \
-	$(EXEC) php bin/console doctrine:database:create --if-not-exists --env=test; \
-	$(EXEC) php bin/console doctrine:schema:update --force --env=test; \
-	$(EXEC) vendor/bin/phpunit --display-all-issues
+	$(DOCKER_COMPOSE) up -d --wait testgator-db-test testgator-s3-test; \
+	trap '$(DOCKER_COMPOSE) stop testgator-db-test testgator-s3-test' EXIT; \
+	$(DOCKER_COMPOSE) exec testgator-s3-test sh -c '\
+		printf "s3.bucket.create -name testgator-test-private\ns3.bucket.create -name testgator-test-public\n" | weed shell \
+	' || true; \
+	$(EXEC) sh -c '$(LOAD_TEST_ENV) php bin/console cache:clear'; \
+	$(EXEC) sh -c '$(LOAD_TEST_ENV) php bin/console doctrine:database:create --if-not-exists'; \
+	$(EXEC) sh -c '$(LOAD_TEST_ENV) php bin/console doctrine:schema:update --force'; \
+	$(EXEC) sh -c '$(LOAD_TEST_ENV) vendor/bin/phpunit --display-all-issues'
 
 tests: test
 

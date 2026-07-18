@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  qa-and-tests:
+    name: QA & tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # The app container's entrypoint (docker/frankenphp/docker-entrypoint.sh)
+      # waits for a reachable DATABASE_URL and runs migrations before the
+      # server is considered up — that's what `make up`'s --wait is waiting
+      # on. compose.yml only bundles a Postgres service for `make test`
+      # (testgator-db-test), not a separate "dev" one, so point the app
+      # container at that for CI, purely so `make up` (APP_ENV=dev) can boot.
+      # This is unrelated to `make test`'s correctness: that target sources
+      # .env.test's values as real shell env vars inside each exec'd process
+      # (see the Makefile's LOAD_TEST_ENV), which is what actually makes it
+      # ignore this file and any other .env.local — Symfony's own Dotenv
+      # does NOT override already-set real env vars, so relying on
+      # APP_ENV=test alone would not have been enough.
+      - name: Point the app container at the test database
+        run: echo 'DATABASE_URL="postgresql://test:test@testgator-db-test:5432/testgator_test?serverVersion=16&charset=utf8"' > .env.local
+
+      - name: Start the test database
+        run: docker compose -f compose.yml up -d --wait testgator-db-test
+
+      - name: Build dev image
+        run: make build
+
+      - name: Start the app container
+        run: make up
+
+      - name: Run QA (rector, php-cs-fixer, phpstan, deptrac)
+        run: make qa
+
+      # `make test` brings up (and, via its EXIT trap, tears down) both
+      # testgator-db-test and testgator-s3-test (SeaweedFS, used as the S3
+      # backend for file-storage tests) itself — nothing extra needed here.
+      - name: Run tests
+        run: make test
+
+      - name: Tear down
+        if: always()
+        run: make down
