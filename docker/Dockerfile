@@ -34,8 +34,7 @@ RUN <<-EOF
         pdo_mysql \
         pdo_pgsql \
         gd \
-        intl \
-        yaml \
+        yaml
 	rm -rf /var/lib/apt/lists/*
 EOF
 
