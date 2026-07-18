@@ -132,7 +132,6 @@ class LoginTesterTest extends AbstractApiTestCase
         $path = tempnam(sys_get_temp_dir(), 'upl_').'.png';
         $this->tmpFiles[] = $path;
         imagepng($img, $path);
-        imagedestroy($img);
 
         return $path;
     }

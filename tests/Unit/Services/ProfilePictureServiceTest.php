@@ -44,8 +44,6 @@ class ProfilePictureServiceTest extends TestCase
             imagejpeg($img, $path, 90);
         }
 
-        imagedestroy($img);
-
         return $path;
     }
 

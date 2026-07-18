@@ -174,7 +174,6 @@ class ProfilePictureTest extends AbstractApiTestCase
         } else {
             imagejpeg($img, $path, 90);
         }
-        imagedestroy($img);
 
         return $path;
     }
