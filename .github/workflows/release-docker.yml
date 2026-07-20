@@ -1,0 +1,74 @@
+name: Release Docker Image
+
+# Only runs on tag pushes. Tests already had to pass to get the code onto
+# main via the required "QA & tests" PR check — no need to re-run them here.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  docker:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # fetch-depth: 0 pulls full history (not just the tagged commit) —
+      # required for the "is this commit on main" ancestry check below.
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The tags: filter above is a broad glob match (GitHub Actions filters
+      # don't support quantifiers like `[0-9]+`), so the exact vX.X / vX.X.X
+      # shape is enforced precisely here instead.
+      - name: Validate tag
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Invalid tag: $GITHUB_REF_NAME"
+            echo "Git tag must look like vX.X or vX.X.X (e.g. v1.2, v1.2.3)."
+            exit 1
+          fi
+
+      # GitHub has no ruleset for "a tag may only point to a commit on
+      # branch X" — tag protection only controls who can create/delete
+      # matching tags, not what commit they point to. This is the actual
+      # enforcement: refuse to build/publish anything unless the tagged
+      # commit is reachable from main, so a tag pushed from a feature
+      # branch (or any commit that never went through a reviewed PR into
+      # main) can never produce a published image.
+      - name: Ensure tag points to a commit on main
+        run: |
+          git fetch origin main --quiet
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Tag $GITHUB_REF_NAME (commit $GITHUB_SHA) is not on main — refusing to release."
+            exit 1
+          fi
+
+      - name: Extract version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # docker/Dockerfile is multi-stage — frankenphp_prod is the final,
+      # production-ready stage (compiled autoloader, no dev dependencies,
+      # runs as www-data). frankenphp_dev (used by CI) is not suitable to ship.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: frankenphp_prod
+          push: true
+          tags: |
+            ghcr.io/arkdevuk/testgator-server:${{ env.VERSION }}
