@@ -78,6 +78,14 @@ jobs:
           restore-keys: |
             composer-
 
+      # On a cache miss, .cache/composer doesn't exist yet — if Docker is the
+      # one to create it (as the bind-mount source), it does so as root,
+      # which then makes actions/cache's post-job save step fail to read it
+      # back as the runner user. Creating it here first keeps it owned by
+      # the runner throughout.
+      - name: Ensure Composer cache directory exists
+        run: mkdir -p ${{ github.workspace }}/.cache/composer
+
       # ./vendor is bind-mounted (empty on a fresh checkout — vendor/ isn't
       # committed), so without this, the entrypoint itself would run a cold
       # `composer install` in the critical path of `make up`'s healthcheck
