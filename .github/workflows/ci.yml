@@ -6,6 +6,17 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Cancel a stale run for the same ref (branch/PR) when a newer push arrives —
+# avoids burning CI minutes on commits that are already superseded.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# actions/checkout is the only thing in this job that talks to GitHub, and it
+# only needs to read the repo — no PR comments, releases, or package pushes.
+permissions:
+  contents: read
+
 jobs:
   qa-and-tests:
     name: QA & tests
@@ -34,8 +45,38 @@ jobs:
       - name: Start the test database
         run: docker compose -f compose.yml up -d --wait testgator-db-test
 
-      - name: Build dev image
-        run: make build
+      # docker compose's own `build` can't use the GHA cache backend (that
+      # needs the docker-container buildx driver), so the dev image is built
+      # directly with buildx here instead of `make build`. It's loaded into
+      # the local Docker daemon under the same tag compose.yml expects
+      # (`testgator-server`), so every later `docker compose`/`make` step
+      # below finds it already built and never triggers its own rebuild.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build dev image (cached)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: frankenphp_dev
+          tags: testgator-server:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # composer install runs at container-start time, not as a Docker image
+      # layer (vendor/ is bind-mounted, deliberately empty in the image — see
+      # compose.yml) — so Docker layer caching above doesn't speed this up.
+      # Caching Composer's own download cache and mounting it into the
+      # container is what actually skips re-downloading packages here.
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: .cache/composer
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            composer-
 
       # ./vendor is bind-mounted (empty on a fresh checkout — vendor/ isn't
       # committed), so without this, the entrypoint itself would run a cold
@@ -45,7 +86,11 @@ jobs:
       # logic entirely, since the overridden command isn't 'frankenphp') keeps
       # that window well inside the healthcheck's start_period.
       - name: Pre-install composer dependencies
-        run: docker compose -f compose.yml run --rm testgator-server composer install --prefer-dist --no-progress --no-interaction
+        run: |
+          docker compose -f compose.yml run --rm \
+            -v ${{ github.workspace }}/.cache/composer:/tmp/composer-cache \
+            -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
+            testgator-server composer install --prefer-dist --no-progress --no-interaction
 
       - name: Start the app container
         run: make up
