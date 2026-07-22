@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Entities;
 
+use App\Entity\TestPlan;
 use App\Entity\User;
 use App\Enum\UserType;
 use App\Services\Communication\MailingService;
@@ -110,6 +111,75 @@ class TesterManager
         $this->em->flush();
 
         return $tester;
+    }
+
+    /**
+     * Notifies every tester enrolled in the plan that it just went live.
+     * Fired when a test plan transitions from draft (or archived) to published.
+     */
+    public function notifyTestPlanPublished(TestPlan $testPlan): void
+    {
+        foreach ($testPlan->getTestersEnrolled() as $tester) {
+            $this->sendTestPlanLifecycleMail(
+                $tester,
+                $testPlan,
+                'test-plan-published.email.twig',
+                'email.test_plan_published.subject',
+            );
+        }
+    }
+
+    /**
+     * Notifies every tester enrolled in the plan that it was closed (moved
+     * out of the published state, to draft or archived).
+     */
+    public function notifyTestPlanClosed(TestPlan $testPlan): void
+    {
+        foreach ($testPlan->getTestersEnrolled() as $tester) {
+            $this->sendTestPlanLifecycleMail(
+                $tester,
+                $testPlan,
+                'test-plan-closed.email.twig',
+                'email.test_plan_closed.subject',
+            );
+        }
+    }
+
+    /**
+     * Notifies a single tester that they've been enrolled into a plan that
+     * is already published (as opposed to being enrolled before it publishes,
+     * which is covered by notifyTestPlanPublished() instead).
+     */
+    public function notifyTesterAssigned(TestPlan $testPlan, User $tester): void
+    {
+        $this->sendTestPlanLifecycleMail(
+            $tester,
+            $testPlan,
+            'test-plan-invitation.email.twig',
+            'email.test_plan_invitation.subject',
+        );
+    }
+
+    private function sendTestPlanLifecycleMail(User $tester, TestPlan $testPlan, string $template, string $subjectKey): void
+    {
+        try {
+            $params = ['%test_plan_name%' => $testPlan->getName()];
+
+            $content = $this->mailingService->render($template, [
+                'test_plan_name' => $testPlan->getName(),
+                'signed_url' => $_ENV['APP_URL'].'/login?mode=tester&email='.$tester->getEmail(),
+            ]);
+
+            $subject = $this->translator->trans($subjectKey, $params);
+
+            $this->mailingService->sendMail(
+                $tester->getEmail(),
+                $subject,
+                $content
+            );
+        } catch (Throwable) {
+            // a failing mail must never abort a test plan state change
+        }
     }
 
     public function getTesterByEmail(string $email): ?User
