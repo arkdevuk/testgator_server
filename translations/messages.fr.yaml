@@ -14,3 +14,22 @@ email:
     intro: "Vous avez été invité·e à participer à une session de test sur TestGator. Vos retours aident à améliorer le produit !"
     button: "Commencer les tests"
     info: "Aucune installation nécessaire. Suivez simplement le plan de test et envoyez vos retours — c’est rapide et facile !"
+  test_plan_published:
+    subject: "Un plan de test auquel vous participez vient d'être publié !"
+    title: "Un plan de test vient d'être publié"
+    greeting: "🚀 C'est l'heure de tester !"
+    intro: "Le plan de test « %test_plan_name% » auquel vous participez vient d'être publié. Vos retours sont attendus !"
+    button: "Commencer les tests"
+    info: "Aucune installation nécessaire. Suivez simplement le plan de test et envoyez vos retours — c’est rapide et facile !"
+  test_plan_closed:
+    subject: "Un plan de test auquel vous participiez a été clôturé"
+    title: "Plan de test clôturé"
+    greeting: "🔒 Ce plan de test est maintenant clôturé"
+    intro: "Le plan de test « %test_plan_name% » auquel vous participiez a été clôturé. Merci pour votre contribution — aucune action n'est requise de votre part."
+  test_plan_invitation:
+    subject: "Vous avez été invité·e à un nouveau plan de test !"
+    title: "Vous avez été invité·e à tester"
+    greeting: "👋 Vous êtes invité·e !"
+    intro: "Vous avez été ajouté·e au plan de test « %test_plan_name% », déjà en ligne. Vos retours aident à améliorer le produit !"
+    button: "Commencer les tests"
+    info: "Aucune installation nécessaire. Suivez simplement le plan de test et envoyez vos retours — c’est rapide et facile !"

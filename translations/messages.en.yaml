@@ -14,3 +14,22 @@ email:
     intro: "You've been invited to join a testing session on TestGator. Your feedback helps improve the product!"
     button: "Start Testing Now"
     info: "No need to install anything. Just follow the testing plan and share your feedback — it's quick and easy!"
+  test_plan_published:
+    subject: "A testing plan you're on just went live!"
+    title: "A Testing Plan Just Published"
+    greeting: "🚀 It's testing time!"
+    intro: "The testing plan \"%test_plan_name%\" you're enrolled in has just been published. Your feedback is ready to be collected!"
+    button: "Start Testing Now"
+    info: "No need to install anything. Just follow the testing plan and share your feedback — it's quick and easy!"
+  test_plan_closed:
+    subject: "A testing plan you're on has been closed"
+    title: "Testing Plan Closed"
+    greeting: "🔒 This testing plan is now closed"
+    intro: "The testing plan \"%test_plan_name%\" you were enrolled in has been closed. Thank you for your contribution — no further action is needed from you."
+  test_plan_invitation:
+    subject: "You've been invited to a new testing plan!"
+    title: "You've Been Invited to Test"
+    greeting: "👋 You're invited!"
+    intro: "You've been added to the testing plan \"%test_plan_name%\", which is already live. Your feedback helps improve the product!"
+    button: "Start Testing Now"
+    info: "No need to install anything. Just follow the testing plan and share your feedback — it's quick and easy!"

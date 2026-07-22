@@ -32,7 +32,19 @@ services:
       timeout: 5s
       retries: 5
     environment:
-      SERVER_NAME: ${SERVER_NAME:-http://localhost}, testgator-server:80
+      # Wide open by default (any Host header, not just localhost) — this
+      # compose file is dev/local tooling only (see README's Local
+      # development section), and a fixed "localhost"-only default made it
+      # unreachable through an ngrok tunnel or from another device on the
+      # LAN without manually exporting overrides first. SERVER_NAME (Caddy's
+      # site address) and TRUSTED_HOSTS (Symfony's Host-header allowlist)
+      # both need loosening together — Caddy won't even hand a request to
+      # PHP if the Host doesn't match SERVER_NAME, and Symfony 400s on an
+      # untrusted Host even if Caddy lets it through. Still overridable via
+      # your shell env or a project-root .env (not the same file as
+      # Symfony's own .env/.env.local) if you want to lock a deployment down
+      # to a specific host.
+      SERVER_NAME: ${SERVER_NAME:-:80}, testgator-server:80
       # Mercure is disabled for now (see docker/frankenphp/Caddyfile) — nothing
       # publishes/subscribes to it yet. Uncomment these and set a real
       # CADDY_MERCURE_JWT_SECRET when re-enabling it; never rely on the
@@ -41,7 +53,7 @@ services:
       # MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       # Symfony configuration run 'composer require symfony/orm-pack'
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
-      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^${SERVER_NAME:-nbonnici\.info|localhost}|php$$}
+      TRUSTED_HOSTS: ${TRUSTED_HOSTS:-^.*$$}
       # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
       # MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
       # MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-http://${SERVER_NAME:-localhost}/.well-known/mercure}

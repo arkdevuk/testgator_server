@@ -59,19 +59,26 @@ final readonly class TestPlanStateProcessor implements ProcessorInterface
             $this->dispatcher->dispatch(new TestPlanPublishedAppEvent($result));
         }
 
-        // Dispatch TestPlanClosedAppEvent when state transitions to archived.
+        // Dispatch TestPlanClosedAppEvent when the plan moves OUT of published
+        // (to draft or archived) — that transition is what "closed" means to
+        // an enrolled tester, regardless of which state it lands on.
         if (
             !$operation instanceof Post
-            && $result->getState() === TestPlanState::ARCHIVED
-            && $previousState !== TestPlanState::ARCHIVED
+            && $previousState === TestPlanState::PUBLISHED
+            && $result->getState() !== TestPlanState::PUBLISHED
         ) {
             $this->dispatcher->dispatch(new TestPlanClosedAppEvent($result));
         }
 
-        // Dispatch TesterAssignedAppEvent for each newly added tester,
-        // but only when the plan is published.
+        // Dispatch TesterAssignedAppEvent for each newly added tester, but only
+        // when they're enrolled into a plan that was ALREADY published. Testers
+        // added as part of the draft/archived -> published transition itself
+        // get the "plan published" notification instead (dispatched above via
+        // TestPlanPublishedAppEvent, which notifies every enrolled tester), so
+        // they must not also receive a separate "you've been invited" email.
         if (
             !$operation instanceof Post
+            && $previousState === TestPlanState::PUBLISHED
             && $result->getState() === TestPlanState::PUBLISHED
         ) {
             foreach ($result->getTestersEnrolled() as $tester) {
